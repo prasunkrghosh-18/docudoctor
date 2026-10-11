@@ -6,9 +6,10 @@
 
 <p align="center">
   <a href="https://github.com/prasunkrghosh-18/docudoctor/actions"><img src="https://github.com/prasunkrghosh-18/docudoctor/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+  <img src="./doc-health.svg" alt="Doc Health">
   <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python Versions">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-  <img src="https://img.shields.io/badge/code%20style-Google-purple" alt="Google Style">
+  <img src="https://img.shields.io/badge/code%20style-Google%20%7C%20NumPy%20%7C%20Sphinx-purple" alt="Docstring Styles">
   <img src="https://img.shields.io/badge/UI-Rich%20TUI-cyan" alt="Rich TUI">
 </p>
 
@@ -47,17 +48,33 @@ docudoctor scan ./src
 docudoctor scan ./src --fail-under 80
 ```
 
-### 2. Auto-Generate Missing Docstrings
+### 2. Auto-Generate Missing Docstrings (Google, NumPy, Sphinx)
 
 ```bash
 # Preview proposed docstring fixes (dry-run)
 docudoctor fix ./src/utils.py --dry-run
 
-# Interactively apply docstrings
+# Interactively apply docstrings (Google format by default)
 docudoctor fix ./src/utils.py
+
+# Generate in NumPy or Sphinx format
+docudoctor fix ./src/utils.py --style numpy
+docudoctor fix ./src/utils.py --style sphinx
 
 # Auto-generate using a local LLM via Ollama
 docudoctor fix ./src/utils.py --ai --model llama3:latest
+```
+
+### 3. Generate SVG Health Badge for README
+
+```bash
+# Generate a vector SVG badge (shields.io style)
+docudoctor badge ./src --output doc-health.svg
+```
+
+Embed it in your `README.md`:
+```markdown
+![Doc Health](./doc-health.svg)
 ```
 
 ---
