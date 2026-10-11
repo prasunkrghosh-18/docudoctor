@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import List, Tuple
 
-from docudoctor.doctor.generator import generate_docstring
+from docudoctor.doctor.generator import DocstringStyle, generate_docstring
 from docudoctor.models import FunctionMeta
 
 
@@ -34,6 +34,7 @@ def _detect_body_indent(lines: List[str], header_end_idx: int, default_indent: s
 def patch_file_docstrings(
     file_path: Path,
     functions: List[FunctionMeta],
+    style: DocstringStyle = DocstringStyle.GOOGLE,
     use_ai: bool = False,
     ai_model: str = "llama3:latest",
 ) -> Tuple[str, str, int]:
@@ -61,7 +62,9 @@ def patch_file_docstrings(
         header_end_idx = _find_header_end_line(lines, def_start_idx)
         indent = _detect_body_indent(lines, header_end_idx)
 
-        new_doc = generate_docstring(func, use_ai=use_ai, ai_model=ai_model, indent=indent)
+        new_doc = generate_docstring(
+            func, style=style, use_ai=use_ai, ai_model=ai_model, indent=indent
+        )
         doc_lines = new_doc.splitlines()
 
         # Insert after header_end_idx

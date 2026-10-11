@@ -1,22 +1,30 @@
-"""Docstring generation engine supporting both AI (Ollama/LLMs) and offline AST templates."""
+"""Docstring generation engine supporting Google, NumPy, Sphinx styles and AI."""
 
-import json
+from enum import Enum
 from typing import Optional
 import httpx
 
 from docudoctor.models import FunctionMeta
 
 
-def generate_template_docstring(func: FunctionMeta, indent: str = "    ") -> str:
-    """Generate a clean Google-style docstring using AST function metadata."""
-    # Convert function_name_with_underscores into a readable sentence
+class DocstringStyle(str, Enum):
+    """Supported documentation conventions."""
+    GOOGLE = "google"
+    NUMPY = "numpy"
+    SPHINX = "sphinx"
+
+
+def _clean_summary(func: FunctionMeta) -> str:
+    """Generate a readable summary line for a function."""
     readable_name = func.name.replace("_", " ").strip().capitalize()
     if func.name == "__init__":
-        summary = "Initialize a new instance."
-    else:
-        summary = f"{readable_name}."
+        return "Initialize a new instance."
+    return f"{readable_name}."
 
-    lines = [f'"""{summary}']
+
+def generate_google_docstring(func: FunctionMeta, indent: str = "    ") -> str:
+    """Generate a clean Google-style docstring."""
+    lines = [f'"""{_clean_summary(func)}']
 
     if func.args:
         lines.append("")
@@ -32,21 +40,62 @@ def generate_template_docstring(func: FunctionMeta, indent: str = "    ") -> str
         lines.append(f"    {func.return_type}: The result of {func.name.replace('_', ' ')}.")
 
     lines.append('"""')
+    return "\n".join(f"{indent}{line}" if line else "" for line in lines)
 
-    # Apply indentation to all lines
-    indented = "\n".join(f"{indent}{line}" if line else "" for line in lines)
-    return indented
+
+def generate_numpy_docstring(func: FunctionMeta, indent: str = "    ") -> str:
+    """Generate a clean NumPy-style docstring."""
+    lines = [f'"""{_clean_summary(func)}']
+
+    if func.args:
+        lines.append("")
+        lines.append("Parameters")
+        lines.append("----------")
+        for arg in func.args:
+            type_part = f" : {arg.type_annotation}" if arg.type_annotation else ""
+            lines.append(f"{arg.name}{type_part}")
+            default_str = f" (default: {arg.default_repr})" if arg.default_repr else ""
+            lines.append(f"    The {arg.name.replace('_', ' ')} value.{default_str}")
+
+    if func.return_type and func.return_type != "None":
+        lines.append("")
+        lines.append("Returns")
+        lines.append("-------")
+        lines.append(f"{func.return_type}")
+        lines.append(f"    The computed {func.name.replace('_', ' ')} result.")
+
+    lines.append('"""')
+    return "\n".join(f"{indent}{line}" if line else "" for line in lines)
+
+
+def generate_sphinx_docstring(func: FunctionMeta, indent: str = "    ") -> str:
+    """Generate a clean Sphinx / reStructuredText docstring."""
+    lines = [f'"""{_clean_summary(func)}', ""]
+
+    for arg in func.args:
+        default_str = f" (default: {arg.default_repr})" if arg.default_repr else ""
+        lines.append(f":param {arg.name}: The {arg.name.replace('_', ' ')} parameter.{default_str}")
+        if arg.type_annotation:
+            lines.append(f":type {arg.name}: {arg.type_annotation}")
+
+    if func.return_type and func.return_type != "None":
+        lines.append(f":return: The result of {func.name.replace('_', ' ')}.")
+        lines.append(f":rtype: {func.return_type}")
+
+    lines.append('"""')
+    return "\n".join(f"{indent}{line}" if line else "" for line in lines)
 
 
 def query_ollama_for_docstring(
     func: FunctionMeta,
+    style: DocstringStyle = DocstringStyle.GOOGLE,
     model: str = "llama3:latest",
     ollama_url: str = "http://localhost:11434/api/generate",
     indent: str = "    ",
 ) -> Optional[str]:
-    """Attempt to ask a local Ollama instance to generate a high-quality docstring."""
+    """Ask a local Ollama instance to generate a docstring adhering to chosen style."""
     prompt = f"""You are a professional Python documentation expert.
-Generate ONLY a Google-style Python docstring (enclosed in triple quotes) for the following Python function.
+Generate strictly a {style.value.upper()}-style Python docstring (enclosed in triple quotes) for the following Python function.
 Do NOT include the function signature, markdown code fences, or any other explanations.
 Return strictly the triple-quoted docstring.
 
@@ -62,7 +111,6 @@ Function source code:
         )
         if response.status_code == 200:
             result = response.json().get("response", "").strip()
-            # Clean possible markdown ticks
             if result.startswith("```python"):
                 result = result[len("```python"):].strip()
             if result.startswith("```"):
@@ -72,9 +120,8 @@ Function source code:
 
             if result.startswith('"""') and result.endswith('"""'):
                 doc_lines = result.splitlines()
-                return "\n".join(f"{indent}{l}" if l else "" for l in doc_lines)
+                return "\n".join(f"{indent}{line}" if line else "" for line in doc_lines)
     except Exception:
-        # Graceful fallback if Ollama isn't active or times out
         pass
 
     return None
@@ -82,14 +129,20 @@ Function source code:
 
 def generate_docstring(
     func: FunctionMeta,
+    style: DocstringStyle = DocstringStyle.GOOGLE,
     use_ai: bool = False,
     ai_model: str = "llama3:latest",
     indent: str = "    ",
 ) -> str:
-    """Entrypoint to generate docstring via AI or fallback template."""
+    """Generate docstring using selected style, with optional AI generation."""
     if use_ai:
-        ai_result = query_ollama_for_docstring(func, model=ai_model, indent=indent)
+        ai_result = query_ollama_for_docstring(func, style=style, model=ai_model, indent=indent)
         if ai_result:
             return ai_result
 
-    return generate_template_docstring(func, indent=indent)
+    if style == DocstringStyle.NUMPY:
+        return generate_numpy_docstring(func, indent=indent)
+    elif style == DocstringStyle.SPHINX:
+        return generate_sphinx_docstring(func, indent=indent)
+    else:
+        return generate_google_docstring(func, indent=indent)

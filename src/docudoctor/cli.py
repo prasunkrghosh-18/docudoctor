@@ -3,9 +3,12 @@
 from pathlib import Path
 from typing import Optional
 import typer
+from rich.panel import Panel
 from rich.prompt import Confirm
 
 from docudoctor import __version__
+from docudoctor.badge import save_project_badge
+from docudoctor.doctor.generator import DocstringStyle
 from docudoctor.doctor.patcher import patch_file_docstrings
 from docudoctor.scanner import scan_file, scan_path
 from docudoctor.ui.console import console, print_banner, print_step
@@ -14,7 +17,7 @@ from docudoctor.ui.diff_view import display_code_diff
 
 app = typer.Typer(
     name="docudoctor",
-    help="⚕ DocuDoctor: AST-powered Python documentation auditor & auto-docstring engine.",
+    help="DocuDoctor: AST-powered Python documentation auditor & auto-docstring engine.",
     add_completion=False,
 )
 
@@ -74,6 +77,12 @@ def fix(
         help="Python file or folder to automatically document.",
         exists=True,
     ),
+    style: DocstringStyle = typer.Option(
+        DocstringStyle.GOOGLE,
+        "--style",
+        "-s",
+        help="Docstring convention to generate: google, numpy, or sphinx.",
+    ),
     use_ai: bool = typer.Option(
         False,
         "--ai",
@@ -97,7 +106,7 @@ def fix(
         help="Automatically apply changes without interactive confirmation.",
     ),
 ) -> None:
-    """Interactively generate and insert missing Google-style docstrings into your code."""
+    """Interactively generate and insert missing docstrings (Google, NumPy, or Sphinx format)."""
     print_banner()
 
     target = path.resolve()
@@ -117,6 +126,8 @@ def fix(
     total_patched_functions = 0
     total_patched_files = 0
 
+    console.print(f"[dim]Using docstring style:[/dim] [bold cyan]{style.value}[/bold cyan]")
+
     for file_p in py_files:
         _, functions = scan_file(file_p)
         missing_docs = [f for f in functions if not f.docstring or not f.docstring.strip()]
@@ -127,7 +138,7 @@ def fix(
         print_step(f"Diagnosing [bold white]{file_p.name}[/bold white] ({len(missing_docs)} undocumented functions)")
 
         orig, patched, count = patch_file_docstrings(
-            file_p, functions, use_ai=use_ai, ai_model=model
+            file_p, functions, style=style, use_ai=use_ai, ai_model=model
         )
 
         if count == 0:
@@ -157,6 +168,41 @@ def fix(
         f"[bold cyan]Done![/bold cyan] Patched [bold green]{total_patched_functions}[/bold green] "
         f"functions across [bold green]{total_patched_files}[/bold green] files."
     )
+
+
+@app.command()
+def badge(
+    path: Path = typer.Argument(
+        Path("."),
+        help="Directory or file to audit for badge score.",
+        exists=True,
+    ),
+    output: Path = typer.Option(
+        Path("doc-health.svg"),
+        "--output",
+        "-o",
+        help="Path where the SVG badge should be saved.",
+    ),
+) -> None:
+    """Generate a vector SVG documentation health badge to embed in README."""
+    print_banner()
+
+    target = path.resolve()
+    print_step(f"Calculating health score for: [bold magenta]{target}[/bold magenta]")
+
+    report, _ = scan_path(target)
+    out_file = output.resolve()
+    save_project_badge(report, out_file)
+
+    snippet = f"![Doc Health](./{output.name})"
+    panel_msg = (
+        f"[bold green]✔ SVG Badge generated successfully![/bold green]\n\n"
+        f"• Saved to: [bold white]{out_file}[/bold white]\n"
+        f"• Health Score: [bold cyan]{report.overall_score}%[/bold cyan]\n\n"
+        f"[dim]Paste this markdown into your README.md:[/dim]\n"
+        f"[bold yellow]{snippet}[/bold yellow]"
+    )
+    console.print(Panel(panel_msg, title="[bold cyan]Badge Export[/bold cyan]", border_style="green"))
 
 
 @app.command()
