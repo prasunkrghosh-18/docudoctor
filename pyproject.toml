@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docudoctor"
+version = "0.1.0"
+description = "AST-powered Python documentation auditor, health scorecard, and AI auto-docstring engine."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "DocuDoctor Team"}
+]
+dependencies = [
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "httpx>=0.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+docudoctor = "docudoctor.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
