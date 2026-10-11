@@ -77,6 +77,21 @@ Embed it in your `README.md`:
 ![Doc Health](./doc-health.svg)
 ```
 
+### 4. Launch Interactive Web Dashboard
+
+Prefer a browser UI over the terminal? Launch the web dashboard:
+
+```bash
+docudoctor web
+# Automatically opens http://127.0.0.1:8000 with interactive editor, score gauges & live diff
+```
+
+### 5. Deploy to Cloud (Free 1-Click)
+
+DocuDoctor is pre-configured with `render.yaml`, `Dockerfile`, and `requirements.txt`:
+* **Render.com**: Connect your GitHub repo $\to$ New Web Service $\to$ Render automatically reads `render.yaml`.
+* **Railway / Fly.io / Docker**: Run `docker build -t docudoctor . && docker run -p 8000:8000 docudoctor`.
+
 ---
 
 ## 📸 Terminal UI Preview

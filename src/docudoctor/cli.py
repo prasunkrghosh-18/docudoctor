@@ -206,6 +206,30 @@ def badge(
 
 
 @app.command()
+def web(
+    host: str = typer.Option("127.0.0.1", "--host", "-h", help="Bind host address."),
+    port: int = typer.Option(8000, "--port", "-p", help="Bind port number."),
+    reload: bool = typer.Option(False, "--reload", help="Enable auto-reload for development."),
+    open_browser: bool = typer.Option(True, "--open/--no-open", help="Automatically open browser tab."),
+) -> None:
+    """Launch the interactive DocuDoctor Web Application dashboard."""
+    import webbrowser
+    import uvicorn
+
+    print_banner()
+    console.print(f"[bold cyan]Starting DocuDoctor Web Dashboard...[/bold cyan]")
+    console.print(f"URL: [bold green]http://{host}:{port}[/bold green]\n")
+
+    if open_browser:
+        try:
+            webbrowser.open(f"http://{host}:{port}")
+        except Exception:
+            pass
+
+    uvicorn.run("docudoctor.web:app", host=host, port=port, reload=reload)
+
+
+@app.command()
 def version() -> None:
     """Show the current DocuDoctor version."""
     print_banner()

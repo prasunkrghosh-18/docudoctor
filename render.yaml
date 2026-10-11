@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: docudoctor
+    env: python
+    buildCommand: "pip install -r requirements.txt && pip install -e ."
+    startCommand: "uvicorn docudoctor.web:app --host 0.0.0.0 --port $PORT"
+    plan: free
+    autoDeploy: true
