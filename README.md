@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/prasunkrghosh-18/docudoctor/actions"><img src="https://github.com/prasunkrghosh-18/docudoctor/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python Versions">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/code%20style-Google-purple" alt="Google Style">
@@ -31,7 +32,7 @@
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/docudoctor.git
+git clone https://github.com/prasunkrghosh-18/docudoctor.git
 cd docudoctor
 pip install -e .
 ```
