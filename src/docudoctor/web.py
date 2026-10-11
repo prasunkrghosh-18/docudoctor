@@ -129,7 +129,6 @@ def api_fix(req: FixRequest):
 
     patched_code = "\n".join(lines) + ("\n" if req.code.endswith("\n") else "")
 
-    # Calculate unified diff
     orig_lines = req.code.splitlines(keepends=True)
     mod_lines = patched_code.splitlines(keepends=True)
     diff = list(
@@ -160,14 +159,13 @@ HTML_CONTENT = """<!DOCTYPE html>
   <title>DocuDoctor - AST Code Health & Docstring Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #e2e8f0; }
     pre, code, textarea { font-family: 'Fira Code', monospace; }
     .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
     .glow-cyan { box-shadow: 0 0 25px rgba(6, 182, 212, 0.25); }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .toast-anim { animation: toastIn 0.25s ease-out; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -196,19 +194,26 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     <!-- Top Action Bar -->
     <div class="flex flex-wrap items-center justify-between gap-4 glass p-4 rounded-xl">
-      <div class="flex items-center space-x-3">
-        <button onclick="loadSample()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-md border border-gray-700 transition">
-          📂 Load Sample Code
+      <!-- Left: Preset Selector & Load Button -->
+      <div class="flex items-center space-x-2">
+        <select id="presetSelect" class="bg-gray-900 border border-gray-700 text-xs rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-cyan-500">
+          <option value="messy">⚠️ Sample: Undocumented & Untyped Code</option>
+          <option value="ml">📊 Sample: ML / Data Science Pipeline</option>
+          <option value="clean">✨ Sample: 100% Documented Clean Code</option>
+        </select>
+        <button onclick="loadPreset()" class="bg-gray-800 hover:bg-cyan-600 hover:text-white text-gray-200 text-xs font-medium px-3.5 py-2 rounded-lg border border-gray-700 hover:border-cyan-500 transition flex items-center space-x-1.5">
+          <span>📂</span><span>Load Code</span>
         </button>
-        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2 py-1 transition">
+        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition">
           Clear
         </button>
       </div>
 
-      <div class="flex items-center space-x-4">
+      <!-- Right: Docstring Style & Actions -->
+      <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2">
-          <label class="text-xs text-gray-400">Docstring Style:</label>
-          <select id="docStyle" class="bg-gray-900 border border-gray-700 text-xs rounded-md px-2.5 py-1.5 text-cyan-400 focus:outline-none focus:border-cyan-500">
+          <label class="text-xs text-gray-400">Doc Style:</label>
+          <select id="docStyle" class="bg-gray-900 border border-gray-700 text-xs rounded-lg px-2.5 py-2 text-cyan-400 focus:outline-none focus:border-cyan-500">
             <option value="google">Google Style</option>
             <option value="numpy">NumPy Style</option>
             <option value="sphinx">Sphinx Style</option>
@@ -229,7 +234,7 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
 
       <!-- Left: Code Editor -->
-      <div class="lg:col-span-7 flex flex-col glass rounded-xl overflow-hidden min-h-[460px]">
+      <div class="lg:col-span-7 flex flex-col glass rounded-xl overflow-hidden min-h-[480px]">
         <div class="bg-gray-900/90 border-b border-gray-800 px-4 py-2.5 flex items-center justify-between">
           <div class="flex items-center space-x-2">
             <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
@@ -237,9 +242,9 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
             <span class="text-xs text-gray-400 ml-2 font-mono">python_source.py</span>
           </div>
-          <span class="text-xs text-gray-500">Type or paste Python code</span>
+          <span class="text-xs text-gray-500">AST Parser Ready</span>
         </div>
-        <textarea id="codeEditor" class="w-full flex-1 bg-gray-950/70 text-gray-100 p-4 text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900" spellcheck="false" placeholder="# Paste your Python code here..."></textarea>
+        <textarea id="codeEditor" class="w-full flex-1 bg-gray-950/70 text-gray-100 p-4 text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900 transition-all duration-300" spellcheck="false" placeholder="# Paste your Python code here..."></textarea>
       </div>
 
       <!-- Right: Health Dashboard & Issues -->
@@ -291,7 +296,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <span id="issueCountBadge" class="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">0 issues</span>
           </div>
           <div id="issuesContainer" class="p-3 overflow-y-auto space-y-2 flex-1 text-xs">
-            <p class="text-gray-500 text-center py-8">Click <b>Audit Code</b> to inspect your Python code.</p>
+            <p class="text-gray-500 text-center py-8">Select a preset or paste code, then click <b>Audit Code</b>.</p>
           </div>
         </div>
 
@@ -302,8 +307,8 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div id="diffSection" class="glass rounded-xl overflow-hidden hidden">
       <div class="bg-gray-900 px-4 py-3 border-b border-gray-800 flex items-center justify-between">
         <span class="text-xs font-semibold text-cyan-400">Proposed Patch & Diff Preview</span>
-        <button onclick="copyPatchedCode()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded transition">
-          📋 Copy Patched Code
+        <button onclick="copyPatchedCode()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-md border border-gray-700 transition flex items-center space-x-1">
+          <span>📋</span><span>Copy Patched Code</span>
         </button>
       </div>
       <div class="p-4 bg-gray-950 overflow-x-auto">
@@ -313,8 +318,12 @@ HTML_CONTENT = """<!DOCTYPE html>
 
   </main>
 
+  <!-- Toast Notification Box -->
+  <div id="toastBox" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
   <script>
-    const SAMPLE_CODE = `class PaymentGateway:
+    const SAMPLES = {
+      messy: `class PaymentGateway:
     def __init__(self, api_key: str, sandbox: bool = False):
         self.api_key = api_key
         self.sandbox = sandbox
@@ -328,12 +337,77 @@ def calculate_discount(price: float, discount_percent: float):
     return round(price - discount, 2)
 
 async def send_invoice(user_id: int, invoice_id: str, tags=[]):
-    return True`;
+    return True`,
+
+      ml: `class FeaturePipeline:
+    def __init__(self, normalize: bool = True):
+        self.normalize = normalize
+
+    def fit_transform(self, x_matrix, y_target, fill_na=0):
+        # Transform incoming feature arrays
+        processed = x_matrix * 1.5
+        return processed
+
+def compute_f1_score(precision: float, recall: float) -> float:
+    if precision + recall == 0:
+        return 0.0
+    return 2 * (precision * recall) / (precision + recall)`,
+
+      clean: `def calculate_bmi(weight_kg: float, height_m: float) -> float:
+    \\\"\\\"\\\"Calculate the Body Mass Index (BMI).
+
+    Args:
+        weight_kg (float): Subject body weight in kilograms.
+        height_m (float): Subject height in meters.
+
+    Returns:
+        float: Computed BMI rounded to one decimal place.
+    \\\"\\\"\\\"
+    return round(weight_kg / (height_m ** 2), 1)
+
+class GeometryHelper:
+    \\\"\\\"\\\"Helper utilities for 2D geometrical calculations.\\\"\\\"\\\"
+
+    def circle_area(self, radius: float) -> float:
+        \\\"\\\"\\\"Calculate the area of a circle.
+
+        Args:
+            radius (float): Circle radius.
+
+        Returns:
+            float: Total circular surface area.
+        \\\"\\\"\\\"
+        import math
+        return math.pi * (radius ** 2)`
+    };
 
     let lastPatchedCode = "";
 
-    function loadSample() {
-      document.getElementById('codeEditor').value = SAMPLE_CODE;
+    function showToast(message, color = "cyan") {
+      const box = document.getElementById('toastBox');
+      const toast = document.createElement('div');
+      toast.className = `toast-anim px-4 py-2.5 rounded-lg text-xs font-medium text-white shadow-xl flex items-center space-x-2 border border-gray-700 bg-gray-900`;
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-${color}-400"></span><span>${message}</span>`;
+      box.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function flashEditor() {
+      const editor = document.getElementById('codeEditor');
+      editor.classList.add('ring-2', 'ring-cyan-500');
+      setTimeout(() => editor.classList.remove('ring-2', 'ring-cyan-500'), 500);
+    }
+
+    function loadPreset() {
+      const key = document.getElementById('presetSelect').value;
+      const code = SAMPLES[key] || SAMPLES.messy;
+      document.getElementById('codeEditor').value = code;
+      flashEditor();
+      showToast("📂 Sample code loaded into editor!", "cyan");
       auditCode();
     }
 
@@ -347,13 +421,17 @@ async def send_invoice(user_id: int, invoice_id: str, tags=[]):
       document.getElementById('statDocs').innerText = "--";
       document.getElementById('statTyped').innerText = "--";
       document.getElementById('issueCountBadge').innerText = "0 issues";
-      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-8">Click <b>Audit Code</b> to inspect your Python code.</p>`;
+      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-8">Select a preset or paste code, then click <b>Audit Code</b>.</p>`;
       document.getElementById('diffSection').classList.add('hidden');
+      showToast("Editor cleared.", "gray");
     }
 
     async function auditCode() {
       const code = document.getElementById('codeEditor').value;
-      if (!code.trim()) return alert("Please enter Python code first!");
+      if (!code.trim()) {
+        showToast("Please enter or load Python code first!", "amber");
+        return;
+      }
 
       try {
         const res = await fetch('/api/audit', {
@@ -362,11 +440,15 @@ async def send_invoice(user_id: int, invoice_id: str, tags=[]):
           body: JSON.stringify({ code })
         });
         const data = await res.json();
-        if (!res.ok) return alert(data.detail || "Audit failed.");
+        if (!res.ok) {
+          showToast(data.detail || "Audit syntax error.", "red");
+          return;
+        }
 
         renderDashboard(data);
+        showToast(`Audit complete: Score ${data.score}% (Grade ${data.grade})`, "emerald");
       } catch (err) {
-        alert("Error auditing code: " + err.message);
+        showToast("Error connecting to server: " + err.message, "red");
       }
     }
 
@@ -390,7 +472,7 @@ async def send_invoice(user_id: int, invoice_id: str, tags=[]):
 
       const container = document.getElementById('issuesContainer');
       if (data.issues.length === 0) {
-        container.innerHTML = `<div class="p-3 text-center text-emerald-400 font-medium">✨ All functions are fully documented and typed!</div>`;
+        container.innerHTML = `<div class="p-4 text-center text-emerald-400 font-medium">✨ All functions are fully documented and typed!</div>`;
         return;
       }
 
@@ -413,7 +495,10 @@ async def send_invoice(user_id: int, invoice_id: str, tags=[]):
 
     async function fixCode() {
       const code = document.getElementById('codeEditor').value;
-      if (!code.trim()) return alert("Please enter Python code first!");
+      if (!code.trim()) {
+        showToast("Please enter or load Python code first!", "amber");
+        return;
+      }
       const style = document.getElementById('docStyle').value;
 
       try {
@@ -423,10 +508,14 @@ async def send_invoice(user_id: int, invoice_id: str, tags=[]):
           body: JSON.stringify({ code, style })
         });
         const data = await res.json();
-        if (!res.ok) return alert(data.detail || "Fix failed.");
+        if (!res.ok) {
+          showToast(data.detail || "Fix failed.", "red");
+          return;
+        }
 
         lastPatchedCode = data.patched_code;
         document.getElementById('codeEditor').value = data.patched_code;
+        flashEditor();
 
         // Render Diff
         const diffSection = document.getElementById('diffSection');
@@ -440,17 +529,19 @@ async def send_invoice(user_id: int, invoice_id: str, tags=[]):
           return `<span class="text-gray-500">${escapeHtml(line)}</span>`;
         }).join('\\n');
 
+        showToast(`✨ Added ${data.patched_count} docstrings (${style})!`, "fuchsia");
+
         // Re-audit with updated code
         auditCode();
       } catch (err) {
-        alert("Error generating docstrings: " + err.message);
+        showToast("Error generating docstrings: " + err.message, "red");
       }
     }
 
     function copyPatchedCode() {
-      if (!lastPatchedCode) return alert("No patched code available.");
+      if (!lastPatchedCode) return showToast("No patched code available.", "amber");
       navigator.clipboard.writeText(lastPatchedCode).then(() => {
-        alert("Copied patched Python code to clipboard!");
+        showToast("📋 Copied patched Python code to clipboard!", "emerald");
       });
     }
 
@@ -458,8 +549,10 @@ async def send_invoice(user_id: int, invoice_id: str, tags=[]):
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Auto-load sample on first visit
-    window.addEventListener('DOMContentLoaded', loadSample);
+    // Auto-load preset on first visit
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPreset();
+    });
   </script>
 </body>
 </html>
