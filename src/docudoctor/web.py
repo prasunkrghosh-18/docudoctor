@@ -23,6 +23,21 @@ class AuditRequest(BaseModel):
 class FixRequest(BaseModel):
     code: str
     style: DocstringStyle = DocstringStyle.GOOGLE
+    target_function: Optional[str] = None
+    target_line: Optional[int] = None
+
+
+def _recommendation_for_issue(issue_type: str, entity_name: str) -> str:
+    """Provide specific actionable recommendation for each detected defect."""
+    if issue_type == "Missing Docstring":
+        return f"Add a standard docstring explaining what '{entity_name}' does, its arguments, and returns."
+    elif issue_type == "Missing Return Type":
+        return f"Add a return type hint to '{entity_name}' (e.g. -> str, -> int, or -> None)."
+    elif issue_type == "Missing Arg Type":
+        return "Add explicit type annotations for parameters to improve IDE autocomplete and type safety."
+    elif issue_type == "Mutable Default Arg":
+        return "Use None as the default value (e.g. arg=None) and initialize the list/dict inside the function body."
+    return "Refactor code to adhere to PEP-8 and PEP-257 standards."
 
 
 def _audit_code_string(source_code: str):
@@ -50,7 +65,7 @@ def _audit_code_string(source_code: str):
         doc_ratio = (doc_funcs + doc_classes) / total_items
         type_ratio = (typed_returns / total_funcs) if total_funcs > 0 else 1.0
         weighted = (doc_ratio * 65.0) + (type_ratio * 35.0)
-        penalties = sum(3.0 for issue in visitor.issues if issue.issue_type == "Mutable Default Arg")
+        penalties = sum(3.0 for issue in visitor.issues if str(issue.issue_type) == "Mutable Default Arg")
         score = max(0.0, min(100.0, weighted - penalties))
 
     if score >= 90:
@@ -64,17 +79,23 @@ def _audit_code_string(source_code: str):
     else:
         grade, label, color = "F", "CRITICAL", "#ef4444"
 
-    issues_data = [
-        {
-            "line": i.line_no,
-            "entity": i.entity_name,
-            "entity_type": i.entity_type,
-            "issue_type": i.issue_type.value if hasattr(i.issue_type, "value") else str(i.issue_type),
-            "severity": i.severity.value if hasattr(i.severity, "value") else str(i.severity),
-            "message": i.message,
-        }
-        for i in visitor.issues
-    ]
+    issues_data = []
+    for i in visitor.issues:
+        iss_type_str = i.issue_type.value if hasattr(i.issue_type, "value") else str(i.issue_type)
+        sev_str = i.severity.value if hasattr(i.severity, "value") else str(i.severity)
+        can_fix = (iss_type_str == "Missing Docstring" and i.entity_type in ("function", "method"))
+        issues_data.append(
+            {
+                "line": i.line_no,
+                "entity": i.entity_name,
+                "entity_type": i.entity_type,
+                "issue_type": iss_type_str,
+                "severity": sev_str,
+                "message": i.message,
+                "recommendation": _recommendation_for_issue(iss_type_str, i.entity_name),
+                "can_fix": can_fix,
+            }
+        )
 
     return {
         "score": round(score, 1),
@@ -105,12 +126,19 @@ def api_fix(req: FixRequest):
     functions = data.get("functions_meta", [])
 
     candidates = [f for f in functions if not f.docstring or not f.docstring.strip()]
+
+    # If target function or line is specified, only fix that specific one
+    if req.target_function:
+        candidates = [f for f in candidates if f.name == req.target_function]
+    elif req.target_line:
+        candidates = [f for f in candidates if f.line_start <= req.target_line <= f.line_end]
+
     if not candidates:
         return {
             "patched_code": req.code,
             "diff": "",
             "patched_count": 0,
-            "message": "Code is already fully documented!",
+            "message": "No undocumented functions matching request.",
         }
 
     lines = req.code.splitlines()
@@ -141,7 +169,7 @@ def api_fix(req: FixRequest):
         "patched_code": patched_code,
         "diff": "".join(diff),
         "patched_count": len(candidates),
-        "message": f"Successfully injected {len(candidates)} docstrings ({req.style.value} style)!",
+        "message": f"Successfully injected {len(candidates)} docstring(s) ({req.style.value} style)!",
     }
 
 
@@ -194,22 +222,19 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     <!-- Top Action Bar -->
     <div class="flex flex-wrap items-center justify-between gap-4 glass p-4 rounded-xl">
-      <!-- Left: Preset Selector & Load Button -->
-      <div class="flex items-center space-x-2">
-        <select id="presetSelect" class="bg-gray-900 border border-gray-700 text-xs rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-cyan-500">
-          <option value="messy">⚠️ Sample: Undocumented & Untyped Code</option>
-          <option value="ml">📊 Sample: ML / Data Science Pipeline</option>
-          <option value="clean">✨ Sample: 100% Documented Clean Code</option>
-        </select>
-        <button onclick="loadPreset()" class="bg-gray-800 hover:bg-cyan-600 hover:text-white text-gray-200 text-xs font-medium px-3.5 py-2 rounded-lg border border-gray-700 hover:border-cyan-500 transition flex items-center space-x-1.5">
-          <span>📂</span><span>Load Code</span>
+      <!-- File Input & Upload -->
+      <div class="flex items-center space-x-3">
+        <input type="file" id="fileInput" accept=".py" class="hidden" onchange="handleFileUpload(event)">
+        <button onclick="document.getElementById('fileInput').click()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium px-3.5 py-2 rounded-lg border border-gray-700 hover:border-gray-600 transition flex items-center space-x-1.5">
+          <span>📁</span><span>Upload .py File</span>
         </button>
+
         <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition">
           Clear
         </button>
       </div>
 
-      <!-- Right: Docstring Style & Actions -->
+      <!-- Right: Style Selector & Global Actions -->
       <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2">
           <label class="text-xs text-gray-400">Doc Style:</label>
@@ -225,7 +250,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         </button>
 
         <button onclick="fixCode()" class="bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-medium text-xs px-4 py-2 rounded-lg transition flex items-center space-x-1.5 shadow-lg shadow-fuchsia-950">
-          <span>✨</span><span>Auto-Generate Docs</span>
+          <span>✨</span><span>Fix All Docstrings</span>
         </button>
       </div>
     </div>
@@ -234,17 +259,17 @@ HTML_CONTENT = """<!DOCTYPE html>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
 
       <!-- Left: Code Editor -->
-      <div class="lg:col-span-7 flex flex-col glass rounded-xl overflow-hidden min-h-[480px]">
+      <div class="lg:col-span-7 flex flex-col glass rounded-xl overflow-hidden min-h-[500px]">
         <div class="bg-gray-900/90 border-b border-gray-800 px-4 py-2.5 flex items-center justify-between">
           <div class="flex items-center space-x-2">
             <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
             <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
             <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
-            <span class="text-xs text-gray-400 ml-2 font-mono">python_source.py</span>
+            <span id="fileNameDisplay" class="text-xs text-gray-400 ml-2 font-mono">untitled.py</span>
           </div>
-          <span class="text-xs text-gray-500">AST Parser Ready</span>
+          <span class="text-xs text-gray-500">Paste code or drag & drop a .py file</span>
         </div>
-        <textarea id="codeEditor" class="w-full flex-1 bg-gray-950/70 text-gray-100 p-4 text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900 transition-all duration-300" spellcheck="false" placeholder="# Paste your Python code here..."></textarea>
+        <textarea id="codeEditor" class="w-full flex-1 bg-gray-950/70 text-gray-100 p-4 text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900 transition-all duration-300" spellcheck="false" placeholder="# Paste your Python code here, or click 'Upload .py File' above..."></textarea>
       </div>
 
       <!-- Right: Health Dashboard & Issues -->
@@ -259,7 +284,7 @@ HTML_CONTENT = """<!DOCTYPE html>
               <span id="scoreMax" class="text-sm text-gray-500">/ 100</span>
             </div>
             <div id="gradeBadge" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-800 text-gray-300">
-              Awaiting Audit
+              Awaiting Code
             </div>
           </div>
 
@@ -290,13 +315,20 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <!-- Issue List -->
-        <div class="glass rounded-xl flex-1 flex flex-col overflow-hidden max-h-[320px]">
-          <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between bg-gray-900/60">
-            <span class="text-xs font-semibold text-gray-300">Detected Issues</span>
+        <div class="glass rounded-xl flex-1 flex flex-col overflow-hidden max-h-[380px]">
+          <!-- Filter Tabs -->
+          <div class="px-4 py-2.5 border-b border-gray-800 flex items-center justify-between bg-gray-900/60">
+            <div class="flex items-center space-x-2">
+              <button onclick="setFilter('all')" id="filterAll" class="text-[11px] font-semibold text-cyan-400 bg-gray-800/80 px-2.5 py-1 rounded-md transition">All (<span id="countAll">0</span>)</button>
+              <button onclick="setFilter('error')" id="filterError" class="text-[11px] font-semibold text-gray-400 hover:text-red-400 px-2 py-1 rounded-md transition">Errors (<span id="countError">0</span>)</button>
+              <button onclick="setFilter('warning')" id="filterWarning" class="text-[11px] font-semibold text-gray-400 hover:text-amber-400 px-2 py-1 rounded-md transition">Warnings (<span id="countWarning">0</span>)</button>
+            </div>
             <span id="issueCountBadge" class="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">0 issues</span>
           </div>
-          <div id="issuesContainer" class="p-3 overflow-y-auto space-y-2 flex-1 text-xs">
-            <p class="text-gray-500 text-center py-8">Select a preset or paste code, then click <b>Audit Code</b>.</p>
+
+          <!-- Issues Container -->
+          <div id="issuesContainer" class="p-3 overflow-y-auto space-y-2.5 flex-1 text-xs">
+            <p class="text-gray-500 text-center py-12">No code analyzed yet.<br>Paste your code or upload a file, then click <b>Audit Code</b>.</p>
           </div>
         </div>
 
@@ -322,65 +354,8 @@ HTML_CONTENT = """<!DOCTYPE html>
   <div id="toastBox" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
   <script>
-    const SAMPLES = {
-      messy: `class PaymentGateway:
-    def __init__(self, api_key: str, sandbox: bool = False):
-        self.api_key = api_key
-        self.sandbox = sandbox
-
-    def charge(self, amount, currency="USD", metadata=[]):
-        total = amount * 1.05
-        return {"status": "success", "charged": total}
-
-def calculate_discount(price: float, discount_percent: float):
-    discount = price * (discount_percent / 100.0)
-    return round(price - discount, 2)
-
-async def send_invoice(user_id: int, invoice_id: str, tags=[]):
-    return True`,
-
-      ml: `class FeaturePipeline:
-    def __init__(self, normalize: bool = True):
-        self.normalize = normalize
-
-    def fit_transform(self, x_matrix, y_target, fill_na=0):
-        # Transform incoming feature arrays
-        processed = x_matrix * 1.5
-        return processed
-
-def compute_f1_score(precision: float, recall: float) -> float:
-    if precision + recall == 0:
-        return 0.0
-    return 2 * (precision * recall) / (precision + recall)`,
-
-      clean: `def calculate_bmi(weight_kg: float, height_m: float) -> float:
-    \\\"\\\"\\\"Calculate the Body Mass Index (BMI).
-
-    Args:
-        weight_kg (float): Subject body weight in kilograms.
-        height_m (float): Subject height in meters.
-
-    Returns:
-        float: Computed BMI rounded to one decimal place.
-    \\\"\\\"\\\"
-    return round(weight_kg / (height_m ** 2), 1)
-
-class GeometryHelper:
-    \\\"\\\"\\\"Helper utilities for 2D geometrical calculations.\\\"\\\"\\\"
-
-    def circle_area(self, radius: float) -> float:
-        \\\"\\\"\\\"Calculate the area of a circle.
-
-        Args:
-            radius (float): Circle radius.
-
-        Returns:
-            float: Total circular surface area.
-        \\\"\\\"\\\"
-        import math
-        return math.pi * (radius ** 2)`
-    };
-
+    let currentIssues = [];
+    let activeFilter = 'all';
     let lastPatchedCode = "";
 
     function showToast(message, color = "cyan") {
@@ -402,34 +377,79 @@ class GeometryHelper:
       setTimeout(() => editor.classList.remove('ring-2', 'ring-cyan-500'), 500);
     }
 
-    function loadPreset() {
-      const key = document.getElementById('presetSelect').value;
-      const code = SAMPLES[key] || SAMPLES.messy;
-      document.getElementById('codeEditor').value = code;
-      flashEditor();
-      showToast("📂 Sample code loaded into editor!", "cyan");
-      auditCode();
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!file.name.endsWith('.py')) {
+        showToast("Please upload a Python (.py) file.", "amber");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('codeEditor').value = e.target.result;
+        document.getElementById('fileNameDisplay').innerText = file.name;
+        flashEditor();
+        showToast(`Loaded ${file.name}`, "emerald");
+        auditCode();
+      };
+      reader.readAsText(file);
     }
+
+    // Setup Drag and Drop onto Editor
+    window.addEventListener('DOMContentLoaded', () => {
+      const editor = document.getElementById('codeEditor');
+      editor.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        editor.classList.add('ring-2', 'ring-cyan-400');
+      });
+      editor.addEventListener('dragleave', () => {
+        editor.classList.remove('ring-2', 'ring-cyan-400');
+      });
+      editor.addEventListener('drop', (e) => {
+        e.preventDefault();
+        editor.classList.remove('ring-2', 'ring-cyan-400');
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.py')) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            editor.value = ev.target.result;
+            document.getElementById('fileNameDisplay').innerText = file.name;
+            flashEditor();
+            showToast(`Loaded ${file.name}`, "emerald");
+            auditCode();
+          };
+          reader.readAsText(file);
+        } else {
+          showToast("Please drop a Python (.py) file.", "amber");
+        }
+      });
+    });
 
     function clearEditor() {
       document.getElementById('codeEditor').value = "";
+      document.getElementById('fileNameDisplay').innerText = "untitled.py";
       document.getElementById('scoreVal').innerText = "--";
       document.getElementById('gradeLetter').innerText = "?";
-      document.getElementById('gradeBadge').innerText = "Awaiting Audit";
+      document.getElementById('gradeBadge').innerText = "Awaiting Code";
       document.getElementById('circleProgress').setAttribute('stroke-dasharray', '0, 100');
       document.getElementById('statFuncs').innerText = "--";
       document.getElementById('statDocs').innerText = "--";
       document.getElementById('statTyped').innerText = "--";
+      document.getElementById('countAll').innerText = "0";
+      document.getElementById('countError').innerText = "0";
+      document.getElementById('countWarning').innerText = "0";
       document.getElementById('issueCountBadge').innerText = "0 issues";
-      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-8">Select a preset or paste code, then click <b>Audit Code</b>.</p>`;
+      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-12">No code analyzed yet.<br>Paste your code or upload a file, then click <b>Audit Code</b>.</p>`;
       document.getElementById('diffSection').classList.add('hidden');
+      currentIssues = [];
       showToast("Editor cleared.", "gray");
     }
 
     async function auditCode() {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) {
-        showToast("Please enter or load Python code first!", "amber");
+        showToast("Please paste or upload Python code first!", "amber");
         return;
       }
 
@@ -445,7 +465,9 @@ class GeometryHelper:
           return;
         }
 
+        currentIssues = data.issues || [];
         renderDashboard(data);
+        renderIssues();
         showToast(`Audit complete: Score ${data.score}% (Grade ${data.grade})`, "emerald");
       } catch (err) {
         showToast("Error connecting to server: " + err.message, "red");
@@ -470,33 +492,119 @@ class GeometryHelper:
       document.getElementById('statTyped').innerText = `${data.typed_returns}/${data.total_functions}`;
       document.getElementById('issueCountBadge').innerText = `${data.issues.length} issues`;
 
+      // Update Filter Counts
+      document.getElementById('countAll').innerText = data.issues.length;
+      document.getElementById('countError').innerText = data.issues.filter(i => i.severity === 'ERROR').length;
+      document.getElementById('countWarning').innerText = data.issues.filter(i => i.severity === 'WARNING').length;
+    }
+
+    function setFilter(filter) {
+      activeFilter = filter;
+      const btnAll = document.getElementById('filterAll');
+      const btnErr = document.getElementById('filterError');
+      const btnWrn = document.getElementById('filterWarning');
+
+      btnAll.className = filter === 'all' ? 'text-[11px] font-semibold text-cyan-400 bg-gray-800/80 px-2.5 py-1 rounded-md' : 'text-[11px] font-semibold text-gray-400 hover:text-white px-2 py-1 rounded-md';
+      btnErr.className = filter === 'error' ? 'text-[11px] font-semibold text-red-400 bg-red-950/40 px-2.5 py-1 rounded-md' : 'text-[11px] font-semibold text-gray-400 hover:text-red-400 px-2 py-1 rounded-md';
+      btnWrn.className = filter === 'warning' ? 'text-[11px] font-semibold text-amber-400 bg-amber-950/40 px-2.5 py-1 rounded-md' : 'text-[11px] font-semibold text-gray-400 hover:text-amber-400 px-2 py-1 rounded-md';
+
+      renderIssues();
+    }
+
+    function renderIssues() {
       const container = document.getElementById('issuesContainer');
-      if (data.issues.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-emerald-400 font-medium">✨ All functions are fully documented and typed!</div>`;
+      let filtered = currentIssues;
+
+      if (activeFilter === 'error') {
+        filtered = currentIssues.filter(i => i.severity === 'ERROR');
+      } else if (activeFilter === 'warning') {
+        filtered = currentIssues.filter(i => i.severity === 'WARNING');
+      }
+
+      if (filtered.length === 0) {
+        if (currentIssues.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-emerald-400 font-medium">✨ All functions and classes are fully documented and typed!</div>`;
+        } else {
+          container.innerHTML = `<div class="p-6 text-center text-gray-400">No issues matching this filter.</div>`;
+        }
         return;
       }
 
-      container.innerHTML = data.issues.map(iss => {
-        let badgeColor = iss.severity === "ERROR" ? "bg-red-900/60 text-red-300" : (iss.severity === "WARNING" ? "bg-amber-900/60 text-amber-300" : "bg-cyan-900/60 text-cyan-300");
+      container.innerHTML = filtered.map(iss => {
+        let badgeColor = iss.severity === "ERROR" ? "bg-red-900/60 text-red-300 border-red-800" : (iss.severity === "WARNING" ? "bg-amber-900/60 text-amber-300 border-amber-800" : "bg-cyan-900/60 text-cyan-300 border-cyan-800");
+
+        let fixBtnHtml = "";
+        if (iss.can_fix) {
+          fixBtnHtml = `
+            <button onclick="fixSpecific('${iss.entity}')" class="mt-2 text-[11px] font-medium bg-fuchsia-950 hover:bg-fuchsia-800 text-fuchsia-300 border border-fuchsia-700/60 px-2.5 py-1 rounded flex items-center space-x-1 transition shadow-sm">
+              <span>⚡</span><span>Fix Docstring</span>
+            </button>
+          `;
+        }
+
         return `
-          <div class="p-2.5 rounded bg-gray-900/70 border border-gray-800 flex items-start space-x-2">
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeColor}">L${iss.line}</span>
-            <div class="flex-1">
-              <div class="flex items-center space-x-1 font-semibold text-gray-200">
-                <span class="text-cyan-400">${iss.entity}</span>
-                <span class="text-gray-500 font-normal">(${iss.entity_type})</span>
+          <div class="p-3 rounded-lg bg-gray-900/80 border border-gray-800 flex flex-col space-y-1.5 hover:border-gray-700 transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">Line ${iss.line}</span>
+                <span class="text-cyan-400 font-semibold">${iss.entity}</span>
+                <span class="text-gray-500 text-[11px]">(${iss.entity_type})</span>
               </div>
-              <p class="text-gray-400 mt-0.5">${iss.message}</p>
+              <span class="text-[10px] uppercase font-bold text-gray-500">${iss.issue_type}</span>
             </div>
+
+            <p class="text-gray-300 text-xs">${iss.message}</p>
+            <p class="text-gray-500 text-[11px] italic">💡 Recommendation: ${iss.recommendation}</p>
+
+            ${fixBtnHtml}
           </div>
         `;
       }).join('');
     }
 
+    async function fixSpecific(functionName) {
+      const code = document.getElementById('codeEditor').value;
+      const style = document.getElementById('docStyle').value;
+
+      try {
+        const res = await fetch('/api/fix', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, style, target_function: functionName })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(data.detail || "Fix failed.", "red");
+          return;
+        }
+
+        lastPatchedCode = data.patched_code;
+        document.getElementById('codeEditor').value = data.patched_code;
+        flashEditor();
+
+        // Render Diff
+        const diffSection = document.getElementById('diffSection');
+        diffSection.classList.remove('hidden');
+
+        const diffEl = document.getElementById('diffOutput');
+        diffEl.innerHTML = data.diff.split('\\n').map(line => {
+          if (line.startsWith('+')) return `<span class="text-emerald-400">${escapeHtml(line)}</span>`;
+          if (line.startsWith('-')) return `<span class="text-red-400">${escapeHtml(line)}</span>`;
+          if (line.startsWith('@')) return `<span class="text-cyan-400">${escapeHtml(line)}</span>`;
+          return `<span class="text-gray-500">${escapeHtml(line)}</span>`;
+        }).join('\\n');
+
+        showToast(`✨ Generated docstring for '${functionName}'!`, "fuchsia");
+        auditCode();
+      } catch (err) {
+        showToast("Error fixing function: " + err.message, "red");
+      }
+    }
+
     async function fixCode() {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) {
-        showToast("Please enter or load Python code first!", "amber");
+        showToast("Please enter or upload Python code first!", "amber");
         return;
       }
       const style = document.getElementById('docStyle').value;
@@ -530,8 +638,6 @@ class GeometryHelper:
         }).join('\\n');
 
         showToast(`✨ Added ${data.patched_count} docstrings (${style})!`, "fuchsia");
-
-        // Re-audit with updated code
         auditCode();
       } catch (err) {
         showToast("Error generating docstrings: " + err.message, "red");
@@ -548,11 +654,6 @@ class GeometryHelper:
     function escapeHtml(text) {
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
-
-    // Auto-load preset on first visit
-    window.addEventListener('DOMContentLoaded', () => {
-      loadPreset();
-    });
   </script>
 </body>
 </html>
