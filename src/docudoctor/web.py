@@ -263,85 +263,37 @@ HTML_CONTENT = """<!DOCTYPE html>
   <main class="max-w-7xl mx-auto px-6 py-6 flex-1 w-full flex flex-col gap-6">
 
     <!-- Unified Command & Control Bar -->
-    <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+    <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-4 relative z-40">
       
-      <!-- Left: Language Dropdown Selector (Clean & Uncluttered) -->
-      <div class="flex items-center space-x-3">
-        <div class="relative">
-          <button id="langDropdownBtn" onclick="toggleLangDropdown(event)" class="bg-dark-850 hover:bg-dark-800 text-gray-200 px-4 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/40 transition-all flex items-center space-x-3 shadow-sm group">
-            <span class="text-xs text-gray-400 font-medium">Language:</span>
-            <div class="flex items-center space-x-2">
-              <span id="activeLangIcon" class="text-base">🐍</span>
-              <span id="activeLangText" class="text-xs font-bold text-white tracking-wide">Python</span>
-              <span id="activeLangExt" class="text-[10px] px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 font-mono font-bold border border-cyan-700/50">.py</span>
-            </div>
-            <svg class="w-4 h-4 text-gray-400 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-          </button>
-
-          <!-- Dropdown Popover Menu -->
-          <div id="langDropdownMenu" style="display: none;" class="absolute left-0 top-full mt-2 w-72 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-2 z-50 flex-col space-y-1 animate-toast">
-            <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-white/[0.06]">
-              Choose Source Language
-            </div>
-            
-            <button onclick="selectLanguage('python')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
-              <div class="flex items-center space-x-3">
-                <span class="text-xl">🐍</span>
-                <div>
-                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">Python</p>
-                  <p class="text-[10px] text-gray-400">Google, NumPy, Sphinx docstrings</p>
-                </div>
-              </div>
-              <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-800/40">.py</span>
-            </button>
-
-            <button onclick="selectLanguage('c')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
-              <div class="flex items-center space-x-3">
-                <span class="text-xl">⚡</span>
-                <div>
-                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">C Language</p>
-                  <p class="text-[10px] text-gray-400">Doxygen @brief, @param, @return</p>
-                </div>
-              </div>
-              <span class="text-[10px] font-mono text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded-md border border-blue-800/40">.c / .h</span>
-            </button>
-
-            <button onclick="selectLanguage('cpp')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
-              <div class="flex items-center space-x-3">
-                <span class="text-xl">🚀</span>
-                <div>
-                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">C++</p>
-                  <p class="text-[10px] text-gray-400">Doxygen Classes, Methods & Structs</p>
-                </div>
-              </div>
-              <span class="text-[10px] font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded-md border border-indigo-800/40">.cpp / .hpp</span>
-            </button>
-
-            <button onclick="selectLanguage('java')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
-              <div class="flex items-center space-x-3">
-                <span class="text-xl">☕</span>
-                <div>
-                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">Java</p>
-                  <p class="text-[10px] text-gray-400">Standard Javadoc documentation</p>
-                </div>
-              </div>
-              <span class="text-[10px] font-mono text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-800/40">.java</span>
-            </button>
+      <!-- Left: Choose Language & File Controls -->
+      <div class="flex flex-wrap items-center gap-3">
+        
+        <!-- Premium Choose Language Dropdown Selector -->
+        <div class="flex items-center space-x-2.5 bg-dark-900/95 hover:bg-dark-850 border border-white/10 hover:border-cyan-500/50 rounded-xl px-3.5 py-2 transition-all shadow-inner group">
+          <span class="text-lg select-none" id="langEmojiIcon">🐍</span>
+          <div class="flex flex-col">
+            <span class="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold leading-none">Choose Language</span>
+            <select id="languageSelect" onchange="onLanguageChange(this.value, true)" class="bg-transparent text-xs font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer mt-0.5 pr-2">
+              <option value="python" class="bg-dark-900 text-white font-medium py-1">🐍 Python (.py)</option>
+              <option value="c" class="bg-dark-900 text-white font-medium py-1">⚡ C Language (.c / .h)</option>
+              <option value="cpp" class="bg-dark-900 text-white font-medium py-1">🚀 C++ (.cpp / .hpp)</option>
+              <option value="java" class="bg-dark-900 text-white font-medium py-1">☕ Java (.java)</option>
+            </select>
           </div>
         </div>
 
         <!-- Hidden input for file upload -->
         <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
 
-        <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5 shadow-sm">
+        <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
           <span>📁</span><span>Upload File</span>
         </button>
 
-        <button onclick="loadSampleForLanguage()" class="bg-dark-850 hover:bg-dark-800 text-cyan-400 hover:text-cyan-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/30 transition flex items-center space-x-1.5 shadow-sm">
+        <button onclick="loadSampleForLanguage()" class="bg-dark-850 hover:bg-dark-800 text-cyan-400 hover:text-cyan-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/30 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
           <span>📂</span><span>Load Sample</span>
         </button>
 
-        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition font-medium">
+        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition font-medium cursor-pointer">
           Clear
         </button>
       </div>
@@ -593,23 +545,12 @@ public class PaymentService {
       java: { ext: 'java', icon: '☕', label: 'Java', name: 'PaymentService.java', styles: ['Standard Javadoc'], styleValues: ['javadoc'] }
     };
 
-    function toggleLangDropdown(event) {
-      if (event) event.stopPropagation();
-      const menu = document.getElementById('langDropdownMenu');
-      closeProfileDropdown();
-      const isVisible = menu.style.display === 'flex';
-      menu.style.display = isVisible ? 'none' : 'flex';
-    }
-
-    function closeLangDropdown() {
-      const menu = document.getElementById('langDropdownMenu');
-      if (menu) menu.style.display = 'none';
-    }
-
     function toggleProfileDropdown(event) {
-      if (event) event.stopPropagation();
+      if (event) {
+        event.stopPropagation();
+      }
       const menu = document.getElementById('profileDropdown');
-      closeLangDropdown();
+      if (!menu) return;
       const isVisible = menu.style.display === 'block';
       menu.style.display = isVisible ? 'none' : 'block';
     }
@@ -619,14 +560,8 @@ public class PaymentService {
       if (menu) menu.style.display = 'none';
     }
 
-    // Global outside click handler
+    // Global outside click handler for profile popover
     document.addEventListener('click', (e) => {
-      const langMenu = document.getElementById('langDropdownMenu');
-      const langBtn = document.getElementById('langDropdownBtn');
-      if (langMenu && !langMenu.contains(e.target) && (!langBtn || !langBtn.contains(e.target))) {
-        langMenu.style.display = 'none';
-      }
-
       const profMenu = document.getElementById('profileDropdown');
       const profBtn = document.getElementById('profileDropdownBtn');
       if (profMenu && !profMenu.contains(e.target) && (!profBtn || !profBtn.contains(e.target))) {
@@ -634,36 +569,49 @@ public class PaymentService {
       }
     });
 
-    function selectLanguage(lang) {
+    function onLanguageChange(lang, autoLoad = true) {
       currentLanguage = lang;
       const conf = LANG_CONFIG[lang] || LANG_CONFIG.python;
 
-      // Update dropdown button header
-      document.getElementById('activeLangIcon').innerText = conf.icon;
-      document.getElementById('activeLangText').innerText = conf.label;
-      document.getElementById('activeLangExt').innerText = '.' + conf.ext;
+      // Update active emoji icon
+      const iconEl = document.getElementById('langEmojiIcon');
+      if (iconEl) iconEl.innerText = conf.icon;
 
-      // Update mock editor tab
-      document.getElementById('fileIcon').innerText = conf.icon;
-      document.getElementById('fileNameDisplay').innerText = conf.name;
+      // Sync the select element value
+      const sel = document.getElementById('languageSelect');
+      if (sel && sel.value !== lang) sel.value = lang;
 
-      // Update Styles Dropdown
+      // Update mock editor tab filename and icon
+      const fileIcon = document.getElementById('fileIcon');
+      if (fileIcon) fileIcon.innerText = conf.icon;
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      if (fileNameDisplay) fileNameDisplay.innerText = conf.name;
+
+      // Update Styles Dropdown options
       const styleSelect = document.getElementById('docStyle');
-      styleSelect.innerHTML = conf.styles.map((name, i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${name}</option>`).join('');
+      if (styleSelect) {
+        styleSelect.innerHTML = conf.styles.map((name, i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${name}</option>`).join('');
+      }
 
-      // Hide dropdown menu
-      closeLangDropdown();
+      // Automatically load the code sample for this language if requested
+      if (autoLoad) {
+        const sampleCode = SAMPLES[lang] || SAMPLES.python;
+        document.getElementById('codeEditor').value = sampleCode;
+        updateGutter();
+        flashEditor();
+        auditCode();
+      }
 
       showToast(`Selected ${conf.icon} ${conf.label}`, "cyan");
     }
 
+    // Alias for compatibility
+    function selectLanguage(lang, autoLoad = true) {
+      onLanguageChange(lang, autoLoad);
+    }
+
     function loadSampleForLanguage() {
-      const code = SAMPLES[currentLanguage] || SAMPLES.python;
-      document.getElementById('codeEditor').value = code;
-      updateGutter();
-      flashEditor();
-      showToast(`Loaded sample ${currentLanguage.toUpperCase()} code!`, "cyan");
-      auditCode();
+      onLanguageChange(currentLanguage, true);
     }
 
     function handleFileUpload(event) {
@@ -676,7 +624,7 @@ public class PaymentService {
       else if (filename.endsWith('.cpp') || filename.endsWith('.hpp') || filename.endsWith('.cc')) detectedLang = 'cpp';
       else if (filename.endsWith('.c') || filename.endsWith('.h')) detectedLang = 'c';
 
-      selectLanguage(detectedLang);
+      onLanguageChange(detectedLang, false);
       document.getElementById('fileNameDisplay').innerText = filename;
 
       const reader = new FileReader();
@@ -987,8 +935,7 @@ public class PaymentService {
 
     // Initialize on load
     window.addEventListener('DOMContentLoaded', () => {
-      selectLanguage('python');
-      updateGutter();
+      onLanguageChange('python', true);
     });
   </script>
 </body>
