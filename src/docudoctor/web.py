@@ -196,16 +196,65 @@ HTML_CONTENT = """<!DOCTYPE html>
       </div>
 
       <!-- Right Header Actions -->
-      <div class="flex items-center space-x-3.5">
+      <div class="flex items-center space-x-3">
         <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Engine Online</span>
         </div>
 
-        <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="flex items-center space-x-2 text-xs font-semibold text-gray-200 hover:text-white bg-dark-850 hover:bg-dark-800 px-3.5 py-2 rounded-xl border border-white/10 hover:border-white/20 transition-all shadow-sm">
+        <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="hidden sm:flex items-center space-x-2 text-xs font-semibold text-gray-200 hover:text-white bg-dark-850 hover:bg-dark-800 px-3.5 py-2 rounded-xl border border-white/10 hover:border-white/20 transition-all shadow-sm">
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           <span>GitHub</span>
         </a>
+
+        <!-- Rightmost User Avatar & Profile Reveal Dropdown -->
+        <div class="relative">
+          <button id="profileDropdownBtn" onclick="toggleProfileDropdown(event)" title="Developer Profile" class="flex items-center focus:outline-none ring-2 ring-white/10 hover:ring-cyan-400 p-0.5 rounded-full transition-all group shadow-sm bg-dark-850">
+            <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-8 h-8 rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
+          </button>
+
+          <!-- Profile Reveal Popover -->
+          <div id="profileDropdown" style="display: none;" class="absolute right-0 top-full mt-2.5 w-80 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-4 z-50 animate-toast">
+            <!-- User Header -->
+            <div class="flex items-center space-x-3 pb-3 border-b border-white/[0.08]">
+              <div class="relative">
+                <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-12 h-12 rounded-full border-2 border-cyan-400/70 shadow-md shadow-cyan-500/20 object-cover bg-dark-850" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
+                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-dark-900" title="Active"></span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-extrabold text-sm text-white truncate">Prasun Kumar Ghosh</h4>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/60">AUTHOR</span>
+                </div>
+                <p class="text-xs text-gray-400 font-mono">@prasunkrghosh-18</p>
+                <p class="text-[11px] text-gray-500 mt-0.5">Creator of DocuDoctor</p>
+              </div>
+            </div>
+
+            <!-- Bio Details -->
+            <div class="py-3 text-xs text-gray-300 leading-relaxed border-b border-white/[0.08]">
+              <p>Creator & Lead Developer of <span class="text-cyan-400 font-semibold">DocuDoctor</span>. Building intelligent multi-language docstring synthesis and automated code health tools.</p>
+              <div class="mt-2.5 flex flex-wrap gap-1.5">
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-cyan-300 border border-cyan-800/30">Python</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-blue-300 border border-blue-800/30">C</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-indigo-300 border border-indigo-800/30">C++</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-amber-300 border border-amber-800/30">Java</span>
+              </div>
+            </div>
+
+            <!-- Profile Actions -->
+            <div class="pt-3 flex flex-col space-y-2">
+              <a href="https://github.com/prasunkrghosh-18" target="_blank" class="w-full text-center text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 py-2 rounded-xl transition shadow-md shadow-cyan-950/60 flex items-center justify-center space-x-1.5">
+                <span>View GitHub Profile</span>
+                <span>↗</span>
+              </a>
+              <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="w-full text-center text-xs font-semibold text-gray-300 hover:text-white bg-dark-850 hover:bg-dark-800 py-2 rounded-xl border border-white/10 transition flex items-center justify-center space-x-1.5">
+                <span>⭐ Star DocuDoctor Repo</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </header>
@@ -230,7 +279,7 @@ HTML_CONTENT = """<!DOCTYPE html>
           </button>
 
           <!-- Dropdown Popover Menu -->
-          <div id="langDropdownMenu" class="hidden absolute left-0 top-full mt-2 w-72 bg-dark-900/95 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-2 z-50 flex flex-col space-y-1">
+          <div id="langDropdownMenu" style="display: none;" class="absolute left-0 top-full mt-2 w-72 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-2 z-50 flex-col space-y-1 animate-toast">
             <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-white/[0.06]">
               Choose Source Language
             </div>
@@ -362,39 +411,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Right Column: Developer Profile, Scorecard & Issue Inspector (5 cols) -->
+      <!-- Right Column: Health Scorecard & Issue Inspector (5 cols) -->
       <div class="lg:col-span-5 flex flex-col gap-5">
-
-        <!-- 🌟 Creator / Developer Profile Card (Requested by User) -->
-        <div class="glass-panel p-4 rounded-2xl relative overflow-hidden border border-white/10 shadow-lg">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3.5">
-              <div class="relative">
-                <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-12 h-12 rounded-full border-2 border-cyan-400/60 shadow-md shadow-cyan-500/20 object-cover bg-dark-850" onerror="this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
-                <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-dark-900" title="Active Developer"></span>
-              </div>
-              <div>
-                <div class="flex items-center space-x-2">
-                  <h3 class="font-extrabold text-sm text-white tracking-tight">Prasun Kumar Ghosh</h3>
-                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/60">AUTHOR</span>
-                </div>
-                <p class="text-xs text-gray-400 font-mono">@prasunkrghosh-18</p>
-                <p class="text-[11px] text-gray-500 mt-0.5">Creator of DocuDoctor • Lead Developer</p>
-              </div>
-            </div>
-
-            <!-- Profile Action Links -->
-            <div class="flex flex-col space-y-1.5 items-end">
-              <a href="https://github.com/prasunkrghosh-18" target="_blank" class="text-[11px] font-semibold text-cyan-300 hover:text-white bg-dark-850 hover:bg-dark-800 px-3 py-1.5 rounded-lg border border-cyan-500/30 hover:border-cyan-400 transition flex items-center space-x-1.5 shadow-sm">
-                <span>GitHub Profile</span>
-                <span>↗</span>
-              </a>
-              <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="text-[10px] text-gray-400 hover:text-gray-200 transition">
-                ⭐ Star Repo
-              </a>
-            </div>
-          </div>
-        </div>
 
         <!-- Scorecard Card -->
         <div class="glass-panel p-5 rounded-2xl flex items-center justify-between relative overflow-hidden">
@@ -578,15 +596,41 @@ public class PaymentService {
     function toggleLangDropdown(event) {
       if (event) event.stopPropagation();
       const menu = document.getElementById('langDropdownMenu');
-      menu.classList.toggle('hidden');
+      closeProfileDropdown();
+      const isVisible = menu.style.display === 'flex';
+      menu.style.display = isVisible ? 'none' : 'flex';
     }
 
-    // Close dropdown on outside click
-    document.addEventListener('click', (e) => {
+    function closeLangDropdown() {
       const menu = document.getElementById('langDropdownMenu');
-      const btn = document.getElementById('langDropdownBtn');
-      if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.classList.add('hidden');
+      if (menu) menu.style.display = 'none';
+    }
+
+    function toggleProfileDropdown(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById('profileDropdown');
+      closeLangDropdown();
+      const isVisible = menu.style.display === 'block';
+      menu.style.display = isVisible ? 'none' : 'block';
+    }
+
+    function closeProfileDropdown() {
+      const menu = document.getElementById('profileDropdown');
+      if (menu) menu.style.display = 'none';
+    }
+
+    // Global outside click handler
+    document.addEventListener('click', (e) => {
+      const langMenu = document.getElementById('langDropdownMenu');
+      const langBtn = document.getElementById('langDropdownBtn');
+      if (langMenu && !langMenu.contains(e.target) && (!langBtn || !langBtn.contains(e.target))) {
+        langMenu.style.display = 'none';
+      }
+
+      const profMenu = document.getElementById('profileDropdown');
+      const profBtn = document.getElementById('profileDropdownBtn');
+      if (profMenu && !profMenu.contains(e.target) && (!profBtn || !profBtn.contains(e.target))) {
+        profMenu.style.display = 'none';
       }
     });
 
@@ -608,7 +652,7 @@ public class PaymentService {
       styleSelect.innerHTML = conf.styles.map((name, i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${name}</option>`).join('');
 
       // Hide dropdown menu
-      document.getElementById('langDropdownMenu').classList.add('hidden');
+      closeLangDropdown();
 
       showToast(`Selected ${conf.icon} ${conf.label}`, "cyan");
     }
