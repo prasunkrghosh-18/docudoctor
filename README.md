@@ -1,16 +1,17 @@
 # ⚕ DocuDoctor
 
 <p align="center">
-  <b>AST-powered Python documentation auditor, health scorecard, and AI auto-docstring engine.</b>
+  <b>Multi-language code documentation auditor, health scorecard, and auto-docstring engine.</b><br>
+  <i>Supporting Python, C, C++, and Java with an Ultra-Premium Developer Dashboard.</i>
 </p>
 
 <p align="center">
   <a href="https://github.com/prasunkrghosh-18/docudoctor/actions"><img src="https://github.com/prasunkrghosh-18/docudoctor/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <img src="./doc-health.svg" alt="Doc Health">
-  <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python Versions">
+  <img src="https://img.shields.io/badge/languages-Python%20%7C%20C%20%7C%20C%2B%2B%20%7C%20Java-blue" alt="Languages">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-  <img src="https://img.shields.io/badge/code%20style-Google%20%7C%20NumPy%20%7C%20Sphinx-purple" alt="Docstring Styles">
-  <img src="https://img.shields.io/badge/UI-Rich%20TUI-cyan" alt="Rich TUI">
+  <img src="https://img.shields.io/badge/docstrings-Google%20%7C%20NumPy%20%7C%20Doxygen%20%7C%20Javadoc-purple" alt="Docstring Styles">
+  <img src="https://img.shields.io/badge/UI-Ultra--Premium%20Web%20%2B%20TUI-cyan" alt="UI Edition">
 </p>
 
 ---

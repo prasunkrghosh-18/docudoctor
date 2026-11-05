@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docudoctor"
-version = "0.1.0"
-description = "AST-powered Python documentation auditor, health scorecard, and AI auto-docstring engine."
+version = "0.2.0"
+description = "Multi-language code documentation auditor, health scorecard, and auto-docstring engine (Python, C, C++, Java)."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
