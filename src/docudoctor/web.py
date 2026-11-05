@@ -117,11 +117,12 @@ HTML_CONTENT = """<!DOCTYPE html>
           },
           colors: {
             dark: {
-              950: '#07090e',
-              900: '#0c1017',
-              850: '#111722',
-              800: '#172030',
-              700: '#233047'
+              950: '#06080d',
+              900: '#0b0f17',
+              850: '#101622',
+              800: '#161f30',
+              750: '#1e293f',
+              700: '#25344f'
             }
           }
         }
@@ -130,45 +131,32 @@ HTML_CONTENT = """<!DOCTYPE html>
   </script>
   <style>
     body {
-      background-color: #07090e;
+      background-color: #06080d;
       color: #e2e8f0;
       background-image: 
-        radial-gradient(at 15% 10%, rgba(6, 182, 212, 0.12) 0px, transparent 45%),
-        radial-gradient(at 85% 15%, rgba(168, 85, 247, 0.12) 0px, transparent 45%),
-        radial-gradient(at 50% 90%, rgba(59, 130, 246, 0.08) 0px, transparent 55%);
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168, 85, 247, 0.12), transparent),
+        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59, 130, 246, 0.08), transparent);
       background-attachment: fixed;
     }
     .glass-panel {
-      background: rgba(12, 16, 23, 0.72);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: rgba(11, 15, 23, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
     }
     .glass-card {
-      background: rgba(17, 23, 34, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      background: rgba(16, 22, 34, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     .glow-cyan {
-      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.35);
+      box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.4);
     }
     .glow-purple {
-      box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.35);
-    }
-    .line-numbers {
-      counter-reset: line;
-    }
-    .line-numbers > div::before {
-      counter-increment: line;
-      content: counter(line);
-      display: inline-block;
-      width: 1.75rem;
-      text-align: right;
-      margin-right: 1rem;
-      color: #475569;
-      font-size: 0.75rem;
-      user-select: none;
+      box-shadow: 0 0 30px -5px rgba(168, 85, 247, 0.4);
     }
     @keyframes toastSlide {
       from { opacity: 0; transform: translateY(16px) scale(0.96); }
@@ -180,82 +168,140 @@ HTML_CONTENT = """<!DOCTYPE html>
     /* Custom scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
 
   <!-- Header -->
-  <header class="border-b border-white/[0.08] bg-dark-950/80 sticky top-0 z-50 backdrop-blur-xl">
+  <header class="border-b border-white/[0.08] bg-dark-950/80 sticky top-0 z-50 backdrop-blur-2xl">
     <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
       <div class="flex items-center space-x-3.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-fuchsia-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-lg shadow-lg shadow-cyan-500/10">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-fuchsia-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-xl shadow-lg shadow-cyan-500/20">
           ⚕
         </div>
-        <div class="flex items-baseline space-x-2">
-          <div class="flex items-center">
+        <div>
+          <div class="flex items-center space-x-2">
             <span class="font-extrabold text-xl tracking-tight text-cyan-400">DOCU</span>
             <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-fuchsia-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">DOCTOR</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/90 text-cyan-300 border border-cyan-700/60 shadow-sm">
+              v0.2.0
+            </span>
           </div>
-          <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-700/50">
-            v0.2.0 Multi-Language
-          </span>
+          <p class="text-[11px] text-gray-400 hidden sm:block">Multi-Language Code Health & Docstring Engine</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-4">
-        <div class="hidden md:flex items-center space-x-2 text-xs text-gray-400">
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-3.5">
+        <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Engine Active</span>
+          <span>Engine Online</span>
         </div>
+
         <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="flex items-center space-x-2 text-xs font-semibold text-gray-200 hover:text-white bg-dark-850 hover:bg-dark-800 px-3.5 py-2 rounded-xl border border-white/10 hover:border-white/20 transition-all shadow-sm">
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          <span>Star on GitHub</span>
+          <span>GitHub</span>
         </a>
       </div>
     </div>
   </header>
 
   <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-6 py-7 flex-1 w-full flex flex-col gap-6">
+  <main class="max-w-7xl mx-auto px-6 py-6 flex-1 w-full flex flex-col gap-6">
 
-    <!-- Language Selector Pill Bar -->
-    <div class="glass-panel p-2 rounded-2xl flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center space-x-1.5 p-1 bg-dark-950/70 rounded-xl border border-white/[0.06]" id="langButtons">
-        <button onclick="selectLanguage('python')" id="btn-python" class="lang-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm">
-          <span>🐍</span><span>Python</span>
-        </button>
-        <button onclick="selectLanguage('c')" id="btn-c" class="lang-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]">
-          <span>⚡</span><span>C</span>
-        </button>
-        <button onclick="selectLanguage('cpp')" id="btn-cpp" class="lang-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]">
-          <span>🚀</span><span>C++</span>
-        </button>
-        <button onclick="selectLanguage('java')" id="btn-java" class="lang-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]">
-          <span>☕</span><span>Java</span>
-        </button>
-      </div>
+    <!-- Unified Command & Control Bar -->
+    <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Left: Language Dropdown Selector (Clean & Uncluttered) -->
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <button id="langDropdownBtn" onclick="toggleLangDropdown(event)" class="bg-dark-850 hover:bg-dark-800 text-gray-200 px-4 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/40 transition-all flex items-center space-x-3 shadow-sm group">
+            <span class="text-xs text-gray-400 font-medium">Language:</span>
+            <div class="flex items-center space-x-2">
+              <span id="activeLangIcon" class="text-base">🐍</span>
+              <span id="activeLangText" class="text-xs font-bold text-white tracking-wide">Python</span>
+              <span id="activeLangExt" class="text-[10px] px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 font-mono font-bold border border-cyan-700/50">.py</span>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
 
-      <!-- Action Group -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        <!-- Hidden file input -->
+          <!-- Dropdown Popover Menu -->
+          <div id="langDropdownMenu" class="hidden absolute left-0 top-full mt-2 w-72 bg-dark-900/95 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-2 z-50 flex flex-col space-y-1">
+            <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-white/[0.06]">
+              Choose Source Language
+            </div>
+            
+            <button onclick="selectLanguage('python')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
+              <div class="flex items-center space-x-3">
+                <span class="text-xl">🐍</span>
+                <div>
+                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">Python</p>
+                  <p class="text-[10px] text-gray-400">Google, NumPy, Sphinx docstrings</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-800/40">.py</span>
+            </button>
+
+            <button onclick="selectLanguage('c')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
+              <div class="flex items-center space-x-3">
+                <span class="text-xl">⚡</span>
+                <div>
+                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">C Language</p>
+                  <p class="text-[10px] text-gray-400">Doxygen @brief, @param, @return</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded-md border border-blue-800/40">.c / .h</span>
+            </button>
+
+            <button onclick="selectLanguage('cpp')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
+              <div class="flex items-center space-x-3">
+                <span class="text-xl">🚀</span>
+                <div>
+                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">C++</p>
+                  <p class="text-[10px] text-gray-400">Doxygen Classes, Methods & Structs</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded-md border border-indigo-800/40">.cpp / .hpp</span>
+            </button>
+
+            <button onclick="selectLanguage('java')" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-cyan-500/15 transition text-left group">
+              <div class="flex items-center space-x-3">
+                <span class="text-xl">☕</span>
+                <div>
+                  <p class="text-xs font-bold text-gray-200 group-hover:text-cyan-300">Java</p>
+                  <p class="text-[10px] text-gray-400">Standard Javadoc documentation</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-800/40">.java</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden input for file upload -->
         <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
-        
-        <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5">
+
+        <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5 shadow-sm">
           <span>📁</span><span>Upload File</span>
         </button>
 
-        <button onclick="loadSampleForLanguage()" class="bg-dark-850 hover:bg-dark-800 text-cyan-400 hover:text-cyan-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/30 transition flex items-center space-x-1.5">
+        <button onclick="loadSampleForLanguage()" class="bg-dark-850 hover:bg-dark-800 text-cyan-400 hover:text-cyan-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/30 transition flex items-center space-x-1.5 shadow-sm">
           <span>📂</span><span>Load Sample</span>
         </button>
 
-        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition">
+        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition font-medium">
           Clear
         </button>
+      </div>
 
-        <!-- Doc Style Dropdown -->
-        <div class="flex items-center space-x-1.5 bg-dark-950/80 border border-white/10 rounded-xl px-2.5 py-1.5" id="styleWrapper">
+      <!-- Right: Doc Style & Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        
+        <!-- Style Picker -->
+        <div class="flex items-center space-x-2 bg-dark-900 border border-white/10 rounded-xl px-3 py-2 shadow-inner">
           <label class="text-[11px] text-gray-400 font-medium">Style:</label>
           <select id="docStyle" class="bg-transparent text-xs text-cyan-400 font-semibold focus:outline-none cursor-pointer">
             <option value="google" class="bg-dark-900 text-gray-200">Google Style</option>
@@ -265,39 +311,40 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <!-- Audit Button -->
-        <button onclick="auditCode()" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-lg shadow-cyan-950/60 hover:shadow-cyan-500/25 active:scale-95">
+        <button onclick="auditCode()" class="bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-cyan-950/80 hover:shadow-cyan-500/30 active:scale-95">
           <span>🔍</span><span>Audit Code</span>
         </button>
 
         <!-- Fix All Button -->
-        <button onclick="fixCode()" class="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-lg shadow-fuchsia-950/60 hover:shadow-fuchsia-500/25 active:scale-95">
+        <button onclick="fixCode()" class="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-fuchsia-950/80 hover:shadow-fuchsia-500/30 active:scale-95">
           <span>✨</span><span>Fix All Docs</span>
         </button>
       </div>
+
     </div>
 
-    <!-- Main Workspace Split -->
+    <!-- Workspace Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
 
-      <!-- Left Column: Code Editor Window -->
-      <div class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden min-h-[520px]">
+      <!-- Left Column: Modern IDE Code Editor (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden min-h-[560px]">
         
-        <!-- Editor Header Bar -->
+        <!-- Editor Window Header -->
         <div class="bg-dark-950/90 border-b border-white/[0.08] px-4 py-3 flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="flex items-center space-x-1.5">
-              <div class="w-3 h-3 rounded-full bg-[#ff5f56]/90 border border-red-400/30"></div>
-              <div class="w-3 h-3 rounded-full bg-[#ffbd2e]/90 border border-yellow-400/30"></div>
-              <div class="w-3 h-3 rounded-full bg-[#27c93f]/90 border border-green-400/30"></div>
+              <div class="w-3 h-3 rounded-full bg-[#ff5f56] border border-red-400/30 shadow-sm"></div>
+              <div class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-yellow-400/30 shadow-sm"></div>
+              <div class="w-3 h-3 rounded-full bg-[#27c93f] border border-green-400/30 shadow-sm"></div>
             </div>
-            <div class="flex items-center space-x-2 pl-2 border-l border-white/10">
+            <div class="flex items-center space-x-2 pl-3 border-l border-white/10">
               <span id="fileIcon">🐍</span>
-              <span id="fileNameDisplay" class="text-xs font-mono font-medium text-gray-300">main.py</span>
+              <span id="fileNameDisplay" class="text-xs font-mono font-medium text-gray-200">main.py</span>
             </div>
           </div>
 
           <div class="flex items-center space-x-3 text-[11px] text-gray-500 font-mono">
-            <span id="lineCountDisplay">Lines: 0</span>
+            <span id="lineCountDisplay">Lines: 1</span>
             <span>•</span>
             <span id="charCountDisplay">Chars: 0</span>
             <button onclick="downloadCode()" title="Download file" class="text-gray-400 hover:text-cyan-400 transition ml-2">
@@ -306,61 +353,92 @@ HTML_CONTENT = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Editor Area -->
+        <!-- Editor with Synced Line Gutter -->
         <div class="flex-1 flex bg-dark-950/60 relative">
           <div id="gutter" class="py-4 px-2 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-white/[0.06] text-right min-w-[2.75rem]">
             1
           </div>
-          <textarea id="codeEditor" oninput="updateGutter()" onscroll="syncGutterScroll()" class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900/60" spellcheck="false" placeholder="# Paste your code here, load a sample, or upload a file..."></textarea>
+          <textarea id="codeEditor" oninput="updateGutter()" onscroll="syncGutterScroll()" class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900/60" spellcheck="false" placeholder="# Paste code here, load a sample, or upload a .py, .c, .cpp, or .java file..."></textarea>
         </div>
       </div>
 
-      <!-- Right Column: Health Scorecard, Metrics & Issues -->
+      <!-- Right Column: Developer Profile, Scorecard & Issue Inspector (5 cols) -->
       <div class="lg:col-span-5 flex flex-col gap-5">
 
+        <!-- 🌟 Creator / Developer Profile Card (Requested by User) -->
+        <div class="glass-panel p-4 rounded-2xl relative overflow-hidden border border-white/10 shadow-lg">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3.5">
+              <div class="relative">
+                <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-12 h-12 rounded-full border-2 border-cyan-400/60 shadow-md shadow-cyan-500/20 object-cover bg-dark-850" onerror="this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
+                <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-dark-900" title="Active Developer"></span>
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h3 class="font-extrabold text-sm text-white tracking-tight">Prasun Kumar Ghosh</h3>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/60">AUTHOR</span>
+                </div>
+                <p class="text-xs text-gray-400 font-mono">@prasunkrghosh-18</p>
+                <p class="text-[11px] text-gray-500 mt-0.5">Creator of DocuDoctor • Lead Developer</p>
+              </div>
+            </div>
+
+            <!-- Profile Action Links -->
+            <div class="flex flex-col space-y-1.5 items-end">
+              <a href="https://github.com/prasunkrghosh-18" target="_blank" class="text-[11px] font-semibold text-cyan-300 hover:text-white bg-dark-850 hover:bg-dark-800 px-3 py-1.5 rounded-lg border border-cyan-500/30 hover:border-cyan-400 transition flex items-center space-x-1.5 shadow-sm">
+                <span>GitHub Profile</span>
+                <span>↗</span>
+              </a>
+              <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="text-[10px] text-gray-400 hover:text-gray-200 transition">
+                ⭐ Star Repo
+              </a>
+            </div>
+          </div>
+        </div>
+
         <!-- Scorecard Card -->
-        <div class="glass-panel p-6 rounded-2xl flex items-center justify-between relative overflow-hidden">
+        <div class="glass-panel p-5 rounded-2xl flex items-center justify-between relative overflow-hidden">
           <div>
             <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">Documentation Health</span>
-            <div class="flex items-baseline space-x-2.5 mt-1.5">
-              <span id="scoreVal" class="text-5xl font-extrabold tracking-tight text-cyan-400">--</span>
-              <span class="text-sm font-semibold text-gray-500">/ 100</span>
+            <div class="flex items-baseline space-x-2 mt-1">
+              <span id="scoreVal" class="text-4xl font-extrabold tracking-tight text-cyan-400">--</span>
+              <span class="text-xs font-semibold text-gray-500">/ 100</span>
             </div>
-            <div id="gradeBadge" class="mt-2.5 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-dark-850 text-gray-400 border border-white/10">
+            <div id="gradeBadge" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-dark-850 text-gray-400 border border-white/10">
               Awaiting Audit
             </div>
           </div>
 
           <!-- Circular Metric Graphic -->
-          <div class="relative w-28 h-28 flex items-center justify-center">
+          <div class="relative w-24 h-24 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <path class="text-dark-850" stroke-width="3.2" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
               <path id="circleProgress" class="text-cyan-400 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
             </svg>
-            <span id="gradeLetter" class="absolute text-3xl font-extrabold text-white">?</span>
+            <span id="gradeLetter" class="absolute text-2xl font-black text-white">?</span>
           </div>
         </div>
 
-        <!-- 4 Metrics Grid -->
-        <div class="grid grid-cols-3 gap-3">
+        <!-- 3 Metrics Grid -->
+        <div class="grid grid-cols-3 gap-2.5">
           <div class="glass-card p-3 rounded-xl text-center">
-            <span class="text-[11px] text-gray-400 font-medium">Functions</span>
-            <p id="statFuncs" class="text-lg font-bold text-gray-100 mt-0.5">--</p>
+            <span class="text-[10px] text-gray-400 font-medium">Functions</span>
+            <p id="statFuncs" class="text-base font-bold text-gray-100 mt-0.5">--</p>
           </div>
           <div class="glass-card p-3 rounded-xl text-center">
-            <span class="text-[11px] text-gray-400 font-medium">Documented</span>
-            <p id="statDocs" class="text-lg font-bold text-emerald-400 mt-0.5">--</p>
+            <span class="text-[10px] text-gray-400 font-medium">Documented</span>
+            <p id="statDocs" class="text-base font-bold text-emerald-400 mt-0.5">--</p>
           </div>
           <div class="glass-card p-3 rounded-xl text-center">
-            <span class="text-[11px] text-gray-400 font-medium">Typed / Returns</span>
-            <p id="statTyped" class="text-lg font-bold text-fuchsia-400 mt-0.5">--</p>
+            <span class="text-[10px] text-gray-400 font-medium">Typed Returns</span>
+            <p id="statTyped" class="text-base font-bold text-fuchsia-400 mt-0.5">--</p>
           </div>
         </div>
 
         <!-- Detailed Issue List Card -->
-        <div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden max-h-[360px]">
-          <div class="px-4 py-3 border-b border-white/[0.08] flex items-center justify-between bg-dark-950/70">
-            <div class="flex items-center space-x-2">
+        <div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden max-h-[320px]">
+          <div class="px-4 py-2.5 border-b border-white/[0.08] flex items-center justify-between bg-dark-950/70">
+            <div class="flex items-center space-x-1.5">
               <button onclick="setFilter('all')" id="filterAll" class="text-[11px] font-semibold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-700/50">All (<span id="countAll">0</span>)</button>
               <button onclick="setFilter('error')" id="filterError" class="text-[11px] font-semibold text-gray-400 hover:text-red-400 px-2 py-1 rounded-lg">Errors (<span id="countError">0</span>)</button>
               <button onclick="setFilter('warning')" id="filterWarning" class="text-[11px] font-semibold text-gray-400 hover:text-amber-400 px-2 py-1 rounded-lg">Warnings (<span id="countWarning">0</span>)</button>
@@ -368,8 +446,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             <span id="issueCountBadge" class="text-xs bg-dark-850 text-gray-400 px-2.5 py-0.5 rounded-full border border-white/10">0 issues</span>
           </div>
 
-          <div id="issuesContainer" class="p-3.5 overflow-y-auto space-y-3 flex-1 text-xs">
-            <p class="text-gray-500 text-center py-12">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>
+          <div id="issuesContainer" class="p-3.5 overflow-y-auto space-y-2.5 flex-1 text-xs">
+            <p class="text-gray-500 text-center py-10">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>
           </div>
         </div>
 
@@ -491,27 +569,37 @@ public class PaymentService {
     };
 
     const LANG_CONFIG = {
-      python: { ext: 'py', icon: '🐍', name: 'main.py', styles: ['Google Style', 'NumPy Style', 'Sphinx Style'], styleValues: ['google', 'numpy', 'sphinx'] },
-      c: { ext: 'c', icon: '⚡', name: 'main.c', styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
-      cpp: { ext: 'cpp', icon: '🚀', name: 'main.cpp', styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
-      java: { ext: 'java', icon: '☕', name: 'PaymentService.java', styles: ['Standard Javadoc'], styleValues: ['javadoc'] }
+      python: { ext: 'py', icon: '🐍', label: 'Python', name: 'main.py', styles: ['Google Style', 'NumPy Style', 'Sphinx Style'], styleValues: ['google', 'numpy', 'sphinx'] },
+      c: { ext: 'c', icon: '⚡', label: 'C Language', name: 'main.c', styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
+      cpp: { ext: 'cpp', icon: '🚀', label: 'C++', name: 'main.cpp', styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
+      java: { ext: 'java', icon: '☕', label: 'Java', name: 'PaymentService.java', styles: ['Standard Javadoc'], styleValues: ['javadoc'] }
     };
+
+    function toggleLangDropdown(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById('langDropdownMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('langDropdownMenu');
+      const btn = document.getElementById('langDropdownBtn');
+      if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
 
     function selectLanguage(lang) {
       currentLanguage = lang;
       const conf = LANG_CONFIG[lang] || LANG_CONFIG.python;
 
-      // Update UI active buttons
-      ['python', 'c', 'cpp', 'java'].forEach(l => {
-        const btn = document.getElementById('btn-' + l);
-        if (l === lang) {
-          btn.className = 'lang-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm';
-        } else {
-          btn.className = 'lang-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 transition-all text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]';
-        }
-      });
+      // Update dropdown button header
+      document.getElementById('activeLangIcon').innerText = conf.icon;
+      document.getElementById('activeLangText').innerText = conf.label;
+      document.getElementById('activeLangExt').innerText = '.' + conf.ext;
 
-      // Update Header Tab
+      // Update mock editor tab
       document.getElementById('fileIcon').innerText = conf.icon;
       document.getElementById('fileNameDisplay').innerText = conf.name;
 
@@ -519,7 +607,10 @@ public class PaymentService {
       const styleSelect = document.getElementById('docStyle');
       styleSelect.innerHTML = conf.styles.map((name, i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${name}</option>`).join('');
 
-      showToast(`Switched to ${conf.icon} ${lang.toUpperCase()}`, "cyan");
+      // Hide dropdown menu
+      document.getElementById('langDropdownMenu').classList.add('hidden');
+
+      showToast(`Selected ${conf.icon} ${conf.label}`, "cyan");
     }
 
     function loadSampleForLanguage() {
@@ -597,7 +688,7 @@ public class PaymentService {
       document.getElementById('countError').innerText = "0";
       document.getElementById('countWarning').innerText = "0";
       document.getElementById('issueCountBadge').innerText = "0 issues";
-      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-12">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>`;
+      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-10">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>`;
       document.getElementById('diffSection').classList.add('hidden');
       currentIssues = [];
       showToast("Editor cleared.", "gray");
@@ -700,7 +791,7 @@ public class PaymentService {
         }
 
         return `
-          <div class="p-3.5 rounded-xl bg-dark-850/80 border border-white/[0.06] flex flex-col space-y-2 hover:border-white/10 transition">
+          <div class="p-3 rounded-xl bg-dark-850/80 border border-white/[0.06] flex flex-col space-y-1.5 hover:border-white/10 transition">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeColor}">Line ${iss.line}</span>
@@ -850,7 +941,7 @@ public class PaymentService {
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Initialize line numbers on load
+    // Initialize on load
     window.addEventListener('DOMContentLoaded', () => {
       selectLanguage('python');
       updateGutter();
