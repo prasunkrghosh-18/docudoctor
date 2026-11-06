@@ -3,6 +3,7 @@
 import re
 from typing import List, Optional, Tuple
 
+from docudoctor.complexity import calculate_maintainability_index, calculate_text_complexity
 from docudoctor.languages.base import (
     LanguageArg,
     LanguageAuditResult,
@@ -181,6 +182,29 @@ def audit_cpp_code(code: str) -> LanguageAuditResult:
                         )
                     )
 
+    # Complexity & Maintainability calculation
+    complexities = [calculate_text_complexity(e.raw_source or "") for e in entities if e.entity_type != "class"]
+    avg_complexity = round(sum(complexities) / len(complexities), 1) if complexities else 1.0
+    for idx, e in enumerate([e for e in entities if e.entity_type != "class"]):
+        if idx < len(complexities):
+            e.complexity = complexities[idx]
+        if e.complexity > 10:
+            issues.append(
+                LanguageIssue(
+                    line=e.line_start,
+                    entity=e.name,
+                    entity_type=e.entity_type,
+                    issue_type="High Complexity",
+                    severity="WARNING",
+                    message=f"Function '{e.name}' has high cyclomatic complexity ({e.complexity} > 10).",
+                    recommendation="Decompose logic into smaller modular functions.",
+                    can_fix=False,
+                )
+            )
+
+    total_loc = len([l for l in code.splitlines() if l.strip()])
+    mi_score, mi_grade = calculate_maintainability_index(total_loc, avg_complexity, len(issues))
+
     total_items = total_classes + total_funcs
     if total_items == 0:
         score = 100.0
@@ -201,6 +225,9 @@ def audit_cpp_code(code: str) -> LanguageAuditResult:
         typed_returns=typed_returns,
         issues=issues,
         entities=entities,
+        avg_complexity=avg_complexity,
+        maintainability_index=mi_score,
+        maintainability_grade=mi_grade,
     )
 
 

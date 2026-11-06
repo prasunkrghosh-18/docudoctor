@@ -1,11 +1,12 @@
-"""Python language adapter wrapping AST visitor, docstring generator, and patcher."""
+"""Python language adapter wrapping AST visitor, docstring generator, complexity analyzer, and healer."""
 
 import ast
 from pathlib import Path
 from typing import Optional, Tuple
 
-from docudoctor.doctor.generator import DocstringStyle, generate_docstring
-from docudoctor.doctor.patcher import _detect_body_indent, _find_header_end_line
+from docudoctor.complexity import calculate_function_complexity, calculate_maintainability_index
+from docudoctor.doctor.generator import DocstringStyle
+from docudoctor.doctor.healer import heal_python_code
 from docudoctor.languages.base import (
     LanguageArg,
     LanguageAuditResult,
@@ -26,6 +27,8 @@ def _recommendation_for_issue(issue_type: str, entity_name: str) -> str:
         return "Add explicit type annotations for parameters to improve IDE autocomplete and type safety."
     elif issue_type == "Mutable Default Arg":
         return "Use None as default (e.g. arg=None) and initialize the list/dict inside the function body."
+    elif issue_type == "High Complexity":
+        return "Refactor complex branching, deeply nested loops, or exception handlers into smaller helper functions."
     return "Refactor code to adhere to PEP-8 and PEP-257 standards."
 
 
@@ -40,6 +43,12 @@ def audit_python_code(code: str) -> LanguageAuditResult:
     visitor = CodeAnalysisVisitor(dummy_path, code)
     visitor.visit(tree)
 
+    # Map AST function nodes for complexity analysis
+    func_ast_map = {}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            func_ast_map[node.name] = node
+
     total_funcs = len(visitor.functions)
     total_classes = len(visitor.classes)
     total_items = total_funcs + total_classes
@@ -47,6 +56,17 @@ def audit_python_code(code: str) -> LanguageAuditResult:
     doc_funcs = sum(1 for f in visitor.functions if f.docstring and f.docstring.strip())
     doc_classes = sum(1 for c in visitor.classes if c.docstring and c.docstring.strip())
     typed_returns = sum(1 for f in visitor.functions if f.return_type)
+
+    # Complexity calculation
+    complexities = []
+    for f in visitor.functions:
+        node = func_ast_map.get(f.name)
+        comp = calculate_function_complexity(node) if node else 1
+        complexities.append(comp)
+
+    avg_complexity = round(sum(complexities) / len(complexities), 1) if complexities else 1.0
+    total_loc = len([line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")])
+    mi_score, mi_grade = calculate_maintainability_index(total_loc, avg_complexity, len(visitor.issues))
 
     if total_items == 0:
         score = 100.0
@@ -63,7 +83,10 @@ def audit_python_code(code: str) -> LanguageAuditResult:
     for i in visitor.issues:
         iss_type_str = i.issue_type.value if hasattr(i.issue_type, "value") else str(i.issue_type)
         sev_str = i.severity.value if hasattr(i.severity, "value") else str(i.severity)
-        can_fix = iss_type_str == "Missing Docstring" and i.entity_type in ("function", "method")
+        can_fix = (
+            (iss_type_str == "Missing Docstring" and i.entity_type in ("function", "method"))
+            or iss_type_str in ("Mutable Default Arg", "Missing Return Type")
+        )
         issues.append(
             LanguageIssue(
                 line=i.line_no,
@@ -77,8 +100,26 @@ def audit_python_code(code: str) -> LanguageAuditResult:
             )
         )
 
+    # Check for high complexity functions (> 10 is high cyclomatic complexity)
+    for idx, f in enumerate(visitor.functions):
+        comp = complexities[idx] if idx < len(complexities) else 1
+        if comp > 10:
+            issues.append(
+                LanguageIssue(
+                    line=f.line_start,
+                    entity=f.name,
+                    entity_type="method" if f.is_method else "function",
+                    issue_type="High Complexity",
+                    severity="WARNING",
+                    message=f"Function '{f.name}' has high cyclomatic complexity ({comp} > 10).",
+                    recommendation=_recommendation_for_issue("High Complexity", f.name),
+                    can_fix=False,
+                )
+            )
+
     entities: list[LanguageEntity] = []
-    for f in visitor.functions:
+    for idx, f in enumerate(visitor.functions):
+        comp = complexities[idx] if idx < len(complexities) else 1
         args = [LanguageArg(name=a.name, type_name=a.type_annotation, default_val=a.default_repr) for a in f.args]
         entities.append(
             LanguageEntity(
@@ -91,6 +132,7 @@ def audit_python_code(code: str) -> LanguageAuditResult:
                 docstring=f.docstring,
                 raw_source=f.raw_source,
                 has_mutable_default=f.has_mutable_default,
+                complexity=comp,
             )
         )
 
@@ -119,6 +161,9 @@ def audit_python_code(code: str) -> LanguageAuditResult:
         typed_returns=typed_returns,
         issues=issues,
         entities=entities,
+        avg_complexity=avg_complexity,
+        maintainability_index=mi_score,
+        maintainability_grade=mi_grade,
     )
 
 
@@ -127,43 +172,6 @@ def patch_python_code(
     style: DocstringStyle = DocstringStyle.GOOGLE,
     target_function: Optional[str] = None,
 ) -> Tuple[str, int]:
-    """Patch missing docstrings into Python code."""
-    from docudoctor.scanner import scan_file
-    import tempfile
+    """Patch missing docstrings, mutable defaults, and return type hints into Python code."""
+    return heal_python_code(code, style=style, target_entity=target_function)
 
-    # Save to temp file to reuse scanner
-    with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False, encoding="utf-8") as tmp:
-        tmp.write(code)
-        tmp_path = Path(tmp.name)
-
-    try:
-        _, functions = scan_file(tmp_path)
-        candidates = [f for f in functions if not f.docstring or not f.docstring.strip()]
-
-        if target_function:
-            candidates = [f for f in candidates if f.name == target_function]
-
-        if not candidates:
-            return code, 0
-
-        lines = code.splitlines()
-        candidates.sort(key=lambda f: f.line_start, reverse=True)
-
-        patched_count = 0
-        for func in candidates:
-            def_start_idx = func.line_start - 1
-            if def_start_idx >= len(lines):
-                continue
-            header_end_idx = _find_header_end_line(lines, def_start_idx)
-            indent = _detect_body_indent(lines, header_end_idx)
-
-            new_doc = generate_docstring(func, style=style, indent=indent)
-            doc_lines = new_doc.splitlines()
-            lines = lines[: header_end_idx + 1] + doc_lines + lines[header_end_idx + 1 :]
-            patched_count += 1
-
-        patched_code = "\n".join(lines) + ("\n" if code.endswith("\n") else "")
-        return patched_code, patched_count
-    finally:
-        if tmp_path.exists():
-            tmp_path.unlink()

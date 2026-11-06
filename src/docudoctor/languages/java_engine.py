@@ -3,6 +3,7 @@
 import re
 from typing import List, Optional, Tuple
 
+from docudoctor.complexity import calculate_maintainability_index, calculate_text_complexity
 from docudoctor.languages.base import (
     LanguageArg,
     LanguageAuditResult,
@@ -230,6 +231,29 @@ def audit_java_code(code: str) -> LanguageAuditResult:
                         )
                     )
 
+    # Complexity & Maintainability calculation
+    complexities = [calculate_text_complexity(m.raw_source or "") for m in methods]
+    avg_complexity = round(sum(complexities) / len(complexities), 1) if complexities else 1.0
+    for idx, m in enumerate(methods):
+        if idx < len(complexities):
+            m.complexity = complexities[idx]
+        if m.complexity > 10:
+            issues.append(
+                LanguageIssue(
+                    line=m.line_start,
+                    entity=m.name,
+                    entity_type="method",
+                    issue_type="High Complexity",
+                    severity="WARNING",
+                    message=f"Method '{m.name}' has high cyclomatic complexity ({m.complexity} > 10).",
+                    recommendation="Decompose logic into smaller modular methods.",
+                    can_fix=False,
+                )
+            )
+
+    total_loc = len([l for l in code.splitlines() if l.strip()])
+    mi_score, mi_grade = calculate_maintainability_index(total_loc, avg_complexity, len(issues))
+
     total_items = total_classes + total_funcs
     if total_items == 0:
         score = 100.0
@@ -250,6 +274,9 @@ def audit_java_code(code: str) -> LanguageAuditResult:
         typed_returns=typed_returns,
         issues=issues,
         entities=entities,
+        avg_complexity=avg_complexity,
+        maintainability_index=mi_score,
+        maintainability_grade=mi_grade,
     )
 
 

@@ -47,6 +47,7 @@ class LanguageEntity:
     indent: str = ""
     visibility: str = "public"
     has_mutable_default: bool = False
+    complexity: int = 1
 
 
 @dataclass
@@ -73,6 +74,9 @@ class LanguageAuditResult:
     typed_returns: int
     issues: List[LanguageIssue]
     entities: List[LanguageEntity] = field(default_factory=list)
+    avg_complexity: float = 1.0
+    maintainability_index: float = 100.0
+    maintainability_grade: str = "A"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -84,6 +88,9 @@ class LanguageAuditResult:
             "total_classes": self.total_classes,
             "documented_functions": self.documented_functions,
             "typed_returns": self.typed_returns,
+            "avg_complexity": self.avg_complexity,
+            "maintainability_index": self.maintainability_index,
+            "maintainability_grade": self.maintainability_grade,
             "issues": [
                 {
                     "line": i.line,
@@ -96,6 +103,17 @@ class LanguageAuditResult:
                     "can_fix": i.can_fix,
                 }
                 for i in self.issues
+            ],
+            "entities": [
+                {
+                    "name": e.name,
+                    "entity_type": e.entity_type,
+                    "line_start": e.line_start,
+                    "complexity": e.complexity,
+                    "has_doc": bool(e.docstring and e.docstring.strip()),
+                    "return_type": e.return_type,
+                }
+                for e in self.entities
             ],
         }
 

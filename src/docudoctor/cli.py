@@ -206,6 +206,77 @@ def badge(
 
 
 @app.command()
+def report(
+    path: Path = typer.Argument(
+        Path("."),
+        help="Python file or folder to audit and generate report for.",
+        exists=True,
+    ),
+    output: Path = typer.Option(
+        Path("DOCUDOCTOR_REPORT.md"),
+        "--output",
+        "-o",
+        help="Path where Markdown report should be saved.",
+    ),
+) -> None:
+    """Generate a GitHub-ready Markdown audit report (DOCUDOCTOR_REPORT.md)."""
+    from docudoctor.languages.base import LanguageAuditResult, LanguageIssue, compute_health_grade
+    from docudoctor.languages.python_engine import audit_python_code
+    from docudoctor.reporter import generate_markdown_report
+
+    print_banner()
+    target = path.resolve()
+    print_step(f"Generating health report for: [bold magenta]{target}[/bold magenta]")
+
+    if target.is_file():
+        code = target.read_text(encoding="utf-8")
+        audit_res = audit_python_code(code)
+        report_content = generate_markdown_report(audit_res, filename=target.name, language="python")
+    else:
+        proj_report, _ = scan_path(target)
+        grade, label, color = compute_health_grade(proj_report.overall_score)
+        all_issues = [
+            LanguageIssue(
+                line=i.line_no,
+                entity=i.entity_name,
+                entity_type=i.entity_type,
+                issue_type=str(i.issue_type.value if hasattr(i.issue_type, "value") else i.issue_type),
+                severity=str(i.severity.value if hasattr(i.severity, "value") else i.severity),
+                message=i.message,
+                recommendation="Address defect to improve documentation health.",
+            )
+            for f in proj_report.file_reports
+            for i in f.issues
+        ]
+        audit_res = LanguageAuditResult(
+            score=proj_report.overall_score,
+            grade=grade,
+            label=label,
+            color=color,
+            total_functions=proj_report.total_functions,
+            total_classes=proj_report.total_classes,
+            documented_functions=sum(f.documented_functions for f in proj_report.file_reports),
+            typed_returns=sum(f.typed_returns for f in proj_report.file_reports),
+            issues=all_issues,
+        )
+        report_content = generate_markdown_report(audit_res, filename=target.name, language="python")
+
+    out_file = output.resolve()
+    out_file.write_text(report_content, encoding="utf-8")
+    console.print(
+        Panel(
+            f"[bold green]✔ Report written successfully![/bold green]\n\n"
+            f"• Saved to: [bold white]{out_file}[/bold white]\n"
+            f"• Health Score: [bold cyan]{audit_res.score}% (Grade {audit_res.grade})[/bold cyan]\n"
+            f"• Defect Count: [bold yellow]{len(audit_res.issues)} issue(s)[/bold yellow]\n\n"
+            f"[dim]Attach this file to your GitHub PR or commit to your repo documentation.[/dim]",
+            title="[bold cyan]Audit Report Export[/bold cyan]",
+            border_style="green",
+        )
+    )
+
+
+@app.command()
 def web(
     host: str = typer.Option("127.0.0.1", "--host", "-h", help="Bind host address."),
     port: int = typer.Option(8000, "--port", "-p", help="Bind port number."),

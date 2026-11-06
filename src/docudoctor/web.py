@@ -13,8 +13,9 @@ from docudoctor.languages import (
     audit_code_by_language,
     patch_code_by_language,
 )
+from docudoctor.reporter import generate_markdown_report
 
-app = FastAPI(title="DocuDoctor Web", version="0.2.0")
+app = FastAPI(title="DocuDoctor Web", version="0.3.0")
 
 
 class AuditRequest(BaseModel):
@@ -27,6 +28,12 @@ class FixRequest(BaseModel):
     language: str = "python"
     style: str = "google"
     target: Optional[str] = None
+
+
+class ReportRequest(BaseModel):
+    code: str
+    language: str = "python"
+    filename: str = "main.py"
 
 
 def _ext_for_lang(lang: Language) -> str:
@@ -85,6 +92,27 @@ def api_fix(req: FixRequest):
             "diff": "".join(diff),
             "patched_count": patched_count,
             "message": f"Successfully injected {patched_count} docstring(s)!",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/report")
+def api_report(req: ReportRequest):
+    """Generate and return a comprehensive GitHub-flavored Markdown audit report."""
+    try:
+        lang = Language(req.language.lower())
+    except ValueError:
+        lang = Language.PYTHON
+
+    try:
+        result = audit_code_by_language(req.code, language=lang)
+        report_md = generate_markdown_report(result, filename=req.filename, language=lang.value)
+        return {
+            "report": report_md,
+            "filename": f"DOCUDOCTOR_REPORT_{req.filename.rsplit('.', 1)[0]}.md",
+            "score": result.score,
+            "grade": result.grade,
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -188,10 +216,10 @@ HTML_CONTENT = """<!DOCTYPE html>
             <span class="font-extrabold text-xl tracking-tight text-cyan-400">DOCU</span>
             <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-fuchsia-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">DOCTOR</span>
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/90 text-cyan-300 border border-cyan-700/60 shadow-sm">
-              v0.2.0
+              v0.3.0
             </span>
           </div>
-          <p class="text-[11px] text-gray-400 hidden sm:block">Multi-Language Code Health & Docstring Engine</p>
+          <p class="text-[11px] text-gray-400 hidden sm:block">Code Health, Maintainability Index & Total Healer</p>
         </div>
       </div>
 
@@ -312,13 +340,18 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
 
         <!-- Audit Button -->
-        <button onclick="auditCode()" class="bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-cyan-950/80 hover:shadow-cyan-500/30 active:scale-95">
+        <button onclick="auditCode()" class="bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-cyan-950/80 hover:shadow-cyan-500/30 active:scale-95 cursor-pointer">
           <span>🔍</span><span>Audit Code</span>
         </button>
 
-        <!-- Fix All Button -->
-        <button onclick="fixCode()" class="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-fuchsia-950/80 hover:shadow-fuchsia-500/30 active:scale-95">
-          <span>✨</span><span>Fix All Docs</span>
+        <!-- Total Healer Button -->
+        <button onclick="fixCode()" title="Heals missing docstrings, dangerous mutable defaults, and infers type annotations" class="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-fuchsia-950/80 hover:shadow-fuchsia-500/30 active:scale-95 cursor-pointer">
+          <span>⚡</span><span>Total Healer</span>
+        </button>
+
+        <!-- Export Markdown Report Button -->
+        <button onclick="exportMarkdownReport()" title="Generate & Download full GitHub-ready Markdown audit report" class="bg-dark-850 hover:bg-dark-800 text-gray-200 hover:text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/40 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+          <span>📄</span><span>Export Report</span>
         </button>
       </div>
 
@@ -405,6 +438,29 @@ HTML_CONTENT = """<!DOCTYPE html>
           </div>
         </div>
 
+        <!-- Maintainability Index & Complexity Strip -->
+        <div class="glass-card p-3.5 rounded-xl flex items-center justify-between text-xs border border-white/5 shadow-sm">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-sm shadow-sm">
+              🧠
+            </div>
+            <div>
+              <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Maintainability</span>
+              <div class="flex items-center space-x-1.5">
+                <span id="statMaintainability" class="font-extrabold text-white text-sm">-- / 100</span>
+                <span id="statMiGrade" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40">Grade -</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Avg Complexity</span>
+            <div class="flex items-center space-x-1.5 justify-end">
+              <span id="statComplexity" class="font-extrabold text-white text-sm">--</span>
+              <span id="complexityStatus" class="text-[10px] font-semibold text-emerald-400">Low Risk</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Detailed Issue List Card -->
         <div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden max-h-[320px]">
           <div class="px-4 py-2.5 border-b border-white/[0.08] flex items-center justify-between bg-dark-950/70">
@@ -432,11 +488,14 @@ HTML_CONTENT = """<!DOCTYPE html>
           <span class="text-xs font-bold text-cyan-400 tracking-wide uppercase">Proposed Patch & Diff Preview</span>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="downloadCode()" class="text-xs bg-dark-850 hover:bg-dark-800 text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition flex items-center space-x-1.5">
-            <span>📥</span><span>Download Healed Code</span>
+          <button onclick="downloadCode()" class="text-xs bg-dark-850 hover:bg-dark-800 text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition flex items-center space-x-1.5 cursor-pointer">
+            <span>📥</span><span>Download Code</span>
           </button>
-          <button onclick="copyPatchedCode()" class="text-xs bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-700/50 transition flex items-center space-x-1.5">
-            <span>📋</span><span>Copy to Clipboard</span>
+          <button onclick="exportMarkdownReport()" class="text-xs bg-dark-850 hover:bg-dark-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/30 transition flex items-center space-x-1.5 cursor-pointer">
+            <span>📄</span><span>Export Report</span>
+          </button>
+          <button onclick="copyPatchedCode()" class="text-xs bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-700/50 transition flex items-center space-x-1.5 cursor-pointer">
+            <span>📋</span><span>Copy</span>
           </button>
         </div>
       </div>
@@ -676,6 +735,10 @@ public class PaymentService {
       document.getElementById('statFuncs').innerText = "--";
       document.getElementById('statDocs').innerText = "--";
       document.getElementById('statTyped').innerText = "--";
+      document.getElementById('statMaintainability').innerText = "-- / 100";
+      document.getElementById('statMiGrade').innerText = "Grade -";
+      document.getElementById('statComplexity').innerText = "--";
+      document.getElementById('complexityStatus').innerText = "Awaiting Audit";
       document.getElementById('countAll').innerText = "0";
       document.getElementById('countError').innerText = "0";
       document.getElementById('countWarning').innerText = "0";
@@ -708,7 +771,7 @@ public class PaymentService {
         currentIssues = data.issues || [];
         renderDashboard(data);
         renderIssues();
-        showToast(`Audit complete: Score ${data.score}% (Grade ${data.grade})`, "emerald");
+        showToast(`Audit complete: Health ${data.score}% • Maintainability ${data.maintainability_index}%`, "emerald");
       } catch (err) {
         showToast("Error connecting to server: " + err.message, "red");
       }
@@ -731,6 +794,25 @@ public class PaymentService {
       document.getElementById('statFuncs').innerText = data.total_functions;
       document.getElementById('statDocs').innerText = `${data.documented_functions}/${data.total_functions}`;
       document.getElementById('statTyped').innerText = `${data.typed_returns}/${data.total_functions}`;
+
+      // Maintainability & Complexity Strip
+      document.getElementById('statMaintainability').innerText = `${data.maintainability_index} / 100`;
+      document.getElementById('statMiGrade').innerText = `Grade ${data.maintainability_grade}`;
+      document.getElementById('statComplexity').innerText = data.avg_complexity;
+
+      const compStatus = document.getElementById('complexityStatus');
+      const avgComp = data.avg_complexity || 1.0;
+      if (avgComp <= 5) {
+        compStatus.innerText = 'Low Risk';
+        compStatus.className = 'text-[10px] font-semibold text-emerald-400';
+      } else if (avgComp <= 10) {
+        compStatus.innerText = 'Moderate';
+        compStatus.className = 'text-[10px] font-semibold text-amber-400';
+      } else {
+        compStatus.innerText = 'High Risk';
+        compStatus.className = 'text-[10px] font-semibold text-red-400';
+      }
+
       document.getElementById('issueCountBadge').innerText = `${data.issues.length} issues`;
 
       document.getElementById('countAll').innerText = data.issues.length;
@@ -763,7 +845,7 @@ public class PaymentService {
 
       if (filtered.length === 0) {
         if (currentIssues.length === 0) {
-          container.innerHTML = `<div class="p-6 text-center text-emerald-400 font-semibold">✨ All functions and classes are fully documented and typed!</div>`;
+          container.innerHTML = `<div class="p-6 text-center text-emerald-400 font-semibold">✨ All functions and classes are fully documented, typed, and clean!</div>`;
         } else {
           container.innerHTML = `<div class="p-6 text-center text-gray-400">No issues matching this filter.</div>`;
         }
@@ -775,9 +857,14 @@ public class PaymentService {
 
         let fixBtnHtml = "";
         if (iss.can_fix) {
+          let btnLabel = "Fix Documentation";
+          if (iss.issue_type === "Mutable Default Arg") btnLabel = "Heal Mutable Default";
+          else if (iss.issue_type === "Missing Return Type") btnLabel = "Infer Return Type";
+          else if (iss.issue_type === "Missing Docstring") btnLabel = "Inject Docstring";
+
           fixBtnHtml = `
-            <button onclick="fixSpecific('${iss.entity}')" class="mt-2 text-[11px] font-semibold bg-fuchsia-950/80 hover:bg-fuchsia-800 text-fuchsia-200 border border-fuchsia-600/50 px-3 py-1 rounded-lg flex items-center space-x-1.5 transition shadow-sm w-fit active:scale-95">
-              <span>⚡</span><span>Fix Documentation</span>
+            <button onclick="fixSpecific('${iss.entity}')" class="mt-2 text-[11px] font-semibold bg-fuchsia-950/80 hover:bg-fuchsia-800 text-fuchsia-200 border border-fuchsia-600/50 px-3 py-1 rounded-lg flex items-center space-x-1.5 transition shadow-sm w-fit active:scale-95 cursor-pointer">
+              <span>⚡</span><span>${btnLabel}</span>
             </button>
           `;
         }
@@ -908,6 +995,42 @@ public class PaymentService {
       a.click();
       URL.revokeObjectURL(a.href);
       showToast(`📥 Downloaded healed_${conf.name}`, "emerald");
+    }
+
+    async function exportMarkdownReport() {
+      const code = document.getElementById('codeEditor').value;
+      if (!code.trim()) {
+        showToast("Enter or load code before generating report!", "amber");
+        return;
+      }
+
+      const conf = LANG_CONFIG[currentLanguage] || LANG_CONFIG.python;
+      try {
+        const res = await fetch('/api/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: code,
+            language: currentLanguage,
+            filename: conf.name,
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(data.detail || "Failed to generate report.", "red");
+          return;
+        }
+
+        const blob = new Blob([data.report], { type: 'text/markdown;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = data.filename || "DOCUDOCTOR_REPORT.md";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast("📄 Exported " + (data.filename || "DOCUDOCTOR_REPORT.md"), "emerald");
+      } catch (err) {
+        showToast("Error generating report: " + err.message, "red");
+      }
     }
 
     function showToast(message, color = "cyan") {
