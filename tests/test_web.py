@@ -138,3 +138,15 @@ def test_total_healer_type_inference():
     assert "def is_active() -> bool:" in data["patched_code"]
     assert '"""Is active.' in data["patched_code"]
 
+
+def test_theme_switcher_elements():
+    html = index()
+    assert 'id="themeBtn"' in html
+    assert 'id="themeMenu"' in html
+    assert 'id="themeOptSystem"' in html
+    assert 'id="themeOptDark"' in html
+    assert 'id="themeOptLight"' in html
+    assert 'docudoctor_theme' in html
+    assert 'prefers-color-scheme' in html
+
+

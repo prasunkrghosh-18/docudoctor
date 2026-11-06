@@ -124,12 +124,31 @@ def index():
     return HTML_CONTENT
 
 
-HTML_CONTENT = """<!DOCTYPE html>
-<html lang="en" class="dark">
+HTML_CONTENT = r"""<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DocuDoctor • Multi-Language Code Health & Docstring Engine</title>
+  <script>
+    // Immediate Theme Initialization (Opens through System Default on first visit)
+    (function() {
+      var saved = localStorage.getItem('docudoctor_theme') || 'system';
+      var isDark = true;
+      if (saved === 'dark') {
+        isDark = true;
+      } else if (saved === 'light') {
+        isDark = false;
+      } else {
+        isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -166,6 +185,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168, 85, 247, 0.12), transparent),
         radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59, 130, 246, 0.08), transparent);
       background-attachment: fixed;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     .glass-panel {
       background: rgba(11, 15, 23, 0.75);
@@ -198,6 +218,83 @@ HTML_CONTENT = """<!DOCTYPE html>
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+    /* ☀️ Light Mode Styles when html:not(.dark) */
+    html:not(.dark) body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168, 85, 247, 0.08), transparent),
+        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59, 130, 246, 0.06), transparent);
+    }
+    html:not(.dark) header {
+      background-color: rgba(255, 255, 255, 0.9) !important;
+      border-color: rgba(226, 232, 240, 0.8) !important;
+    }
+    html:not(.dark) .glass-panel {
+      background: rgba(255, 255, 255, 0.88);
+      border-color: rgba(226, 232, 240, 0.9);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+    }
+    html:not(.dark) .glass-card {
+      background: rgba(248, 250, 252, 0.9);
+      border-color: rgba(226, 232, 240, 0.8);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+    html:not(.dark) #gutter {
+      background-color: rgba(248, 250, 252, 0.95) !important;
+      color: #94a3b8 !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) #codeEditor {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .bg-dark-950,
+    html:not(.dark) .bg-dark-950\/90,
+    html:not(.dark) .bg-dark-950\/80,
+    html:not(.dark) .bg-dark-950\/70,
+    html:not(.dark) .bg-dark-950\/60 {
+      background-color: rgba(248, 250, 252, 0.95) !important;
+    }
+    html:not(.dark) .bg-dark-900,
+    html:not(.dark) .bg-dark-900\/95,
+    html:not(.dark) .bg-dark-900\/98 {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .bg-dark-850,
+    html:not(.dark) .bg-dark-850\/80 {
+      background-color: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    html:not(.dark) .bg-dark-800 {
+      background-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-gray-100,
+    html:not(.dark) .text-gray-200,
+    html:not(.dark) .text-white {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-gray-300 {
+      color: #334155 !important;
+    }
+    html:not(.dark) .text-gray-400 {
+      color: #64748b !important;
+    }
+    html:not(.dark) .border-white\/10,
+    html:not(.dark) .border-white\/15,
+    html:not(.dark) .border-white\/\[0\.08\],
+    html:not(.dark) .border-white\/\[0\.06\],
+    html:not(.dark) .border-white\/\[0\.04\] {
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) select option {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
@@ -234,6 +331,36 @@ HTML_CONTENT = """<!DOCTYPE html>
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           <span>GitHub</span>
         </a>
+
+        <!-- Theme Mode Selector Dropdown (System, Dark, Light) -->
+        <div class="relative">
+          <button id="themeBtn" type="button" onclick="toggleThemeMenu(event)" title="Theme: System, Dark, Light" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-white/10 hover:border-cyan-500/40 bg-dark-850 hover:bg-dark-800 text-xs font-semibold text-gray-200 transition-all shadow-sm cursor-pointer group">
+            <span id="themeActiveIcon" class="text-sm">💻</span>
+            <span id="themeActiveText" class="hidden sm:inline text-xs font-semibold">System</span>
+            <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          
+          <div id="themeMenu" style="display: none;" class="absolute right-0 top-full mt-2 w-44 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-1.5 z-50 flex flex-col space-y-1 animate-toast">
+            <button type="button" onclick="setTheme('system')" id="themeOptSystem" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-cyan-500/15 transition cursor-pointer text-left text-gray-200">
+              <div class="flex items-center space-x-2.5">
+                <span>💻</span><span>System</span>
+              </div>
+              <span id="checkSystem" class="text-cyan-400 font-bold">✓</span>
+            </button>
+            <button type="button" onclick="setTheme('dark')" id="themeOptDark" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-cyan-500/15 transition cursor-pointer text-left text-gray-200">
+              <div class="flex items-center space-x-2.5">
+                <span>🌙</span><span>Dark Mode</span>
+              </div>
+              <span id="checkDark" class="hidden text-cyan-400 font-bold">✓</span>
+            </button>
+            <button type="button" onclick="setTheme('light')" id="themeOptLight" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-cyan-500/15 transition cursor-pointer text-left text-gray-200">
+              <div class="flex items-center space-x-2.5">
+                <span>☀️</span><span>Light Mode</span>
+              </div>
+              <span id="checkLight" class="hidden text-cyan-400 font-bold">✓</span>
+            </button>
+          </div>
+        </div>
 
         <!-- Rightmost User Avatar & Profile Reveal Dropdown -->
         <div class="relative">
@@ -604,10 +731,76 @@ public class PaymentService {
       java: { ext: 'java', icon: '☕', label: 'Java', name: 'PaymentService.java', styles: ['Standard Javadoc'], styleValues: ['javadoc'] }
     };
 
+    let currentThemeMode = 'system';
+
+    function initTheme() {
+      const saved = localStorage.getItem('docudoctor_theme') || 'system';
+      setTheme(saved, false);
+    }
+
+    function setTheme(mode, showNotification = true) {
+      currentThemeMode = mode;
+      localStorage.setItem('docudoctor_theme', mode);
+
+      let effectiveTheme = mode;
+      if (mode === 'system') {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        effectiveTheme = prefersDark ? 'dark' : 'light';
+      }
+
+      if (effectiveTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      const iconEl = document.getElementById('themeActiveIcon');
+      const textEl = document.getElementById('themeActiveText');
+      if (iconEl) iconEl.innerText = mode === 'system' ? '💻' : (mode === 'dark' ? '🌙' : '☀️');
+      if (textEl) textEl.innerText = mode === 'system' ? 'System' : (mode === 'dark' ? 'Dark' : 'Light');
+
+      const checkSystem = document.getElementById('checkSystem');
+      const checkDark = document.getElementById('checkDark');
+      const checkLight = document.getElementById('checkLight');
+      if (checkSystem) checkSystem.className = mode === 'system' ? 'text-cyan-400 font-bold' : 'hidden';
+      if (checkDark) checkDark.className = mode === 'dark' ? 'text-cyan-400 font-bold' : 'hidden';
+      if (checkLight) checkLight.className = mode === 'light' ? 'text-cyan-400 font-bold' : 'hidden';
+
+      closeThemeMenu();
+
+      if (showNotification) {
+        const label = mode === 'system' ? '💻 System Default' : (mode === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode');
+        showToast(`Theme updated to ${label}`, "cyan");
+      }
+    }
+
+    function toggleThemeMenu(event) {
+      if (event) event.stopPropagation();
+      closeProfileDropdown();
+      const menu = document.getElementById('themeMenu');
+      if (!menu) return;
+      const isVisible = menu.style.display === 'flex';
+      menu.style.display = isVisible ? 'none' : 'flex';
+    }
+
+    function closeThemeMenu() {
+      const menu = document.getElementById('themeMenu');
+      if (menu) menu.style.display = 'none';
+    }
+
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (currentThemeMode === 'system') {
+          setTheme('system', false);
+        }
+      });
+    }
+
     function toggleProfileDropdown(event) {
       if (event) {
         event.stopPropagation();
       }
+      closeThemeMenu();
       const menu = document.getElementById('profileDropdown');
       if (!menu) return;
       const isVisible = menu.style.display === 'block';
@@ -619,12 +812,18 @@ public class PaymentService {
       if (menu) menu.style.display = 'none';
     }
 
-    // Global outside click handler for profile popover
+    // Global outside click handler for profile & theme popovers
     document.addEventListener('click', (e) => {
       const profMenu = document.getElementById('profileDropdown');
       const profBtn = document.getElementById('profileDropdownBtn');
       if (profMenu && !profMenu.contains(e.target) && (!profBtn || !profBtn.contains(e.target))) {
         profMenu.style.display = 'none';
+      }
+
+      const themeMenu = document.getElementById('themeMenu');
+      const themeBtn = document.getElementById('themeBtn');
+      if (themeMenu && !themeMenu.contains(e.target) && (!themeBtn || !themeBtn.contains(e.target))) {
+        themeMenu.style.display = 'none';
       }
     });
 
@@ -1058,6 +1257,7 @@ public class PaymentService {
 
     // Initialize on load
     window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       onLanguageChange('python', true);
     });
   </script>
