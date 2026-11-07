@@ -1,6 +1,7 @@
 """FastAPI Web Application for DocuDoctor with interactive multi-language web interface."""
 
 import difflib
+from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
@@ -14,8 +15,10 @@ from docudoctor.languages import (
     patch_code_by_language,
 )
 from docudoctor.reporter import generate_markdown_report
+from docudoctor.complexity_estimator import analyse_complexity
+from docudoctor.style_analyzer import analyze_code_style
 
-app = FastAPI(title="DocuDoctor Web", version="0.3.0")
+app = FastAPI(title="DocuDoctor Web", version="0.4.0")
 
 
 class AuditRequest(BaseModel):
@@ -34,6 +37,16 @@ class ReportRequest(BaseModel):
     code: str
     language: str = "python"
     filename: str = "main.py"
+
+
+class ComplexityRequest(BaseModel):
+    code: str
+    language: str = "python"
+
+
+class StyleRequest(BaseModel):
+    code: str
+    language: str = "python"
 
 
 def _ext_for_lang(lang: Language) -> str:
@@ -57,6 +70,58 @@ def api_audit(req: AuditRequest):
     try:
         result = audit_code_by_language(req.code, language=lang)
         return result.to_dict()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/complexity")
+def api_complexity(req: ComplexityRequest):
+    """Estimate time and space complexity (Big-O) for each function in the code."""
+    try:
+        result = analyse_complexity(req.code, language=req.language)
+        return {
+            "overall_time": result.overall_time,
+            "overall_space": result.overall_space,
+            "overall_risk": result.overall_risk,
+            "summary": result.summary,
+            "functions": [
+                {
+                    "name": f.name,
+                    "line": f.line,
+                    "time_complexity": f.time_complexity,
+                    "space_complexity": f.space_complexity,
+                    "time_reason": f.time_reason,
+                    "space_reason": f.space_reason,
+                    "risk": f.risk,
+                }
+                for f in result.functions
+            ],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/style")
+def api_style(req: StyleRequest):
+    """Analyse code style quality — naming, structure, formatting (a.k.a. linting/PEP8)."""
+    try:
+        result = analyze_code_style(req.code, language=req.language)
+        return {
+            "style_score": result.style_score,
+            "style_grade": result.style_grade,
+            "style_label": result.style_label,
+            "breakdown": result.breakdown,
+            "issues": [
+                {
+                    "line": i.line,
+                    "code": i.code,
+                    "message": i.message,
+                    "severity": i.severity,
+                    "category": i.category,
+                }
+                for i in result.issues
+            ],
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -97,6 +162,58 @@ def api_fix(req: FixRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.post("/api/complexity")
+def api_complexity(req: ComplexityRequest):
+    """Estimate time and space complexity (Big-O) for each function in the code."""
+    try:
+        result = analyse_complexity(req.code, language=req.language)
+        return {
+            "overall_time": result.overall_time,
+            "overall_space": result.overall_space,
+            "overall_risk": result.overall_risk,
+            "summary": result.summary,
+            "functions": [
+                {
+                    "name": f.name,
+                    "line": f.line,
+                    "time_complexity": f.time_complexity,
+                    "space_complexity": f.space_complexity,
+                    "time_reason": f.time_reason,
+                    "space_reason": f.space_reason,
+                    "risk": f.risk,
+                }
+                for f in result.functions
+            ],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/style")
+def api_style(req: StyleRequest):
+    """Analyse code style quality — naming, structure, formatting (a.k.a. linting/PEP8)."""
+    try:
+        result = analyze_code_style(req.code, language=req.language)
+        return {
+            "style_score": result.style_score,
+            "style_grade": result.style_grade,
+            "style_label": result.style_label,
+            "breakdown": result.breakdown,
+            "issues": [
+                {
+                    "line": i.line,
+                    "code": i.code,
+                    "message": i.message,
+                    "severity": i.severity,
+                    "category": i.category,
+                }
+                for i in result.issues
+            ],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.post("/api/report")
 def api_report(req: ReportRequest):
     """Generate and return a comprehensive GitHub-flavored Markdown audit report."""
@@ -118,35 +235,77 @@ def api_report(req: ReportRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.post("/api/complexity")
+def api_complexity(req: ComplexityRequest):
+    """Estimate time and space complexity (Big-O) for each function in the code."""
+    try:
+        result = analyse_complexity(req.code, language=req.language)
+        return {
+            "overall_time": result.overall_time,
+            "overall_space": result.overall_space,
+            "overall_risk": result.overall_risk,
+            "summary": result.summary,
+            "functions": [
+                {
+                    "name": f.name,
+                    "line": f.line,
+                    "time_complexity": f.time_complexity,
+                    "space_complexity": f.space_complexity,
+                    "time_reason": f.time_reason,
+                    "space_reason": f.space_reason,
+                    "risk": f.risk,
+                }
+                for f in result.functions
+            ],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/style")
+def api_style(req: StyleRequest):
+    """Analyse code style quality — naming, structure, formatting (a.k.a. linting/PEP8)."""
+    try:
+        result = analyze_code_style(req.code, language=req.language)
+        return {
+            "style_score": result.style_score,
+            "style_grade": result.style_grade,
+            "style_label": result.style_label,
+            "breakdown": result.breakdown,
+            "issues": [
+                {
+                    "line": i.line,
+                    "code": i.code,
+                    "message": i.message,
+                    "severity": i.severity,
+                    "category": i.category,
+                }
+                for i in result.issues
+            ],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.get("/", response_class=HTMLResponse)
 def index():
     """Serves the interactive DocuDoctor single-page web app."""
     return HTML_CONTENT
-
 
 HTML_CONTENT = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DocuDoctor • Multi-Language Code Health & Docstring Engine</title>
+  <title>DocuDoctor • Multi-Language Code Health &amp; Docstring Engine</title>
   <script>
-    // Immediate Theme Initialization (Opens through System Default on first visit)
+    // Immediate Theme Init — no flash on first load
     (function() {
       var saved = localStorage.getItem('docudoctor_theme') || 'system';
-      var isDark = true;
-      if (saved === 'dark') {
-        isDark = true;
-      } else if (saved === 'light') {
-        isDark = false;
-      } else {
-        isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      }
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      var isDark = saved === 'dark' ? true : saved === 'light' ? false
+                  : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
     })();
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -158,223 +317,202 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Plus Jakarta Sans', 'sans-serif'],
-            mono: ['Fira Code', 'monospace']
-          },
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
           colors: {
-            dark: {
-              950: '#06080d',
-              900: '#0b0f17',
-              850: '#101622',
-              800: '#161f30',
-              750: '#1e293f',
-              700: '#25344f'
-            }
+            dark: { 950: '#06080d', 900: '#0b0f17', 850: '#101622', 800: '#161f30', 750: '#1e293f', 700: '#25344f' }
           }
         }
       }
     }
   </script>
   <style>
+    /* ═══════════════════════════════════════════════════════
+       DARK THEME BASE (default)
+    ═══════════════════════════════════════════════════════ */
     body {
       background-color: #06080d;
       color: #e2e8f0;
-      background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent),
-        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168, 85, 247, 0.12), transparent),
-        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59, 130, 246, 0.08), transparent);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6,182,212,0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168,85,247,0.12), transparent),
+        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59,130,246,0.08), transparent);
       background-attachment: fixed;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
     .glass-panel {
-      background: rgba(11, 15, 23, 0.75);
+      background: rgba(11,15,23,0.75);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7), inset 0 1px 0 0 rgba(255,255,255,0.06);
     }
     .glass-card {
-      background: rgba(16, 22, 34, 0.7);
+      background: rgba(16,22,34,0.7);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      transition: border-color 0.2s ease;
     }
-    .glow-cyan {
-      box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.4);
-    }
-    .glow-purple {
-      box-shadow: 0 0 30px -5px rgba(168, 85, 247, 0.4);
-    }
-    @keyframes toastSlide {
-      from { opacity: 0; transform: translateY(16px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .animate-toast {
-      animation: toastSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    /* Custom scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    .glass-card:hover { border-color: rgba(255,255,255,0.14); }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 
-    /* ☀️ Light Mode Styles when html:not(.dark) */
+    /* Toast animation */
+    @keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .animate-toast { animation: toastIn 0.22s ease both; }
+
+    /* ═══════════════════════════════════════════════════════
+       LIGHT THEME OVERRIDES
+    ═══════════════════════════════════════════════════════ */
     html:not(.dark) body {
-      background-color: #f8fafc;
+      background-color: #f1f5f9;
       color: #0f172a;
-      background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.12), transparent),
-        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168, 85, 247, 0.08), transparent),
-        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59, 130, 246, 0.06), transparent);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6,182,212,0.08), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168,85,247,0.06), transparent),
+        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59,130,246,0.05), transparent);
     }
     html:not(.dark) header {
-      background-color: rgba(255, 255, 255, 0.9) !important;
-      border-color: rgba(226, 232, 240, 0.8) !important;
+      background-color: rgba(255,255,255,0.95) !important;
+      border-color: rgba(226,232,240,0.9) !important;
     }
     html:not(.dark) .glass-panel {
-      background: rgba(255, 255, 255, 0.88);
-      border-color: rgba(226, 232, 240, 0.9);
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+      background: rgba(255,255,255,0.9);
+      border-color: rgba(203,213,225,0.8);
+      box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
     }
     html:not(.dark) .glass-card {
-      background: rgba(248, 250, 252, 0.9);
-      border-color: rgba(226, 232, 240, 0.8);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      background: rgba(248,250,252,0.95);
+      border-color: rgba(203,213,225,0.7);
     }
+    html:not(.dark) .glass-card:hover { border-color: rgba(148,163,184,0.6); }
+    /* Editor */
     html:not(.dark) #gutter {
-      background-color: rgba(248, 250, 252, 0.95) !important;
+      background-color: #f8fafc !important;
       color: #94a3b8 !important;
       border-color: #e2e8f0 !important;
     }
-    html:not(.dark) #codeEditor {
-      color: #0f172a !important;
-    }
+    html:not(.dark) #codeEditor { color: #0f172a !important; }
+    /* Utility bg/text overrides */
     html:not(.dark) .bg-dark-950,
+    html:not(.dark) .bg-dark-900,
+    html:not(.dark) .bg-dark-850,
+    html:not(.dark) .bg-dark-800 { background-color: #ffffff !important; }
     html:not(.dark) .bg-dark-950\/90,
     html:not(.dark) .bg-dark-950\/80,
     html:not(.dark) .bg-dark-950\/70,
-    html:not(.dark) .bg-dark-950\/60 {
-      background-color: rgba(248, 250, 252, 0.95) !important;
-    }
-    html:not(.dark) .bg-dark-900,
-    html:not(.dark) .bg-dark-900\/95,
-    html:not(.dark) .bg-dark-900\/98 {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .bg-dark-850,
-    html:not(.dark) .bg-dark-850\/80 {
-      background-color: #f1f5f9 !important;
-      border-color: #e2e8f0 !important;
-      color: #1e293b !important;
-    }
-    html:not(.dark) .bg-dark-800 {
-      background-color: #e2e8f0 !important;
-      color: #0f172a !important;
-    }
+    html:not(.dark) .bg-dark-950\/60 { background-color: rgba(248,250,252,0.95) !important; }
+    html:not(.dark) .bg-dark-900\/98,
+    html:not(.dark) .bg-dark-900\/95 { background-color: rgba(255,255,255,0.98) !important; border-color: #e2e8f0 !important; }
+    html:not(.dark) .bg-dark-850\/80 { background-color: rgba(241,245,249,0.95) !important; }
     html:not(.dark) .text-gray-100,
     html:not(.dark) .text-gray-200,
-    html:not(.dark) .text-white {
-      color: #0f172a !important;
-    }
-    html:not(.dark) .text-gray-300 {
-      color: #334155 !important;
-    }
-    html:not(.dark) .text-gray-400 {
-      color: #64748b !important;
-    }
+    html:not(.dark) .text-white { color: #0f172a !important; }
+    html:not(.dark) .text-gray-300 { color: #334155 !important; }
+    html:not(.dark) .text-gray-400 { color: #64748b !important; }
+    html:not(.dark) .text-gray-500 { color: #94a3b8 !important; }
+    html:not(.dark) .text-gray-600 { color: #64748b !important; }
     html:not(.dark) .border-white\/10,
     html:not(.dark) .border-white\/15,
     html:not(.dark) .border-white\/\[0\.08\],
     html:not(.dark) .border-white\/\[0\.06\],
-    html:not(.dark) .border-white\/\[0\.04\] {
+    html:not(.dark) .border-white\/\[0\.04\] { border-color: #e2e8f0 !important; }
+    html:not(.dark) .border-white\/5 { border-color: #f1f5f9 !important; }
+    html:not(.dark) select option { background-color: #fff !important; color: #0f172a !important; }
+    /* Theme/Profile dropdowns in light mode */
+    html:not(.dark) #themeMenu,
+    html:not(.dark) #profileDropdown {
+      background-color: rgba(255,255,255,0.98) !important;
       border-color: #e2e8f0 !important;
     }
-    html:not(.dark) select option {
-      background-color: #ffffff !important;
+    html:not(.dark) #themeMenu button,
+    html:not(.dark) #profileDropdown a { color: #1e293b !important; }
+    html:not(.dark) #themeMenu button:hover { background-color: rgba(6,182,212,0.08) !important; }
+    /* Issue cards */
+    html:not(.dark) .issue-card { background: rgba(248,250,252,0.9) !important; border-color: #e2e8f0 !important; }
+    html:not(.dark) .issue-card:hover { border-color: #cbd5e1 !important; }
+    /* Toast */
+    html:not(.dark) .toast-box {
+      background: rgba(255,255,255,0.95) !important;
+      border-color: #e2e8f0 !important;
       color: #0f172a !important;
     }
+    /* Complexity & Style new cards */
+    html:not(.dark) .metric-card { background: rgba(248,250,252,0.95) !important; border-color: #e2e8f0 !important; }
+    html:not(.dark) .fn-row { background: rgba(241,245,249,0.9) !important; border-color: #e2e8f0 !important; }
+    html:not(.dark) .diff-panel { background: rgba(248,250,252,0.98) !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
 
-  <!-- Header -->
-  <header class="border-b border-white/[0.08] bg-dark-950/80 sticky top-0 z-50 backdrop-blur-2xl">
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      
-      <!-- Brand Logo -->
-      <div class="flex items-center space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-fuchsia-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-xl shadow-lg shadow-cyan-500/20">
-          ⚕
-        </div>
+  <!-- ════════════════════════ HEADER ════════════════════════ -->
+  <header class="border-b border-white/[0.08] bg-dark-950/80 sticky top-0 z-50 backdrop-blur-2xl transition-colors duration-200">
+    <div class="max-w-screen-xl mx-auto px-5 h-16 flex items-center justify-between">
+
+      <!-- Brand -->
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-fuchsia-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-lg shadow-lg shadow-cyan-500/20">⚕</div>
         <div>
           <div class="flex items-center space-x-2">
             <span class="font-extrabold text-xl tracking-tight text-cyan-400">DOCU</span>
             <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-fuchsia-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">DOCTOR</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/90 text-cyan-300 border border-cyan-700/60 shadow-sm">
-              v0.3.0
-            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/90 text-cyan-300 border border-cyan-700/60">v0.4.0</span>
           </div>
-          <p class="text-[11px] text-gray-400 hidden sm:block">Code Health, Maintainability Index & Total Healer</p>
+          <p class="text-[11px] text-gray-400 hidden sm:block">Code Health, Complexity Estimation &amp; Style Analysis</p>
         </div>
       </div>
 
-      <!-- Right Header Actions -->
-      <div class="flex items-center space-x-3">
-        <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+      <!-- Right header controls -->
+      <div class="flex items-center space-x-2.5">
+        <!-- Engine status -->
+        <div class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Engine Online</span>
         </div>
 
-        <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="hidden sm:flex items-center space-x-2 text-xs font-semibold text-gray-200 hover:text-white bg-dark-850 hover:bg-dark-800 px-3.5 py-2 rounded-xl border border-white/10 hover:border-white/20 transition-all shadow-sm">
+        <!-- GitHub -->
+        <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="hidden sm:flex items-center space-x-1.5 text-xs font-semibold text-gray-200 hover:text-white bg-dark-850 hover:bg-dark-800 px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 transition-all shadow-sm">
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           <span>GitHub</span>
         </a>
 
-        <!-- Theme Mode Selector Dropdown (System, Dark, Light) -->
+        <!-- Theme selector -->
         <div class="relative">
-          <button id="themeBtn" type="button" onclick="toggleThemeMenu(event)" title="Theme: System, Dark, Light" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-white/10 hover:border-cyan-500/40 bg-dark-850 hover:bg-dark-800 text-xs font-semibold text-gray-200 transition-all shadow-sm cursor-pointer group">
+          <button id="themeBtn" type="button" onclick="toggleThemeMenu(event)" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-white/10 hover:border-cyan-500/40 bg-dark-850 hover:bg-dark-800 text-xs font-semibold text-gray-200 transition-all shadow-sm cursor-pointer group">
             <span id="themeActiveIcon" class="text-sm">💻</span>
             <span id="themeActiveText" class="hidden sm:inline text-xs font-semibold">System</span>
-            <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <svg class="w-3 h-3 text-gray-400 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
-          
-          <div id="themeMenu" style="display: none;" class="absolute right-0 top-full mt-2 w-44 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-1.5 z-50 flex flex-col space-y-1 animate-toast">
+          <div id="themeMenu" style="display:none;" class="absolute right-0 top-full mt-2 w-44 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-1.5 z-50 flex flex-col space-y-1 animate-toast">
             <button type="button" onclick="setTheme('system')" id="themeOptSystem" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-cyan-500/15 transition cursor-pointer text-left text-gray-200">
-              <div class="flex items-center space-x-2.5">
-                <span>💻</span><span>System</span>
-              </div>
+              <div class="flex items-center space-x-2.5"><span>💻</span><span>System</span></div>
               <span id="checkSystem" class="text-cyan-400 font-bold">✓</span>
             </button>
             <button type="button" onclick="setTheme('dark')" id="themeOptDark" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-cyan-500/15 transition cursor-pointer text-left text-gray-200">
-              <div class="flex items-center space-x-2.5">
-                <span>🌙</span><span>Dark Mode</span>
-              </div>
+              <div class="flex items-center space-x-2.5"><span>🌙</span><span>Dark Mode</span></div>
               <span id="checkDark" class="hidden text-cyan-400 font-bold">✓</span>
             </button>
             <button type="button" onclick="setTheme('light')" id="themeOptLight" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-cyan-500/15 transition cursor-pointer text-left text-gray-200">
-              <div class="flex items-center space-x-2.5">
-                <span>☀️</span><span>Light Mode</span>
-              </div>
+              <div class="flex items-center space-x-2.5"><span>☀️</span><span>Light Mode</span></div>
               <span id="checkLight" class="hidden text-cyan-400 font-bold">✓</span>
             </button>
           </div>
         </div>
 
-        <!-- Rightmost User Avatar & Profile Reveal Dropdown -->
+        <!-- Profile avatar -->
         <div class="relative">
-          <button id="profileDropdownBtn" onclick="toggleProfileDropdown(event)" title="Developer Profile" class="flex items-center focus:outline-none ring-2 ring-white/10 hover:ring-cyan-400 p-0.5 rounded-full transition-all group shadow-sm bg-dark-850">
-            <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-8 h-8 rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
+          <button id="profileDropdownBtn" onclick="toggleProfileDropdown(event)" title="Developer Profile" class="flex items-center focus:outline-none ring-2 ring-white/10 hover:ring-cyan-400 p-0.5 rounded-full transition-all shadow-sm bg-dark-850">
+            <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-8 h-8 rounded-full object-cover" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
           </button>
-
-          <!-- Profile Reveal Popover -->
-          <div id="profileDropdown" style="display: none;" class="absolute right-0 top-full mt-2.5 w-80 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-4 z-50 animate-toast">
-            <!-- User Header -->
+          <!-- Profile dropdown -->
+          <div id="profileDropdown" style="display:none;" class="absolute right-0 top-full mt-2.5 w-72 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-4 z-50 animate-toast">
             <div class="flex items-center space-x-3 pb-3 border-b border-white/[0.08]">
               <div class="relative">
-                <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-12 h-12 rounded-full border-2 border-cyan-400/70 shadow-md shadow-cyan-500/20 object-cover bg-dark-850" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
-                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-dark-900" title="Active"></span>
+                <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun" class="w-11 h-11 rounded-full border-2 border-cyan-400/70 shadow-md object-cover bg-dark-850" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-dark-900"></span>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -382,26 +520,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
                   <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/60">AUTHOR</span>
                 </div>
                 <p class="text-xs text-gray-400 font-mono">@prasunkrghosh-18</p>
-                <p class="text-[11px] text-gray-500 mt-0.5">Creator of DocuDoctor</p>
+                <p class="text-[11px] text-gray-500 mt-0.5">Creator of DocuDoctor • Lead Developer</p>
               </div>
             </div>
-
-            <!-- Bio Details -->
-            <div class="py-3 text-xs text-gray-300 leading-relaxed border-b border-white/[0.08]">
-              <p>Creator & Lead Developer of <span class="text-cyan-400 font-semibold">DocuDoctor</span>. Building intelligent multi-language docstring synthesis and automated code health tools.</p>
-              <div class="mt-2.5 flex flex-wrap gap-1.5">
+            <div class="py-2.5 text-xs text-gray-300 leading-relaxed border-b border-white/[0.08]">
+              <p>Building intelligent multi-language docstring synthesis and automated code health tools.</p>
+              <div class="mt-2 flex flex-wrap gap-1.5">
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-cyan-300 border border-cyan-800/30">Python</span>
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-blue-300 border border-blue-800/30">C</span>
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-indigo-300 border border-indigo-800/30">C++</span>
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-amber-300 border border-amber-800/30">Java</span>
               </div>
             </div>
-
-            <!-- Profile Actions -->
             <div class="pt-3 flex flex-col space-y-2">
-              <a href="https://github.com/prasunkrghosh-18" target="_blank" class="w-full text-center text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 py-2 rounded-xl transition shadow-md shadow-cyan-950/60 flex items-center justify-center space-x-1.5">
-                <span>View GitHub Profile</span>
-                <span>↗</span>
+              <a href="https://github.com/prasunkrghosh-18" target="_blank" class="w-full text-center text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 py-2 rounded-xl transition shadow-md flex items-center justify-center space-x-1.5">
+                <span>View GitHub Profile ↗</span>
               </a>
               <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="w-full text-center text-xs font-semibold text-gray-300 hover:text-white bg-dark-850 hover:bg-dark-800 py-2 rounded-xl border border-white/10 transition flex items-center justify-center space-x-1.5">
                 <span>⭐ Star DocuDoctor Repo</span>
@@ -409,54 +542,42 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-6 py-6 flex-1 w-full flex flex-col gap-6">
+  <!-- ════════════════════════ MAIN ════════════════════════ -->
+  <main class="max-w-screen-xl mx-auto px-5 py-5 flex-1 w-full flex flex-col gap-5">
 
-    <!-- Unified Command & Control Bar -->
-    <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-4 relative z-40">
-      
-      <!-- Left: Choose Language & File Controls -->
-      <div class="flex flex-wrap items-center gap-3">
-        
-        <!-- Premium Choose Language Dropdown Selector -->
-        <div class="flex items-center space-x-2.5 bg-dark-900/95 hover:bg-dark-850 border border-white/10 hover:border-cyan-500/50 rounded-xl px-3.5 py-2 transition-all shadow-inner group">
+    <!-- ── Control Bar ── -->
+    <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 relative z-40">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Language picker -->
+        <div class="flex items-center space-x-2 bg-dark-900/95 hover:bg-dark-850 border border-white/10 hover:border-cyan-500/50 rounded-xl px-3 py-2 transition-all shadow-inner group cursor-pointer">
           <span class="text-lg select-none" id="langEmojiIcon">🐍</span>
           <div class="flex flex-col">
-            <span class="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold leading-none">Choose Language</span>
-            <select id="languageSelect" onchange="onLanguageChange(this.value, true)" class="bg-transparent text-xs font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer mt-0.5 pr-2">
-              <option value="python" class="bg-dark-900 text-white font-medium py-1">🐍 Python (.py)</option>
-              <option value="c" class="bg-dark-900 text-white font-medium py-1">⚡ C Language (.c / .h)</option>
-              <option value="cpp" class="bg-dark-900 text-white font-medium py-1">🚀 C++ (.cpp / .hpp)</option>
-              <option value="java" class="bg-dark-900 text-white font-medium py-1">☕ Java (.java)</option>
+            <span class="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold leading-none">Language</span>
+            <select id="languageSelect" onchange="onLanguageChange(this.value,true)" class="bg-transparent text-xs font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer mt-0.5 pr-1">
+              <option value="python" class="bg-dark-900 text-white">🐍 Python (.py)</option>
+              <option value="c" class="bg-dark-900 text-white">⚡ C (.c / .h)</option>
+              <option value="cpp" class="bg-dark-900 text-white">🚀 C++ (.cpp)</option>
+              <option value="java" class="bg-dark-900 text-white">☕ Java (.java)</option>
             </select>
           </div>
         </div>
 
-        <!-- Hidden input for file upload -->
         <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
-
-        <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
-          <span>📁</span><span>Upload File</span>
+        <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+          <span>📁</span><span>Upload</span>
         </button>
-
-        <button onclick="loadSampleForLanguage()" class="bg-dark-850 hover:bg-dark-800 text-cyan-400 hover:text-cyan-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/30 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
-          <span>📂</span><span>Load Sample</span>
+        <button onclick="loadSampleForLanguage()" class="bg-dark-850 hover:bg-dark-800 text-cyan-400 hover:text-cyan-300 text-xs font-semibold px-3 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/30 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+          <span>📂</span><span>Sample</span>
         </button>
-
-        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition font-medium cursor-pointer">
-          Clear
-        </button>
+        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition font-medium cursor-pointer">Clear</button>
       </div>
 
-      <!-- Right: Doc Style & Action Buttons -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        
-        <!-- Style Picker -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Doc style -->
         <div class="flex items-center space-x-2 bg-dark-900 border border-white/10 rounded-xl px-3 py-2 shadow-inner">
           <label class="text-[11px] text-gray-400 font-medium">Style:</label>
           <select id="docStyle" class="bg-transparent text-xs text-cyan-400 font-semibold focus:outline-none cursor-pointer">
@@ -465,112 +586,98 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <option value="sphinx" class="bg-dark-900 text-gray-200">Sphinx Style</option>
           </select>
         </div>
-
-        <!-- Audit Button -->
+        <!-- Audit -->
         <button onclick="auditCode()" class="bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-cyan-950/80 hover:shadow-cyan-500/30 active:scale-95 cursor-pointer">
           <span>🔍</span><span>Audit Code</span>
         </button>
-
-        <!-- Total Healer Button -->
-        <button onclick="fixCode()" title="Heals missing docstrings, dangerous mutable defaults, and infers type annotations" class="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-fuchsia-950/80 hover:shadow-fuchsia-500/30 active:scale-95 cursor-pointer">
+        <!-- Total Healer -->
+        <button onclick="fixCode()" class="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-fuchsia-950/80 hover:shadow-fuchsia-500/30 active:scale-95 cursor-pointer">
           <span>⚡</span><span>Total Healer</span>
         </button>
-
-        <!-- Export Markdown Report Button -->
-        <button onclick="exportMarkdownReport()" title="Generate & Download full GitHub-ready Markdown audit report" class="bg-dark-850 hover:bg-dark-800 text-gray-200 hover:text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/40 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+        <!-- Export -->
+        <button onclick="exportMarkdownReport()" class="bg-dark-850 hover:bg-dark-800 text-gray-200 hover:text-white font-semibold text-xs px-3 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/40 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
           <span>📄</span><span>Export Report</span>
         </button>
       </div>
-
     </div>
 
-    <!-- Workspace Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+    <!-- ── Main Workspace Grid ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
 
-      <!-- Left Column: Modern IDE Code Editor (7 cols) -->
-      <div class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden min-h-[560px]">
-        
-        <!-- Editor Window Header -->
-        <div class="bg-dark-950/90 border-b border-white/[0.08] px-4 py-3 flex items-center justify-between">
+      <!-- Left: Code Editor (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden min-h-[520px]">
+        <!-- Editor header -->
+        <div class="bg-dark-950/90 border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="flex items-center space-x-1.5">
-              <div class="w-3 h-3 rounded-full bg-[#ff5f56] border border-red-400/30 shadow-sm"></div>
-              <div class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-yellow-400/30 shadow-sm"></div>
-              <div class="w-3 h-3 rounded-full bg-[#27c93f] border border-green-400/30 shadow-sm"></div>
+              <div class="w-3 h-3 rounded-full bg-[#ff5f56] border border-red-400/30"></div>
+              <div class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-yellow-400/30"></div>
+              <div class="w-3 h-3 rounded-full bg-[#27c93f] border border-green-400/30"></div>
             </div>
             <div class="flex items-center space-x-2 pl-3 border-l border-white/10">
               <span id="fileIcon">🐍</span>
               <span id="fileNameDisplay" class="text-xs font-mono font-medium text-gray-200">main.py</span>
             </div>
           </div>
-
           <div class="flex items-center space-x-3 text-[11px] text-gray-500 font-mono">
             <span id="lineCountDisplay">Lines: 1</span>
             <span>•</span>
             <span id="charCountDisplay">Chars: 0</span>
-            <button onclick="downloadCode()" title="Download file" class="text-gray-400 hover:text-cyan-400 transition ml-2">
-              📥
-            </button>
+            <button onclick="downloadCode()" title="Download" class="text-gray-400 hover:text-cyan-400 transition ml-1">📥</button>
           </div>
         </div>
-
-        <!-- Editor with Synced Line Gutter -->
-        <div class="flex-1 flex bg-dark-950/60 relative">
-          <div id="gutter" class="py-4 px-2 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-white/[0.06] text-right min-w-[2.75rem]">
-            1
-          </div>
-          <textarea id="codeEditor" oninput="updateGutter()" onscroll="syncGutterScroll()" class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900/60" spellcheck="false" placeholder="# Paste code here, load a sample, or upload a .py, .c, .cpp, or .java file..."></textarea>
+        <!-- Editor body -->
+        <div class="flex-1 flex bg-dark-950/60 relative overflow-hidden">
+          <div id="gutter" class="py-4 px-2 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-white/[0.06] text-right min-w-[2.75rem] overflow-hidden">1</div>
+          <textarea id="codeEditor" oninput="updateGutter()" onscroll="syncGutterScroll()"
+            class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900/60"
+            spellcheck="false" placeholder="# Paste code here, load a sample, or upload a file..."></textarea>
         </div>
       </div>
 
-      <!-- Right Column: Health Scorecard & Issue Inspector (5 cols) -->
-      <div class="lg:col-span-5 flex flex-col gap-5">
+      <!-- Right: Scorecard + Metrics (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
 
-        <!-- Scorecard Card -->
-        <div class="glass-panel p-5 rounded-2xl flex items-center justify-between relative overflow-hidden">
+        <!-- Doc Health Score -->
+        <div class="glass-panel p-4 rounded-2xl flex items-center justify-between relative overflow-hidden">
           <div>
             <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">Documentation Health</span>
             <div class="flex items-baseline space-x-2 mt-1">
               <span id="scoreVal" class="text-4xl font-extrabold tracking-tight text-cyan-400">--</span>
               <span class="text-xs font-semibold text-gray-500">/ 100</span>
             </div>
-            <div id="gradeBadge" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-dark-850 text-gray-400 border border-white/10">
-              Awaiting Audit
-            </div>
+            <div id="gradeBadge" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-dark-850 text-gray-400 border border-white/10">Awaiting Audit</div>
           </div>
-
-          <!-- Circular Metric Graphic -->
-          <div class="relative w-24 h-24 flex items-center justify-center">
+          <!-- Circular progress -->
+          <div class="relative w-20 h-20 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <path class="text-dark-850" stroke-width="3.2" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
               <path id="circleProgress" class="text-cyan-400 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
             </svg>
-            <span id="gradeLetter" class="absolute text-2xl font-black text-white">?</span>
+            <span id="gradeLetter" class="absolute text-xl font-black text-white">?</span>
           </div>
         </div>
 
-        <!-- 3 Metrics Grid -->
-        <div class="grid grid-cols-3 gap-2.5">
-          <div class="glass-card p-3 rounded-xl text-center">
+        <!-- 3-stat grid -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="glass-card p-3 rounded-xl text-center metric-card">
             <span class="text-[10px] text-gray-400 font-medium">Functions</span>
             <p id="statFuncs" class="text-base font-bold text-gray-100 mt-0.5">--</p>
           </div>
-          <div class="glass-card p-3 rounded-xl text-center">
+          <div class="glass-card p-3 rounded-xl text-center metric-card">
             <span class="text-[10px] text-gray-400 font-medium">Documented</span>
             <p id="statDocs" class="text-base font-bold text-emerald-400 mt-0.5">--</p>
           </div>
-          <div class="glass-card p-3 rounded-xl text-center">
+          <div class="glass-card p-3 rounded-xl text-center metric-card">
             <span class="text-[10px] text-gray-400 font-medium">Typed Returns</span>
             <p id="statTyped" class="text-base font-bold text-fuchsia-400 mt-0.5">--</p>
           </div>
         </div>
 
-        <!-- Maintainability Index & Complexity Strip -->
-        <div class="glass-card p-3.5 rounded-xl flex items-center justify-between text-xs border border-white/5 shadow-sm">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-sm shadow-sm">
-              🧠
-            </div>
+        <!-- Maintainability + Cyclomatic -->
+        <div class="glass-card p-3 rounded-xl flex items-center justify-between text-xs border border-white/5 shadow-sm metric-card">
+          <div class="flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-sm">🧠</div>
             <div>
               <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Maintainability</span>
               <div class="flex items-center space-x-1.5">
@@ -588,8 +695,72 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Detailed Issue List Card -->
-        <div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden max-h-[320px]">
+        <!-- ══ NEW: Time & Space Complexity Panel ══ -->
+        <div class="glass-panel rounded-2xl overflow-hidden metric-card">
+          <div class="px-4 py-2.5 border-b border-white/[0.08] bg-dark-950/70 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm">⏱</span>
+              <span class="text-xs font-bold text-gray-200 tracking-wide uppercase">Time &amp; Space Complexity</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="overallTimeBig" class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-indigo-950/80 text-indigo-300 border border-indigo-700/40">Time: --</span>
+              <span id="overallSpaceBig" class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-violet-950/80 text-violet-300 border border-violet-700/40">Space: --</span>
+            </div>
+          </div>
+          <div id="complexityFnList" class="p-3 space-y-2 max-h-44 overflow-y-auto text-xs">
+            <p class="text-gray-500 text-center py-6">Run <b>Audit Code</b> to estimate complexity.</p>
+          </div>
+        </div>
+
+        <!-- ══ NEW: Code Style / Linting Panel ══ -->
+        <div class="glass-panel rounded-2xl overflow-hidden metric-card">
+          <div class="px-4 py-2.5 border-b border-white/[0.08] bg-dark-950/70 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm">🎨</span>
+              <span class="text-xs font-bold text-gray-200 tracking-wide uppercase">Code Style Score</span>
+              <span class="text-[9px] text-gray-500 font-medium">(naming · structure · formatting)</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="styleScoreVal" class="text-xs font-extrabold text-white">--</span>
+              <span id="styleGradeBadge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-dark-850 text-gray-400 border border-white/10">Grade -</span>
+            </div>
+          </div>
+          <!-- Style score bar -->
+          <div class="px-4 pt-3 pb-1">
+            <div class="w-full bg-dark-850 rounded-full h-1.5 overflow-hidden border border-white/[0.06]">
+              <div id="styleScoreBar" class="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-700" style="width:0%"></div>
+            </div>
+            <div class="flex justify-between mt-1 text-[9px] text-gray-500 font-mono">
+              <span>0</span><span>50</span><span>100</span>
+            </div>
+          </div>
+          <!-- Style breakdown -->
+          <div class="px-4 pb-3 grid grid-cols-4 gap-1.5 text-center">
+            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
+              <div class="text-[9px] text-gray-500 uppercase font-bold">Naming</div>
+              <div id="styleNaming" class="text-xs font-bold text-white mt-0.5">--</div>
+            </div>
+            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
+              <div class="text-[9px] text-gray-500 uppercase font-bold">Structure</div>
+              <div id="styleStructure" class="text-xs font-bold text-white mt-0.5">--</div>
+            </div>
+            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
+              <div class="text-[9px] text-gray-500 uppercase font-bold">Format</div>
+              <div id="styleFormat" class="text-xs font-bold text-white mt-0.5">--</div>
+            </div>
+            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
+              <div class="text-[9px] text-gray-500 uppercase font-bold">Issues</div>
+              <div id="styleTotal" class="text-xs font-bold text-white mt-0.5">--</div>
+            </div>
+          </div>
+          <!-- Style issue list -->
+          <div id="styleIssueList" class="border-t border-white/[0.06] p-3 space-y-1.5 max-h-36 overflow-y-auto text-xs">
+            <p class="text-gray-500 text-center py-3">Run <b>Audit Code</b> to check style.</p>
+          </div>
+        </div>
+
+        <!-- Doc Issue List -->
+        <div class="glass-panel rounded-2xl flex flex-col overflow-hidden max-h-64">
           <div class="px-4 py-2.5 border-b border-white/[0.08] flex items-center justify-between bg-dark-950/70">
             <div class="flex items-center space-x-1.5">
               <button onclick="setFilter('all')" id="filterAll" class="text-[11px] font-semibold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-700/50">All (<span id="countAll">0</span>)</button>
@@ -598,32 +769,25 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             </div>
             <span id="issueCountBadge" class="text-xs bg-dark-850 text-gray-400 px-2.5 py-0.5 rounded-full border border-white/10">0 issues</span>
           </div>
-
-          <div id="issuesContainer" class="p-3.5 overflow-y-auto space-y-2.5 flex-1 text-xs">
-            <p class="text-gray-500 text-center py-10">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>
+          <div id="issuesContainer" class="p-3 overflow-y-auto space-y-2 flex-1 text-xs">
+            <p class="text-gray-500 text-center py-8">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- Proposed Diff Output (Visible after Fix) -->
-    <div id="diffSection" class="glass-panel rounded-2xl overflow-hidden hidden">
-      <div class="bg-dark-950/90 px-4 py-3.5 border-b border-white/[0.08] flex items-center justify-between">
+    <!-- ── Diff Output ── -->
+    <div id="diffSection" class="glass-panel rounded-2xl overflow-hidden hidden diff-panel">
+      <div class="bg-dark-950/90 px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span class="text-xs font-bold text-cyan-400 tracking-wide uppercase">Proposed Patch & Diff Preview</span>
+          <span class="text-xs font-bold text-cyan-400 tracking-wide uppercase">Proposed Patch &amp; Diff Preview</span>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="downloadCode()" class="text-xs bg-dark-850 hover:bg-dark-800 text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition flex items-center space-x-1.5 cursor-pointer">
-            <span>📥</span><span>Download Code</span>
-          </button>
-          <button onclick="exportMarkdownReport()" class="text-xs bg-dark-850 hover:bg-dark-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/30 transition flex items-center space-x-1.5 cursor-pointer">
-            <span>📄</span><span>Export Report</span>
-          </button>
-          <button onclick="copyPatchedCode()" class="text-xs bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-700/50 transition flex items-center space-x-1.5 cursor-pointer">
-            <span>📋</span><span>Copy</span>
-          </button>
+          <button onclick="downloadCode()" class="text-xs bg-dark-850 hover:bg-dark-800 text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition flex items-center space-x-1.5 cursor-pointer"><span>📥</span><span>Download</span></button>
+          <button onclick="exportMarkdownReport()" class="text-xs bg-dark-850 hover:bg-dark-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/30 transition flex items-center space-x-1.5 cursor-pointer"><span>📄</span><span>Report</span></button>
+          <button onclick="copyPatchedCode()" class="text-xs bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-700/50 transition flex items-center space-x-1.5 cursor-pointer"><span>📋</span><span>Copy</span></button>
         </div>
       </div>
       <div class="p-4 bg-dark-950/90 overflow-x-auto">
@@ -633,14 +797,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   </main>
 
-  <!-- Toast Notification Box -->
-  <div id="toastBox" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+  <!-- Toast box -->
+  <div id="toastBox" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
   <script>
     let currentLanguage = 'python';
     let currentIssues = [];
     let activeFilter = 'all';
-    let lastPatchedCode = "";
+    let lastPatchedCode = '';
 
     const SAMPLES = {
       python: `class PaymentGateway:
@@ -731,6 +895,7 @@ public class PaymentService {
       java: { ext: 'java', icon: '☕', label: 'Java', name: 'PaymentService.java', styles: ['Standard Javadoc'], styleValues: ['javadoc'] }
     };
 
+    // ─── Theme ─────────────────────────────────────────────
     let currentThemeMode = 'system';
 
     function initTheme() {
@@ -738,244 +903,214 @@ public class PaymentService {
       setTheme(saved, false);
     }
 
-    function setTheme(mode, showNotification = true) {
+    function setTheme(mode, notify = true) {
       currentThemeMode = mode;
       localStorage.setItem('docudoctor_theme', mode);
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const effective = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode;
+      effective === 'dark'
+        ? document.documentElement.classList.add('dark')
+        : document.documentElement.classList.remove('dark');
 
-      let effectiveTheme = mode;
-      if (mode === 'system') {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        effectiveTheme = prefersDark ? 'dark' : 'light';
-      }
+      const icons = { system: '💻', dark: '🌙', light: '☀️' };
+      const labels = { system: 'System', dark: 'Dark', light: 'Light' };
+      const icon = document.getElementById('themeActiveIcon');
+      const text = document.getElementById('themeActiveText');
+      if (icon) icon.innerText = icons[mode];
+      if (text) text.innerText = labels[mode];
 
-      if (effectiveTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-
-      const iconEl = document.getElementById('themeActiveIcon');
-      const textEl = document.getElementById('themeActiveText');
-      if (iconEl) iconEl.innerText = mode === 'system' ? '💻' : (mode === 'dark' ? '🌙' : '☀️');
-      if (textEl) textEl.innerText = mode === 'system' ? 'System' : (mode === 'dark' ? 'Dark' : 'Light');
-
-      const checkSystem = document.getElementById('checkSystem');
-      const checkDark = document.getElementById('checkDark');
-      const checkLight = document.getElementById('checkLight');
-      if (checkSystem) checkSystem.className = mode === 'system' ? 'text-cyan-400 font-bold' : 'hidden';
-      if (checkDark) checkDark.className = mode === 'dark' ? 'text-cyan-400 font-bold' : 'hidden';
-      if (checkLight) checkLight.className = mode === 'light' ? 'text-cyan-400 font-bold' : 'hidden';
+      ['system','dark','light'].forEach(m => {
+        const el = document.getElementById('check' + m.charAt(0).toUpperCase() + m.slice(1));
+        if (el) el.className = m === mode ? 'text-cyan-400 font-bold' : 'hidden';
+      });
 
       closeThemeMenu();
-
-      if (showNotification) {
-        const label = mode === 'system' ? '💻 System Default' : (mode === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode');
-        showToast(`Theme updated to ${label}`, "cyan");
-      }
+      if (notify) showToast(`Theme: ${icons[mode]} ${labels[mode]}`, 'cyan');
     }
 
-    function toggleThemeMenu(event) {
-      if (event) event.stopPropagation();
+    function toggleThemeMenu(e) {
+      if (e) e.stopPropagation();
       closeProfileDropdown();
-      const menu = document.getElementById('themeMenu');
-      if (!menu) return;
-      const isVisible = menu.style.display === 'flex';
-      menu.style.display = isVisible ? 'none' : 'flex';
+      const m = document.getElementById('themeMenu');
+      if (!m) return;
+      m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
     }
-
     function closeThemeMenu() {
-      const menu = document.getElementById('themeMenu');
-      if (menu) menu.style.display = 'none';
+      const m = document.getElementById('themeMenu');
+      if (m) m.style.display = 'none';
     }
 
     if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (currentThemeMode === 'system') {
-          setTheme('system', false);
-        }
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (currentThemeMode === 'system') setTheme('system', false);
       });
     }
 
-    function toggleProfileDropdown(event) {
-      if (event) {
-        event.stopPropagation();
-      }
+    // ─── Profile dropdown ──────────────────────────────────
+    function toggleProfileDropdown(e) {
+      if (e) e.stopPropagation();
       closeThemeMenu();
-      const menu = document.getElementById('profileDropdown');
-      if (!menu) return;
-      const isVisible = menu.style.display === 'block';
-      menu.style.display = isVisible ? 'none' : 'block';
+      const m = document.getElementById('profileDropdown');
+      if (!m) return;
+      m.style.display = m.style.display === 'block' ? 'none' : 'block';
     }
-
     function closeProfileDropdown() {
-      const menu = document.getElementById('profileDropdown');
-      if (menu) menu.style.display = 'none';
+      const m = document.getElementById('profileDropdown');
+      if (m) m.style.display = 'none';
     }
 
-    // Global outside click handler for profile & theme popovers
-    document.addEventListener('click', (e) => {
-      const profMenu = document.getElementById('profileDropdown');
+    document.addEventListener('click', e => {
+      const prof = document.getElementById('profileDropdown');
       const profBtn = document.getElementById('profileDropdownBtn');
-      if (profMenu && !profMenu.contains(e.target) && (!profBtn || !profBtn.contains(e.target))) {
-        profMenu.style.display = 'none';
-      }
-
-      const themeMenu = document.getElementById('themeMenu');
+      if (prof && !prof.contains(e.target) && (!profBtn || !profBtn.contains(e.target))) prof.style.display = 'none';
+      const theme = document.getElementById('themeMenu');
       const themeBtn = document.getElementById('themeBtn');
-      if (themeMenu && !themeMenu.contains(e.target) && (!themeBtn || !themeBtn.contains(e.target))) {
-        themeMenu.style.display = 'none';
-      }
+      if (theme && !theme.contains(e.target) && (!themeBtn || !themeBtn.contains(e.target))) theme.style.display = 'none';
     });
 
+    // ─── Language ──────────────────────────────────────────
     function onLanguageChange(lang, autoLoad = true) {
       currentLanguage = lang;
       const conf = LANG_CONFIG[lang] || LANG_CONFIG.python;
 
-      // Update active emoji icon
-      const iconEl = document.getElementById('langEmojiIcon');
-      if (iconEl) iconEl.innerText = conf.icon;
+      const icon = document.getElementById('langEmojiIcon');
+      if (icon) icon.innerText = conf.icon;
 
-      // Sync the select element value
       const sel = document.getElementById('languageSelect');
       if (sel && sel.value !== lang) sel.value = lang;
 
-      // Update mock editor tab filename and icon
-      const fileIcon = document.getElementById('fileIcon');
-      if (fileIcon) fileIcon.innerText = conf.icon;
-      const fileNameDisplay = document.getElementById('fileNameDisplay');
-      if (fileNameDisplay) fileNameDisplay.innerText = conf.name;
+      const fi = document.getElementById('fileIcon');
+      if (fi) fi.innerText = conf.icon;
+      const fn = document.getElementById('fileNameDisplay');
+      if (fn) fn.innerText = conf.name;
 
-      // Update Styles Dropdown options
-      const styleSelect = document.getElementById('docStyle');
-      if (styleSelect) {
-        styleSelect.innerHTML = conf.styles.map((name, i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${name}</option>`).join('');
-      }
+      const ss = document.getElementById('docStyle');
+      if (ss) ss.innerHTML = conf.styles.map((n,i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${n}</option>`).join('');
 
-      // Automatically load the code sample for this language if requested
       if (autoLoad) {
-        const sampleCode = SAMPLES[lang] || SAMPLES.python;
-        document.getElementById('codeEditor').value = sampleCode;
+        document.getElementById('codeEditor').value = SAMPLES[lang] || SAMPLES.python;
         updateGutter();
         flashEditor();
         auditCode();
       }
 
-      showToast(`Selected ${conf.icon} ${conf.label}`, "cyan");
+      showToast(`Selected ${conf.icon} ${conf.label}`, 'cyan');
     }
 
-    // Alias for compatibility
-    function selectLanguage(lang, autoLoad = true) {
-      onLanguageChange(lang, autoLoad);
-    }
-
-    function loadSampleForLanguage() {
-      onLanguageChange(currentLanguage, true);
-    }
+    function selectLanguage(lang, autoLoad = true) { onLanguageChange(lang, autoLoad); }
+    function loadSampleForLanguage() { onLanguageChange(currentLanguage, true); }
 
     function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-
-      const filename = file.name;
-      let detectedLang = 'python';
-      if (filename.endsWith('.java')) detectedLang = 'java';
-      else if (filename.endsWith('.cpp') || filename.endsWith('.hpp') || filename.endsWith('.cc')) detectedLang = 'cpp';
-      else if (filename.endsWith('.c') || filename.endsWith('.h')) detectedLang = 'c';
-
-      onLanguageChange(detectedLang, false);
-      document.getElementById('fileNameDisplay').innerText = filename;
-
+      const name = file.name;
+      let lang = 'python';
+      if (name.endsWith('.java')) lang = 'java';
+      else if (name.endsWith('.cpp') || name.endsWith('.hpp') || name.endsWith('.cc')) lang = 'cpp';
+      else if (name.endsWith('.c') || name.endsWith('.h')) lang = 'c';
+      onLanguageChange(lang, false);
+      document.getElementById('fileNameDisplay').innerText = name;
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = e => {
         document.getElementById('codeEditor').value = e.target.result;
-        updateGutter();
-        flashEditor();
-        showToast(`Loaded ${filename} (${detectedLang.toUpperCase()})`, "emerald");
+        updateGutter(); flashEditor();
+        showToast(`Loaded ${name}`, 'emerald');
         auditCode();
       };
       reader.readAsText(file);
     }
 
+    // ─── Editor utils ──────────────────────────────────────
     function updateGutter() {
       const editor = document.getElementById('codeEditor');
-      const text = editor.value;
-      const lines = text.split('\\n').length || 1;
+      const lines = editor.value.split('\\n').length || 1;
       const gutter = document.getElementById('gutter');
-
-      let gutterHtml = '';
-      for (let i = 1; i <= lines; i++) {
-        gutterHtml += `<div>${i}</div>`;
-      }
-      gutter.innerHTML = gutterHtml;
-
+      let html = '';
+      for (let i = 1; i <= lines; i++) html += `<div>${i}</div>`;
+      gutter.innerHTML = html;
       document.getElementById('lineCountDisplay').innerText = `Lines: ${lines}`;
-      document.getElementById('charCountDisplay').innerText = `Chars: ${text.length}`;
+      document.getElementById('charCountDisplay').innerText = `Chars: ${editor.value.length}`;
     }
 
     function syncGutterScroll() {
       const editor = document.getElementById('codeEditor');
-      const gutter = document.getElementById('gutter');
-      gutter.scrollTop = editor.scrollTop;
+      document.getElementById('gutter').scrollTop = editor.scrollTop;
     }
 
     function flashEditor() {
-      const editor = document.getElementById('codeEditor');
-      editor.classList.add('ring-2', 'ring-cyan-500');
-      setTimeout(() => editor.classList.remove('ring-2', 'ring-cyan-500'), 450);
+      const e = document.getElementById('codeEditor');
+      e.classList.add('ring-2','ring-cyan-500');
+      setTimeout(() => e.classList.remove('ring-2','ring-cyan-500'), 450);
     }
 
     function clearEditor() {
-      document.getElementById('codeEditor').value = "";
+      document.getElementById('codeEditor').value = '';
       updateGutter();
-      document.getElementById('scoreVal').innerText = "--";
-      document.getElementById('gradeLetter').innerText = "?";
-      document.getElementById('gradeBadge').innerText = "Awaiting Code";
-      document.getElementById('circleProgress').setAttribute('stroke-dasharray', '0, 100');
-      document.getElementById('statFuncs').innerText = "--";
-      document.getElementById('statDocs').innerText = "--";
-      document.getElementById('statTyped').innerText = "--";
-      document.getElementById('statMaintainability').innerText = "-- / 100";
-      document.getElementById('statMiGrade').innerText = "Grade -";
-      document.getElementById('statComplexity').innerText = "--";
-      document.getElementById('complexityStatus').innerText = "Awaiting Audit";
-      document.getElementById('countAll').innerText = "0";
-      document.getElementById('countError').innerText = "0";
-      document.getElementById('countWarning').innerText = "0";
-      document.getElementById('issueCountBadge').innerText = "0 issues";
-      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-10">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>`;
+      resetDashboard();
       document.getElementById('diffSection').classList.add('hidden');
       currentIssues = [];
-      showToast("Editor cleared.", "gray");
+      showToast('Editor cleared.', 'gray');
     }
 
+    function resetDashboard() {
+      document.getElementById('scoreVal').innerText = '--';
+      document.getElementById('gradeLetter').innerText = '?';
+      document.getElementById('gradeBadge').innerText = 'Awaiting Code';
+      document.getElementById('circleProgress').setAttribute('stroke-dasharray','0, 100');
+      ['statFuncs','statDocs','statTyped'].forEach(id => document.getElementById(id).innerText = '--');
+      document.getElementById('statMaintainability').innerText = '-- / 100';
+      document.getElementById('statMiGrade').innerText = 'Grade -';
+      document.getElementById('statComplexity').innerText = '--';
+      document.getElementById('complexityStatus').innerText = 'Awaiting Audit';
+      document.getElementById('countAll').innerText = '0';
+      document.getElementById('countError').innerText = '0';
+      document.getElementById('countWarning').innerText = '0';
+      document.getElementById('issueCountBadge').innerText = '0 issues';
+      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-8">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>`;
+      // Reset complexity
+      document.getElementById('overallTimeBig').innerText = 'Time: --';
+      document.getElementById('overallSpaceBig').innerText = 'Space: --';
+      document.getElementById('complexityFnList').innerHTML = '<p class="text-gray-500 text-center py-6">Run <b>Audit Code</b> to estimate complexity.</p>';
+      // Reset style
+      document.getElementById('styleScoreVal').innerText = '--';
+      document.getElementById('styleGradeBadge').innerText = 'Grade -';
+      document.getElementById('styleScoreBar').style.width = '0%';
+      ['styleNaming','styleStructure','styleFormat','styleTotal'].forEach(id => document.getElementById(id).innerText = '--');
+      document.getElementById('styleIssueList').innerHTML = '<p class="text-gray-500 text-center py-3">Run <b>Audit Code</b> to check style.</p>';
+    }
+
+    // ─── Audit ─────────────────────────────────────────────
     async function auditCode() {
       const code = document.getElementById('codeEditor').value;
-      if (!code.trim()) {
-        showToast("Please enter or upload code first!", "amber");
-        return;
-      }
+      if (!code.trim()) { showToast('Please enter or upload code first!', 'amber'); return; }
 
       try {
-        const res = await fetch('/api/audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: currentLanguage })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          showToast(data.detail || "Audit syntax error.", "red");
-          return;
-        }
+        // Run all three analyses in parallel
+        const [auditRes, complexityRes, styleRes] = await Promise.all([
+          fetch('/api/audit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage}) }),
+          fetch('/api/complexity', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage}) }),
+          fetch('/api/style', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage}) }),
+        ]);
 
-        currentIssues = data.issues || [];
-        renderDashboard(data);
+        const auditData = await auditRes.json();
+        const complexityData = complexityRes.ok ? await complexityRes.json() : null;
+        const styleData = styleRes.ok ? await styleRes.json() : null;
+
+        if (!auditRes.ok) { showToast(auditData.detail || 'Audit error.', 'red'); return; }
+
+        currentIssues = auditData.issues || [];
+        renderDashboard(auditData);
         renderIssues();
-        showToast(`Audit complete: Health ${data.score}% • Maintainability ${data.maintainability_index}%`, "emerald");
+        if (complexityData) renderComplexity(complexityData);
+        if (styleData) renderStyle(styleData);
+
+        showToast(`Audit ✓ — Health ${auditData.score}% · MI ${auditData.maintainability_index}% · Style ${styleData ? styleData.style_score : '--'}%`, 'emerald');
       } catch (err) {
-        showToast("Error connecting to server: " + err.message, "red");
+        showToast('Error connecting to server: ' + err.message, 'red');
       }
     }
 
+    // ─── Render helpers ────────────────────────────────────
     function renderDashboard(data) {
       document.getElementById('scoreVal').innerText = data.score;
       document.getElementById('gradeLetter').innerText = data.grade;
@@ -993,269 +1128,268 @@ public class PaymentService {
       document.getElementById('statFuncs').innerText = data.total_functions;
       document.getElementById('statDocs').innerText = `${data.documented_functions}/${data.total_functions}`;
       document.getElementById('statTyped').innerText = `${data.typed_returns}/${data.total_functions}`;
-
-      // Maintainability & Complexity Strip
       document.getElementById('statMaintainability').innerText = `${data.maintainability_index} / 100`;
       document.getElementById('statMiGrade').innerText = `Grade ${data.maintainability_grade}`;
       document.getElementById('statComplexity').innerText = data.avg_complexity;
 
       const compStatus = document.getElementById('complexityStatus');
       const avgComp = data.avg_complexity || 1.0;
-      if (avgComp <= 5) {
-        compStatus.innerText = 'Low Risk';
-        compStatus.className = 'text-[10px] font-semibold text-emerald-400';
-      } else if (avgComp <= 10) {
-        compStatus.innerText = 'Moderate';
-        compStatus.className = 'text-[10px] font-semibold text-amber-400';
-      } else {
-        compStatus.innerText = 'High Risk';
-        compStatus.className = 'text-[10px] font-semibold text-red-400';
-      }
+      if (avgComp <= 5) { compStatus.innerText = 'Low Risk'; compStatus.className = 'text-[10px] font-semibold text-emerald-400'; }
+      else if (avgComp <= 10) { compStatus.innerText = 'Moderate'; compStatus.className = 'text-[10px] font-semibold text-amber-400'; }
+      else { compStatus.innerText = 'High Risk'; compStatus.className = 'text-[10px] font-semibold text-red-400'; }
 
       document.getElementById('issueCountBadge').innerText = `${data.issues.length} issues`;
-
       document.getElementById('countAll').innerText = data.issues.length;
       document.getElementById('countError').innerText = data.issues.filter(i => i.severity === 'ERROR').length;
       document.getElementById('countWarning').innerText = data.issues.filter(i => i.severity === 'WARNING').length;
     }
 
+    // ── Complexity render ──────────────────────────────────
+    const RISK_COLORS = {
+      low: { bg: 'bg-emerald-950/70', text: 'text-emerald-300', border: 'border-emerald-700/40' },
+      medium: { bg: 'bg-amber-950/70', text: 'text-amber-300', border: 'border-amber-700/40' },
+      high: { bg: 'bg-orange-950/70', text: 'text-orange-300', border: 'border-orange-700/40' },
+      critical: { bg: 'bg-red-950/70', text: 'text-red-300', border: 'border-red-700/40' },
+    };
+
+    function renderComplexity(data) {
+      const timeEl = document.getElementById('overallTimeBig');
+      const spaceEl = document.getElementById('overallSpaceBig');
+      const listEl = document.getElementById('complexityFnList');
+
+      const riskCls = RISK_COLORS[data.overall_risk] || RISK_COLORS.low;
+      timeEl.innerText = `Time: ${data.overall_time}`;
+      timeEl.className = `text-xs font-mono font-bold px-2 py-0.5 rounded-lg ${riskCls.bg} ${riskCls.text} border ${riskCls.border}`;
+      spaceEl.innerText = `Space: ${data.overall_space}`;
+      spaceEl.className = `text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-violet-950/70 text-violet-300 border border-violet-700/40`;
+
+      if (!data.functions || data.functions.length === 0) {
+        listEl.innerHTML = `<p class="text-gray-500 text-center py-4">${escapeHtml(data.summary || 'No functions detected.')}</p>`;
+        return;
+      }
+
+      listEl.innerHTML = data.functions.map(fn => {
+        const c = RISK_COLORS[fn.risk] || RISK_COLORS.low;
+        return `
+          <div class="fn-row p-2.5 rounded-xl bg-dark-850/70 border border-white/[0.05] hover:border-white/10 transition space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-semibold text-cyan-300 text-xs">${escapeHtml(fn.name)}</span>
+              <span class="text-[9px] text-gray-500">L${fn.line}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded ${c.bg} ${c.text} border ${c.border}">⏱ ${escapeHtml(fn.time_complexity)}</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-violet-950/60 text-violet-300 border border-violet-700/30">📦 ${escapeHtml(fn.space_complexity)}</span>
+            </div>
+            <p class="text-[10px] text-gray-400 leading-relaxed">${escapeHtml(fn.time_reason)}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ── Style render ───────────────────────────────────────
+    function renderStyle(data) {
+      const score = data.style_score;
+      const grade = data.style_grade;
+      const label = data.style_label;
+
+      document.getElementById('styleScoreVal').innerText = `${score}/100`;
+      const gradeBadge = document.getElementById('styleGradeBadge');
+      gradeBadge.innerText = `${grade} · ${label}`;
+
+      const gradeColors = { A: 'bg-emerald-950 text-emerald-300 border-emerald-700/60', B: 'bg-cyan-950 text-cyan-300 border-cyan-700/60', C: 'bg-amber-950 text-amber-300 border-amber-700/60', D: 'bg-red-950 text-red-300 border-red-700/60' };
+      gradeBadge.className = `text-[10px] font-bold px-1.5 py-0.5 rounded border ${gradeColors[grade] || gradeColors.D}`;
+
+      // Score bar
+      const bar = document.getElementById('styleScoreBar');
+      bar.style.width = `${score}%`;
+      if (score >= 85) bar.className = 'h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-700';
+      else if (score >= 70) bar.className = 'h-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-400 transition-all duration-700';
+      else if (score >= 55) bar.className = 'h-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-700';
+      else bar.className = 'h-1.5 rounded-full bg-gradient-to-r from-red-500 to-rose-400 transition-all duration-700';
+
+      // Breakdown
+      const bd = data.breakdown || {};
+      document.getElementById('styleNaming').innerText = bd.naming ?? 0;
+      document.getElementById('styleStructure').innerText = bd.structure ?? 0;
+      document.getElementById('styleFormat').innerText = bd.formatting ?? 0;
+      document.getElementById('styleTotal').innerText = data.issues ? data.issues.length : 0;
+
+      // Style issues
+      const listEl = document.getElementById('styleIssueList');
+      if (!data.issues || data.issues.length === 0) {
+        listEl.innerHTML = `<div class="p-3 text-center text-emerald-400 font-semibold text-xs">✨ Style looks clean! No issues found.</div>`;
+        return;
+      }
+
+      const sevColors = { error: 'bg-red-950/70 text-red-300 border-red-700/40', warning: 'bg-amber-950/70 text-amber-300 border-amber-700/40', info: 'bg-blue-950/70 text-blue-300 border-blue-700/40' };
+      const catIcons = { naming: '🏷', structure: '🏗', formatting: '📐', complexity: '🔄' };
+
+      listEl.innerHTML = data.issues.map(iss => {
+        const sc = sevColors[iss.severity] || sevColors.info;
+        return `
+          <div class="p-2 rounded-lg bg-dark-850/60 border border-white/[0.05] flex items-start space-x-2">
+            <span class="text-sm flex-shrink-0">${catIcons[iss.category] || '📌'}</span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-1.5 flex-wrap gap-1">
+                <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${sc}">${escapeHtml(iss.code)}</span>
+                <span class="text-[9px] text-gray-500">L${iss.line}</span>
+              </div>
+              <p class="text-[10px] text-gray-300 mt-0.5 leading-relaxed">${escapeHtml(iss.message)}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ─── Issue list ────────────────────────────────────────
     function setFilter(filter) {
       activeFilter = filter;
-      const btnAll = document.getElementById('filterAll');
-      const btnErr = document.getElementById('filterError');
-      const btnWrn = document.getElementById('filterWarning');
-
-      btnAll.className = filter === 'all' ? 'text-[11px] font-semibold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-700/50' : 'text-[11px] font-semibold text-gray-400 hover:text-white px-2 py-1 rounded-lg';
-      btnErr.className = filter === 'error' ? 'text-[11px] font-semibold text-red-400 bg-red-950/80 px-2.5 py-1 rounded-lg border border-red-700/50' : 'text-[11px] font-semibold text-gray-400 hover:text-red-400 px-2 py-1 rounded-lg';
-      btnWrn.className = filter === 'warning' ? 'text-[11px] font-semibold text-amber-400 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-700/50' : 'text-[11px] font-semibold text-gray-400 hover:text-amber-400 px-2 py-1 rounded-lg';
-
+      const all = document.getElementById('filterAll');
+      const err = document.getElementById('filterError');
+      const wrn = document.getElementById('filterWarning');
+      all.className = filter === 'all' ? 'text-[11px] font-semibold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-700/50' : 'text-[11px] font-semibold text-gray-400 hover:text-white px-2 py-1 rounded-lg';
+      err.className = filter === 'error' ? 'text-[11px] font-semibold text-red-400 bg-red-950/80 px-2.5 py-1 rounded-lg border border-red-700/50' : 'text-[11px] font-semibold text-gray-400 hover:text-red-400 px-2 py-1 rounded-lg';
+      wrn.className = filter === 'warning' ? 'text-[11px] font-semibold text-amber-400 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-700/50' : 'text-[11px] font-semibold text-gray-400 hover:text-amber-400 px-2 py-1 rounded-lg';
       renderIssues();
     }
 
     function renderIssues() {
       const container = document.getElementById('issuesContainer');
       let filtered = currentIssues;
-
-      if (activeFilter === 'error') {
-        filtered = currentIssues.filter(i => i.severity === 'ERROR');
-      } else if (activeFilter === 'warning') {
-        filtered = currentIssues.filter(i => i.severity === 'WARNING');
-      }
+      if (activeFilter === 'error') filtered = currentIssues.filter(i => i.severity === 'ERROR');
+      else if (activeFilter === 'warning') filtered = currentIssues.filter(i => i.severity === 'WARNING');
 
       if (filtered.length === 0) {
-        if (currentIssues.length === 0) {
-          container.innerHTML = `<div class="p-6 text-center text-emerald-400 font-semibold">✨ All functions and classes are fully documented, typed, and clean!</div>`;
-        } else {
-          container.innerHTML = `<div class="p-6 text-center text-gray-400">No issues matching this filter.</div>`;
-        }
+        container.innerHTML = currentIssues.length === 0
+          ? `<div class="p-5 text-center text-emerald-400 font-semibold">✨ All documented, typed, and clean!</div>`
+          : `<div class="p-5 text-center text-gray-400">No issues matching this filter.</div>`;
         return;
       }
 
       container.innerHTML = filtered.map(iss => {
-        let badgeColor = iss.severity === "ERROR" ? "bg-red-950/80 text-red-300 border-red-700/60" : (iss.severity === "WARNING" ? "bg-amber-950/80 text-amber-300 border-amber-700/60" : "bg-cyan-950/80 text-cyan-300 border-cyan-700/60");
-
-        let fixBtnHtml = "";
+        const bc = iss.severity === 'ERROR' ? 'bg-red-950/80 text-red-300 border-red-700/60' : (iss.severity === 'WARNING' ? 'bg-amber-950/80 text-amber-300 border-amber-700/60' : 'bg-cyan-950/80 text-cyan-300 border-cyan-700/60');
+        let fixBtn = '';
         if (iss.can_fix) {
-          let btnLabel = "Fix Documentation";
-          if (iss.issue_type === "Mutable Default Arg") btnLabel = "Heal Mutable Default";
-          else if (iss.issue_type === "Missing Return Type") btnLabel = "Infer Return Type";
-          else if (iss.issue_type === "Missing Docstring") btnLabel = "Inject Docstring";
-
-          fixBtnHtml = `
-            <button onclick="fixSpecific('${iss.entity}')" class="mt-2 text-[11px] font-semibold bg-fuchsia-950/80 hover:bg-fuchsia-800 text-fuchsia-200 border border-fuchsia-600/50 px-3 py-1 rounded-lg flex items-center space-x-1.5 transition shadow-sm w-fit active:scale-95 cursor-pointer">
-              <span>⚡</span><span>${btnLabel}</span>
-            </button>
-          `;
+          const lbl = iss.issue_type === 'Mutable Default Arg' ? 'Heal Mutable Default'
+                    : iss.issue_type === 'Missing Return Type' ? 'Infer Return Type'
+                    : 'Inject Docstring';
+          fixBtn = `<button onclick="fixSpecific('${iss.entity}')" class="mt-1.5 text-[11px] font-semibold bg-fuchsia-950/80 hover:bg-fuchsia-800 text-fuchsia-200 border border-fuchsia-600/50 px-3 py-1 rounded-lg flex items-center space-x-1.5 transition w-fit active:scale-95 cursor-pointer"><span>⚡</span><span>${lbl}</span></button>`;
         }
-
         return `
-          <div class="p-3 rounded-xl bg-dark-850/80 border border-white/[0.06] flex flex-col space-y-1.5 hover:border-white/10 transition">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeColor}">Line ${iss.line}</span>
-                <span class="text-cyan-300 font-mono font-semibold">${iss.entity}</span>
-                <span class="text-gray-500 text-[11px]">(${iss.entity_type})</span>
+          <div class="issue-card p-2.5 rounded-xl bg-dark-850/80 border border-white/[0.06] flex flex-col space-y-1 hover:border-white/10 transition">
+            <div class="flex items-center justify-between flex-wrap gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border ${bc}">L${iss.line}</span>
+                <span class="text-cyan-300 font-mono font-semibold text-xs">${escapeHtml(iss.entity)}</span>
+                <span class="text-gray-500 text-[10px]">(${iss.entity_type})</span>
               </div>
-              <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">${iss.issue_type}</span>
+              <span class="text-[9px] uppercase font-bold text-gray-500 tracking-wider">${iss.issue_type}</span>
             </div>
-
-            <p class="text-gray-300 text-xs leading-relaxed">${iss.message}</p>
-            <div class="p-2 rounded-lg bg-dark-950/70 border border-white/[0.04] text-gray-400 text-[11px] italic">
-              💡 ${iss.recommendation}
-            </div>
-
-            ${fixBtnHtml}
-          </div>
-        `;
+            <p class="text-gray-300 text-[11px] leading-relaxed">${escapeHtml(iss.message)}</p>
+            <div class="p-1.5 rounded-lg bg-dark-950/70 border border-white/[0.04] text-gray-400 text-[10px] italic">💡 ${escapeHtml(iss.recommendation)}</div>
+            ${fixBtn}
+          </div>`;
       }).join('');
     }
 
+    // ─── Fix actions ───────────────────────────────────────
     async function fixSpecific(entityName) {
       const code = document.getElementById('codeEditor').value;
       const style = document.getElementById('docStyle').value;
-
       try {
-        const res = await fetch('/api/fix', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: currentLanguage, style, target: entityName })
-        });
+        const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, target:entityName}) });
         const data = await res.json();
-        if (!res.ok) {
-          showToast(data.detail || "Fix failed.", "red");
-          return;
-        }
-
+        if (!res.ok) { showToast(data.detail || 'Fix failed.', 'red'); return; }
         lastPatchedCode = data.patched_code;
         document.getElementById('codeEditor').value = data.patched_code;
-        updateGutter();
-        flashEditor();
-
-        // Render Diff
-        const diffSection = document.getElementById('diffSection');
-        diffSection.classList.remove('hidden');
-
-        const diffEl = document.getElementById('diffOutput');
-        diffEl.innerHTML = data.diff.split('\\n').map(line => {
-          if (line.startsWith('+')) return `<span class="text-emerald-400 font-medium">${escapeHtml(line)}</span>`;
-          if (line.startsWith('-')) return `<span class="text-red-400 font-medium">${escapeHtml(line)}</span>`;
-          if (line.startsWith('@')) return `<span class="text-cyan-400 font-semibold">${escapeHtml(line)}</span>`;
-          return `<span class="text-gray-500">${escapeHtml(line)}</span>`;
-        }).join('\\n');
-
-        showToast(`✨ Generated documentation for '${entityName}'!`, "fuchsia");
+        updateGutter(); flashEditor();
+        renderDiff(data.diff);
+        showToast(`✨ Fixed '${entityName}'!`, 'fuchsia');
         auditCode();
-      } catch (err) {
-        showToast("Error fixing: " + err.message, "red");
-      }
+      } catch (err) { showToast('Error fixing: ' + err.message, 'red'); }
     }
 
     async function fixCode() {
       const code = document.getElementById('codeEditor').value;
-      if (!code.trim()) {
-        showToast("Please enter or upload code first!", "amber");
-        return;
-      }
+      if (!code.trim()) { showToast('Please enter or upload code first!', 'amber'); return; }
       const style = document.getElementById('docStyle').value;
-
       try {
-        const res = await fetch('/api/fix', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: currentLanguage, style })
-        });
+        const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style}) });
         const data = await res.json();
-        if (!res.ok) {
-          showToast(data.detail || "Fix failed.", "red");
-          return;
-        }
-
+        if (!res.ok) { showToast(data.detail || 'Fix failed.', 'red'); return; }
         lastPatchedCode = data.patched_code;
         document.getElementById('codeEditor').value = data.patched_code;
-        updateGutter();
-        flashEditor();
-
-        // Render Diff
-        const diffSection = document.getElementById('diffSection');
-        diffSection.classList.remove('hidden');
-
-        const diffEl = document.getElementById('diffOutput');
-        diffEl.innerHTML = data.diff.split('\\n').map(line => {
-          if (line.startsWith('+')) return `<span class="text-emerald-400 font-medium">${escapeHtml(line)}</span>`;
-          if (line.startsWith('-')) return `<span class="text-red-400 font-medium">${escapeHtml(line)}</span>`;
-          if (line.startsWith('@')) return `<span class="text-cyan-400 font-semibold">${escapeHtml(line)}</span>`;
-          return `<span class="text-gray-500">${escapeHtml(line)}</span>`;
-        }).join('\\n');
-
-        showToast(`✨ Successfully patched ${data.patched_count} item(s)!`, "fuchsia");
+        updateGutter(); flashEditor();
+        renderDiff(data.diff);
+        showToast(`✨ Healed ${data.patched_count} item(s)!`, 'fuchsia');
         auditCode();
-      } catch (err) {
-        showToast("Error generating docs: " + err.message, "red");
-      }
+      } catch (err) { showToast('Error healing: ' + err.message, 'red'); }
+    }
+
+    function renderDiff(diff) {
+      document.getElementById('diffSection').classList.remove('hidden');
+      document.getElementById('diffOutput').innerHTML = diff.split('\\n').map(line => {
+        if (line.startsWith('+')) return `<span class="text-emerald-400 font-medium">${escapeHtml(line)}</span>`;
+        if (line.startsWith('-')) return `<span class="text-red-400 font-medium">${escapeHtml(line)}</span>`;
+        if (line.startsWith('@')) return `<span class="text-cyan-400 font-semibold">${escapeHtml(line)}</span>`;
+        return `<span class="text-gray-500">${escapeHtml(line)}</span>`;
+      }).join('\\n');
     }
 
     function copyPatchedCode() {
-      const codeToCopy = lastPatchedCode || document.getElementById('codeEditor').value;
-      if (!codeToCopy) return showToast("No code to copy.", "amber");
-      navigator.clipboard.writeText(codeToCopy).then(() => {
-        showToast("📋 Copied code to clipboard!", "emerald");
-      });
+      const code = lastPatchedCode || document.getElementById('codeEditor').value;
+      if (!code) return showToast('No code to copy.', 'amber');
+      navigator.clipboard.writeText(code).then(() => showToast('📋 Copied!', 'emerald'));
     }
 
     function downloadCode() {
-      const codeToDownload = document.getElementById('codeEditor').value;
-      if (!codeToDownload.trim()) return showToast("No code to download.", "amber");
-
+      const code = document.getElementById('codeEditor').value;
+      if (!code.trim()) return showToast('No code to download.', 'amber');
       const conf = LANG_CONFIG[currentLanguage] || LANG_CONFIG.python;
-      const blob = new Blob([codeToDownload], { type: 'text/plain;charset=utf-8' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `healed_${conf.name}`;
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([code], {type:'text/plain'})),
+        download: `healed_${conf.name}`
+      });
       a.click();
       URL.revokeObjectURL(a.href);
-      showToast(`📥 Downloaded healed_${conf.name}`, "emerald");
+      showToast(`📥 Downloaded healed_${conf.name}`, 'emerald');
     }
 
     async function exportMarkdownReport() {
       const code = document.getElementById('codeEditor').value;
-      if (!code.trim()) {
-        showToast("Enter or load code before generating report!", "amber");
-        return;
-      }
-
+      if (!code.trim()) { showToast('Load code first!', 'amber'); return; }
       const conf = LANG_CONFIG[currentLanguage] || LANG_CONFIG.python;
       try {
-        const res = await fetch('/api/report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: code,
-            language: currentLanguage,
-            filename: conf.name,
-          })
-        });
+        const res = await fetch('/api/report', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, filename:conf.name}) });
         const data = await res.json();
-        if (!res.ok) {
-          showToast(data.detail || "Failed to generate report.", "red");
-          return;
-        }
-
-        const blob = new Blob([data.report], { type: 'text/markdown;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = data.filename || "DOCUDOCTOR_REPORT.md";
+        if (!res.ok) { showToast(data.detail || 'Report failed.', 'red'); return; }
+        const a = Object.assign(document.createElement('a'), {
+          href: URL.createObjectURL(new Blob([data.report], {type:'text/markdown'})),
+          download: data.filename || 'DOCUDOCTOR_REPORT.md'
+        });
         a.click();
         URL.revokeObjectURL(a.href);
-        showToast("📄 Exported " + (data.filename || "DOCUDOCTOR_REPORT.md"), "emerald");
-      } catch (err) {
-        showToast("Error generating report: " + err.message, "red");
-      }
+        showToast('📄 Exported ' + (data.filename || 'DOCUDOCTOR_REPORT.md'), 'emerald');
+      } catch (err) { showToast('Report error: ' + err.message, 'red'); }
     }
 
-    function showToast(message, color = "cyan") {
+    // ─── Toast ─────────────────────────────────────────────
+    function showToast(message, color = 'cyan') {
       const box = document.getElementById('toastBox');
+      const colorMap = { cyan:'bg-cyan-400', emerald:'bg-emerald-400', red:'bg-red-400', amber:'bg-amber-400', fuchsia:'bg-fuchsia-400', gray:'bg-gray-500' };
       const toast = document.createElement('div');
-      let accentBg = "bg-cyan-400";
-      if (color === "emerald") accentBg = "bg-emerald-400";
-      else if (color === "red") accentBg = "bg-red-400";
-      else if (color === "amber") accentBg = "bg-amber-400";
-      else if (color === "fuchsia") accentBg = "bg-fuchsia-400";
-
-      toast.className = `animate-toast px-4 py-3 rounded-xl text-xs font-semibold text-white shadow-2xl flex items-center space-x-2.5 border border-white/10 bg-dark-900/90 backdrop-blur-xl`;
-      toast.innerHTML = `<span class="w-2 h-2 rounded-full ${accentBg}"></span><span>${message}</span>`;
+      toast.className = `animate-toast toast-box px-4 py-2.5 rounded-xl text-xs font-semibold text-white shadow-2xl flex items-center space-x-2.5 border border-white/10 bg-dark-900/95 backdrop-blur-xl pointer-events-auto`;
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full ${colorMap[color]||colorMap.cyan}"></span><span>${escapeHtml(message)}</span>`;
       box.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.25s ease';
-        setTimeout(() => toast.remove(), 250);
-      }, 3000);
+      setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.25s'; setTimeout(()=>toast.remove(),250); }, 3000);
     }
 
     function escapeHtml(text) {
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      if (!text) return '';
+      return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // Initialize on load
+    // ─── Init ──────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       onLanguageChange('python', true);

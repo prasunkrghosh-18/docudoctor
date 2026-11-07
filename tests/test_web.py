@@ -2,11 +2,15 @@
 
 from docudoctor.web import (
     AuditRequest,
+    ComplexityRequest,
     FixRequest,
     ReportRequest,
+    StyleRequest,
     api_audit,
+    api_complexity,
     api_fix,
     api_report,
+    api_style,
     index,
 )
 
@@ -148,5 +152,73 @@ def test_theme_switcher_elements():
     assert 'id="themeOptLight"' in html
     assert 'docudoctor_theme' in html
     assert 'prefers-color-scheme' in html
+
+
+def test_api_complexity_python():
+    code = """def find_dupes(items):
+    result = []
+    for i in range(len(items)):
+        for j in range(i+1, len(items)):
+            if items[i] == items[j]:
+                result.append(items[i])
+    return result
+"""
+    req = ComplexityRequest(code=code, language="python")
+    data = api_complexity(req)
+    assert "overall_time" in data
+    assert "overall_space" in data
+    assert "overall_risk" in data
+    assert "functions" in data
+    assert len(data["functions"]) >= 1
+    fn = data["functions"][0]
+    assert fn["name"] == "find_dupes"
+    assert "n²" in fn["time_complexity"] or "n" in fn["time_complexity"]
+
+
+def test_api_complexity_no_functions():
+    code = "x = 1 + 2"
+    req = ComplexityRequest(code=code, language="python")
+    data = api_complexity(req)
+    assert data["overall_time"] == "O(1)"
+    assert data["functions"] == []
+
+
+def test_api_style_clean_code():
+    code = """def calculate_total(price: float, tax_rate: float) -> float:
+    return round(price * (1.0 + tax_rate), 2)
+"""
+    req = StyleRequest(code=code, language="python")
+    data = api_style(req)
+    assert "style_score" in data
+    assert "style_grade" in data
+    assert "breakdown" in data
+    assert "issues" in data
+    assert data["style_score"] >= 80.0
+
+
+def test_api_style_bad_naming():
+    code = """def CalculateTotal(price, tax):
+    MagicNum = 999
+    return price + tax + MagicNum
+"""
+    req = StyleRequest(code=code, language="python")
+    data = api_style(req)
+    assert data["style_score"] < 100.0
+    assert len(data["issues"]) > 0
+
+
+def test_ui_has_complexity_and_style_panels():
+    html = index()
+    assert 'overallTimeBig' in html
+    assert 'overallSpaceBig' in html
+    assert 'complexityFnList' in html
+    assert 'styleScoreVal' in html
+    assert 'styleGradeBadge' in html
+    assert 'styleScoreBar' in html
+    assert 'styleNaming' in html
+    assert 'styleStructure' in html
+    assert 'styleIssueList' in html
+    assert '/api/complexity' in html
+    assert '/api/style' in html
 
 
