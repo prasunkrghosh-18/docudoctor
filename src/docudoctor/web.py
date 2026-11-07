@@ -489,9 +489,217 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #0f172a !important;
       background: rgba(0, 0, 0, 0.04) !important;
     }
+
+    /* ═══════════════════════════════════════════════════════
+       CINEMATIC WELCOME INTRO ANIMATIONS
+    ═══════════════════════════════════════════════════════ */
+    .welcome-card {
+      background: rgba(11, 15, 23, 0.92);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 60px -10px rgba(168, 85, 247, 0.3);
+      animation: welcomeCardIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes welcomeCardIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(28px);
+        filter: blur(12px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    .welcome-shimmer-title {
+      background: linear-gradient(135deg, #ffffff 0%, #22d3ee 30%, #c084fc 65%, #67e8f9 85%, #ffffff 100%);
+      background-size: 250% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: welcomeShimmer 4s ease infinite;
+    }
+
+    @keyframes welcomeShimmer {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .welcome-icon-float {
+      animation: welcomeFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes welcomeFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    .welcome-pulse-ring {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 9999px;
+      border: 2px solid rgba(34, 211, 238, 0.45);
+      animation: welcomePulseRing 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+
+    .welcome-pulse-ring-outer {
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 9999px;
+      border: 1.5px solid rgba(168, 85, 247, 0.35);
+      animation: welcomePulseRing 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite 0.6s;
+    }
+
+    @keyframes welcomePulseRing {
+      0% {
+        transform: scale(0.7);
+        opacity: 0.9;
+      }
+      80%, 100% {
+        transform: scale(1.65);
+        opacity: 0;
+      }
+    }
+
+    .welcome-badge-pulse {
+      animation: welcomeBadgePop 2s ease-in-out infinite;
+    }
+
+    @keyframes welcomeBadgePop {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+
+    .welcome-progress-bar {
+      animation: welcomeProgressFill 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes welcomeProgressFill {
+      0% { width: 0%; }
+      35% { width: 45%; }
+      70% { width: 80%; }
+      100% { width: 100%; }
+    }
+
+    .welcome-nebula {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(100px);
+      opacity: 0.35;
+      pointer-events: none;
+      animation: welcomeNebulaBreath 6s ease-in-out infinite alternate;
+    }
+
+    .welcome-nebula-cyan {
+      width: 480px;
+      height: 480px;
+      top: 15%;
+      left: 15%;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.45) 0%, transparent 70%);
+    }
+
+    .welcome-nebula-purple {
+      width: 520px;
+      height: 520px;
+      bottom: 15%;
+      right: 15%;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+      animation-delay: -3s;
+    }
+
+    @keyframes welcomeNebulaBreath {
+      0% { transform: scale(0.9) translate(0, 0); opacity: 0.25; }
+      100% { transform: scale(1.15) translate(20px, -20px); opacity: 0.45; }
+    }
+
+    .welcome-grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black, transparent);
+    }
 </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
+
+  <!-- ════════════════════════ WELCOME CINEMATIC INTRO ════════════════════════ -->
+  <div id="welcomeIntroOverlay" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark-950/98 backdrop-blur-3xl select-none cursor-pointer" onclick="dismissWelcomeIntro()" title="Click anywhere to enter">
+    <!-- Ambient glowing nebulas -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="welcome-nebula welcome-nebula-cyan"></div>
+      <div class="welcome-nebula welcome-nebula-purple"></div>
+      <div class="welcome-grid-pattern"></div>
+    </div>
+
+    <!-- Centered Glass Portal Card -->
+    <div class="relative z-10 max-w-lg w-full mx-4 p-8 md:p-10 rounded-3xl welcome-card border border-white/10 text-center flex flex-col items-center space-y-6 shadow-2xl">
+      <!-- Floating Holographic Logo & Heartbeat Badge -->
+      <div class="relative flex items-center justify-center">
+        <div class="welcome-pulse-ring"></div>
+        <div class="welcome-pulse-ring-outer"></div>
+        <div class="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-tr from-cyan-500/20 via-purple-500/30 to-indigo-500/20 border border-purple-400/50 flex items-center justify-center text-4xl md:text-5xl shadow-2xl backdrop-blur-xl welcome-icon-float">
+          <span>🩺</span>
+        </div>
+        <div class="absolute -bottom-1 -right-1 w-9 h-9 rounded-2xl bg-purple-600 border border-white/20 flex items-center justify-center text-lg shadow-lg welcome-badge-pulse">
+          🧠
+        </div>
+      </div>
+
+      <!-- Kinetic Text Block -->
+      <div class="space-y-2.5">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-[11px] font-bold tracking-widest uppercase">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+          <span>Next-Gen Code Intelligence</span>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight welcome-shimmer-title">
+          Welcome to DocuDoctor
+        </h1>
+
+        <p class="text-xs md:text-sm text-gray-300 max-w-sm mx-auto leading-relaxed">
+          Autonomous AST Diagnostics, Complexity Profiling &amp; Super Smart Multi-Language Docstrings.
+        </p>
+      </div>
+
+      <!-- Polyglot scanning chip badges -->
+      <div class="flex items-center justify-center flex-wrap gap-2 text-xs font-semibold">
+        <span class="px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-cyan-300">🐍 Python</span>
+        <span class="px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-blue-300">⚡ C / C++</span>
+        <span class="px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-amber-300">☕ Java</span>
+        <span class="px-2.5 py-1 rounded-xl bg-purple-950/70 border border-purple-500/40 text-purple-300">🧠 Gemini AI</span>
+      </div>
+
+      <!-- Laser Progress Loader Bar -->
+      <div class="w-full max-w-xs space-y-2">
+        <div class="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden p-0.5 border border-white/5">
+          <div id="welcomeProgressFill" class="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-indigo-400 rounded-full welcome-progress-bar"></div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-gray-400 font-mono">
+          <span id="welcomeProgressText">Initializing Studio...</span>
+          <span class="text-cyan-400">Ready</span>
+        </div>
+      </div>
+
+      <!-- Action Button & Skip Tip -->
+      <div class="pt-1 flex flex-col items-center space-y-2 w-full">
+        <button type="button" onclick="event.stopPropagation(); dismissWelcomeIntro()" class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-indigo-600 hover:from-cyan-400 hover:via-purple-500 hover:to-indigo-500 text-white font-bold text-xs md:text-sm tracking-wide shadow-xl shadow-purple-950/60 flex items-center justify-center space-x-2 transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+          <span>🚀</span>
+          <span>Enter Workspace</span>
+          <span>→</span>
+        </button>
+        <span class="text-[10px] text-gray-500 hover:text-gray-400 transition cursor-pointer">
+          Click anywhere or press any key to enter
+        </span>
+      </div>
+    </div>
+  </div>
 
   <!-- ════════════════════════ HEADER ════════════════════════ -->
   <header class="border-b border-white/[0.08] bg-dark-950/80 sticky top-0 z-50 backdrop-blur-2xl transition-colors duration-200">
@@ -646,7 +854,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <span class="text-lg select-none" id="langEmojiIcon">🐍</span>
           <div class="flex flex-col">
             <span class="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold leading-none">Language</span>
-            <select id="languageSelect" onchange="onLanguageChange(this.value,true)" class="bg-transparent text-xs font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer mt-0.5 pr-1">
+            <select id="languageSelect" onchange="onLanguageChange(this.value,false)" class="bg-transparent text-xs font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer mt-0.5 pr-1">
               <option value="python" class="bg-dark-900 text-white">🐍 Python (.py)</option>
               <option value="c" class="bg-dark-900 text-white">⚡ C (.c / .h)</option>
               <option value="cpp" class="bg-dark-900 text-white">🚀 C++ (.cpp)</option>
@@ -1825,10 +2033,48 @@ public class PaymentService {
       return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    // ─── Welcome Intro Animation ───────────────────────────
+    let welcomeDismissed = false;
+    function dismissWelcomeIntro() {
+      if (welcomeDismissed) return;
+      welcomeDismissed = true;
+      const overlay = document.getElementById('welcomeIntroOverlay');
+      if (!overlay) return;
+      overlay.style.transition = 'opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease';
+      overlay.style.opacity = '0';
+      overlay.style.transform = 'scale(1.05)';
+      overlay.style.filter = 'blur(10px)';
+      overlay.style.pointerEvents = 'none';
+      setTimeout(() => {
+        if (overlay) overlay.style.display = 'none';
+        const ed = document.getElementById('codeEditor');
+        if (ed) ed.focus();
+      }, 500);
+    }
+
+    function initWelcomeAnimation() {
+      // Auto-dismiss after 2.6 seconds or on any key/click
+      setTimeout(() => {
+        dismissWelcomeIntro();
+      }, 2600);
+
+      window.addEventListener('keydown', (e) => {
+        if (!welcomeDismissed) {
+          dismissWelcomeIntro();
+        }
+      }, { once: true });
+    }
+
     // ─── Init ──────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
-      onLanguageChange('python', true);
+      // Initialize completely blank without pre-coming code
+      onLanguageChange('python', false);
+      const ed = document.getElementById('codeEditor');
+      if (ed) ed.value = '';
+      updateGutter();
+      resetDashboard();
+      initWelcomeAnimation();
     });
   </script>
 </body>

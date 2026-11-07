@@ -239,4 +239,15 @@ def test_ui_tabbed_studio_inspector():
     assert 'statStyleQuick' in html
 
 
+def test_ui_welcome_intro_overlay():
+    """Verify cinematic welcome intro overlay and blank opening editor scripts are present."""
+    html = index()
+    assert 'welcomeIntroOverlay' in html
+    assert 'Welcome to DocuDoctor' in html
+    assert 'dismissWelcomeIntro' in html
+    assert 'initWelcomeAnimation' in html
+    assert "onLanguageChange('python', false)" in html
+
+
+
 
