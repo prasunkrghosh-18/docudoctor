@@ -537,33 +537,52 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       50% { transform: translateY(-7px); }
     }
 
-    .welcome-pulse-ring {
-      position: absolute;
-      width: 100px;
-      height: 100px;
-      border-radius: 9999px;
-      border: 2px solid rgba(34, 211, 238, 0.45);
-      animation: welcomePulseRing 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    /* Futuristic Reticle & HUD Animations */
+    @keyframes spinClockwise {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spinCounter {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
     }
 
-    .welcome-pulse-ring-outer {
+    .hud-reticle-ring-1 {
       position: absolute;
-      width: 130px;
-      height: 130px;
+      width: 116px;
+      height: 116px;
       border-radius: 9999px;
-      border: 1.5px solid rgba(168, 85, 247, 0.35);
-      animation: welcomePulseRing 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite 0.6s;
+      border: 1.5px dashed rgba(34, 211, 238, 0.5);
+      animation: spinClockwise 12s linear infinite;
+      pointer-events: none;
     }
 
-    @keyframes welcomePulseRing {
-      0% {
-        transform: scale(0.7);
-        opacity: 0.9;
-      }
-      80%, 100% {
-        transform: scale(1.65);
-        opacity: 0;
-      }
+    .hud-reticle-ring-2 {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 9999px;
+      border: 1.5px solid rgba(168, 85, 247, 0.4);
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+      animation: spinCounter 8s linear infinite;
+      pointer-events: none;
+    }
+
+    .hud-radar-sweep {
+      position: absolute;
+      width: 124px;
+      height: 124px;
+      border-radius: 9999px;
+      background: conic-gradient(from 0deg, transparent 75%, rgba(34, 211, 238, 0.22) 100%);
+      animation: spinClockwise 2.4s linear infinite;
+      pointer-events: none;
+    }
+
+    .hud-terminal-box {
+      background: rgba(6, 10, 18, 0.9);
+      border: 1px solid rgba(34, 211, 238, 0.25);
+      box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.08), 0 10px 30px -5px rgba(0, 0, 0, 0.8);
     }
 
     .welcome-badge-pulse {
@@ -573,17 +592,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     @keyframes welcomeBadgePop {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.12); }
-    }
-
-    .welcome-progress-bar {
-      animation: welcomeProgressFill 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes welcomeProgressFill {
-      0% { width: 0%; }
-      35% { width: 45%; }
-      70% { width: 80%; }
-      100% { width: 100%; }
     }
 
     .welcome-nebula {
@@ -638,12 +646,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="welcome-grid-pattern"></div>
     </div>
 
-    <!-- Centered Glass Portal Card -->
+    <!-- Centered Cyber HUD Portal Card -->
     <div class="relative z-10 max-w-lg w-full mx-4 p-8 md:p-10 rounded-3xl welcome-card border border-white/10 text-center flex flex-col items-center space-y-6 shadow-2xl">
-      <!-- Floating Holographic Logo & Heartbeat Badge -->
-      <div class="relative flex items-center justify-center">
-        <div class="welcome-pulse-ring"></div>
-        <div class="welcome-pulse-ring-outer"></div>
+      <!-- Floating Holographic Logo & Cyber Reticle Rings -->
+      <div class="relative flex items-center justify-center py-2">
+        <div class="hud-radar-sweep"></div>
+        <div class="hud-reticle-ring-1"></div>
+        <div class="hud-reticle-ring-2"></div>
         <div class="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-tr from-cyan-500/20 via-purple-500/30 to-indigo-500/20 border border-purple-400/50 flex items-center justify-center text-4xl md:text-5xl shadow-2xl backdrop-blur-xl welcome-icon-float">
           <span>🩺</span>
         </div>
@@ -653,7 +662,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
 
       <!-- Kinetic Text Block -->
-      <div class="space-y-2.5">
+      <div class="space-y-2">
         <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-[11px] font-bold tracking-widest uppercase">
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
           <span>Next-Gen Code Intelligence</span>
@@ -664,7 +673,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </h1>
 
         <p class="text-xs md:text-sm text-gray-300 max-w-sm mx-auto leading-relaxed">
-          Autonomous AST Diagnostics, Complexity Profiling &amp; Super Smart Multi-Language Docstrings.
+          Autonomous AST Diagnostics, Complexity Profiling &amp; Multi-Language Docstring Engine.
         </p>
       </div>
 
@@ -676,27 +685,53 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <span class="px-2.5 py-1 rounded-xl bg-purple-950/70 border border-purple-500/40 text-purple-300">🧠 Gemini AI</span>
       </div>
 
-      <!-- Laser Progress Loader Bar -->
-      <div class="w-full max-w-xs space-y-2">
-        <div class="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden p-0.5 border border-white/5">
-          <div id="welcomeProgressFill" class="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-indigo-400 rounded-full welcome-progress-bar"></div>
-        </div>
-        <div class="flex items-center justify-between text-[11px] text-gray-400 font-mono">
-          <span id="welcomeProgressText">Initializing Studio...</span>
-          <span class="text-cyan-400">Ready</span>
-        </div>
-      </div>
+      <!-- Futuristic Cyber HUD Loading Module -->
+      <div class="w-full space-y-2.5 pt-1">
+        <!-- Terminal telemetry box -->
+        <div class="hud-terminal-box p-3.5 rounded-2xl space-y-2 text-left font-mono">
+          <div class="flex items-center justify-between text-[10px] pb-1.5 border-b border-white/[0.08]">
+            <div class="flex items-center space-x-1.5 text-cyan-400">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span class="font-bold tracking-wider">NEURAL_DIAGNOSTICS_BUS</span>
+            </div>
+            <div class="flex items-center space-x-2 text-gray-400">
+              <span id="welcomeProgressHex" class="text-purple-300 font-bold">0x7F4A</span>
+              <span class="text-gray-600">|</span>
+              <span id="welcomeProgressPct" class="font-bold text-cyan-300">0%</span>
+            </div>
+          </div>
 
-      <!-- Action Button & Skip Tip -->
-      <div class="pt-1 flex flex-col items-center space-y-2 w-full">
-        <button type="button" onclick="event.stopPropagation(); dismissWelcomeIntro()" class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-600 to-indigo-600 hover:from-cyan-400 hover:via-purple-500 hover:to-indigo-500 text-white font-bold text-xs md:text-sm tracking-wide shadow-xl shadow-purple-950/60 flex items-center justify-center space-x-2 transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
-          <span>🚀</span>
-          <span>Enter Workspace</span>
-          <span>→</span>
-        </button>
-        <span class="text-[10px] text-gray-500 hover:text-gray-400 transition cursor-pointer">
-          Click anywhere or press any key to enter
-        </span>
+          <!-- Dynamic Telemetry Ticker -->
+          <div class="flex items-center space-x-2 text-[11px] text-gray-200 h-5 overflow-hidden">
+            <span class="text-cyan-400 font-bold">&gt;_</span>
+            <span id="welcomeProgressText" class="truncate text-slate-200">Initializing AST compiler...</span>
+          </div>
+
+          <!-- High-Tech Neon Segmented Meter (12 segments) -->
+          <div class="grid grid-cols-12 gap-1.5 pt-1">
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+            <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
+          </div>
+        </div>
+
+        <!-- Micro telemetry footer without button -->
+        <div class="flex items-center justify-between text-[10px] font-mono text-gray-500 px-1 pt-1">
+          <span class="flex items-center space-x-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-emerald-400/90 font-bold tracking-wide">SYSTEM ARMED</span>
+          </span>
+          <span class="text-gray-400 hover:text-cyan-300 transition">CLICK ANYWHERE TO SKIP</span>
+        </div>
       </div>
     </div>
   </div>
@@ -2040,26 +2075,75 @@ public class PaymentService {
       welcomeDismissed = true;
       const overlay = document.getElementById('welcomeIntroOverlay');
       if (!overlay) return;
-      overlay.style.transition = 'opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease';
+      overlay.style.transition = 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease';
       overlay.style.opacity = '0';
-      overlay.style.transform = 'scale(1.05)';
+      overlay.style.transform = 'scale(1.04)';
       overlay.style.filter = 'blur(10px)';
       overlay.style.pointerEvents = 'none';
       setTimeout(() => {
         if (overlay) overlay.style.display = 'none';
         const ed = document.getElementById('codeEditor');
         if (ed) ed.focus();
-      }, 500);
+      }, 450);
     }
 
     function initWelcomeAnimation() {
-      // Auto-dismiss after 2.6 seconds or on any key/click
-      setTimeout(() => {
-        dismissWelcomeIntro();
-      }, 2600);
+      const steps = [
+        { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A' },
+        { pct: 38, text: '[METRICS] Calibrating cyclomatic complexity & MI...', hex: '0x8B12' },
+        { pct: 65, text: '[POLYGLOT] Python 3.13 · LLVM C/C++ · JVM armed...', hex: '0x9C33' },
+        { pct: 88, text: '[COGNITIVE] Gemini Flash AI coprocessor synced...', hex: '0xFA01' },
+        { pct: 100, text: '[SYS.ONLINE] All telemetry nominal. Entering studio...', hex: '0xFFFF' }
+      ];
+
+      const pctEl = document.getElementById('welcomeProgressPct');
+      const textEl = document.getElementById('welcomeProgressText');
+      const hexEl = document.getElementById('welcomeProgressHex');
+      const segments = document.querySelectorAll('.hud-seg');
+
+      let currentPct = 0;
+      let stepIdx = 0;
+
+      const timer = setInterval(() => {
+        if (welcomeDismissed) {
+          clearInterval(timer);
+          return;
+        }
+
+        currentPct += 2;
+        if (currentPct > 100) currentPct = 100;
+
+        if (pctEl) pctEl.innerText = `${currentPct}%`;
+
+        // Update active neon segments
+        if (segments && segments.length) {
+          const activeCount = Math.floor((currentPct / 100) * segments.length);
+          segments.forEach((seg, i) => {
+            if (i < activeCount) {
+              seg.style.backgroundColor = '#22d3ee';
+              seg.style.boxShadow = '0 0 10px rgba(34, 211, 238, 0.7)';
+            }
+          });
+        }
+
+        // Advance telemetry messages
+        if (stepIdx < steps.length && currentPct >= steps[stepIdx].pct) {
+          if (textEl) textEl.innerText = steps[stepIdx].text;
+          if (hexEl) hexEl.innerText = steps[stepIdx].hex;
+          stepIdx++;
+        }
+
+        if (currentPct >= 100) {
+          clearInterval(timer);
+          setTimeout(() => {
+            dismissWelcomeIntro();
+          }, 350);
+        }
+      }, 40);
 
       window.addEventListener('keydown', (e) => {
         if (!welcomeDismissed) {
+          clearInterval(timer);
           dismissWelcomeIntro();
         }
       }, { once: true });
