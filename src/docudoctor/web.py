@@ -444,7 +444,38 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     html:not(.dark) .metric-card { background: rgba(248,250,252,0.95) !important; border-color: #e2e8f0 !important; }
     html:not(.dark) .fn-row { background: rgba(241,245,249,0.9) !important; border-color: #e2e8f0 !important; }
     html:not(.dark) .diff-panel { background: rgba(248,250,252,0.98) !important; }
-  </style>
+  
+    /* Tab Navigation Styles */
+    .tab-btn-active {
+      background: rgba(6, 182, 212, 0.15) !important;
+      color: #22d3ee !important;
+      border: 1px solid rgba(6, 182, 212, 0.45) !important;
+      box-shadow: 0 2px 10px rgba(6, 182, 212, 0.15);
+    }
+    .tab-btn-inactive {
+      background: transparent !important;
+      color: #94a3b8 !important;
+      border: 1px solid transparent !important;
+    }
+    .tab-btn-inactive:hover {
+      color: #f1f5f9 !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    html:not(.dark) .tab-btn-active {
+      background: rgba(6, 182, 212, 0.12) !important;
+      color: #0891b2 !important;
+      border-color: rgba(6, 182, 212, 0.5) !important;
+      box-shadow: 0 2px 8px rgba(6, 182, 212, 0.1) !important;
+    }
+    html:not(.dark) .tab-btn-inactive {
+      color: #64748b !important;
+    }
+    html:not(.dark) .tab-btn-inactive:hover {
+      color: #0f172a !important;
+      background: rgba(0, 0, 0, 0.04) !important;
+    }
+</style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
 
@@ -635,143 +666,264 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Right: Scorecard + Metrics (5 cols) -->
+      <!-- Right: Executive Vitals + Spacious Tabbed Studio (5 cols) -->
       <div class="lg:col-span-5 flex flex-col gap-4">
 
-        <!-- Doc Health Score -->
-        <div class="glass-panel p-4 rounded-2xl flex items-center justify-between relative overflow-hidden">
-          <div>
-            <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">Documentation Health</span>
-            <div class="flex items-baseline space-x-2 mt-1">
-              <span id="scoreVal" class="text-4xl font-extrabold tracking-tight text-cyan-400">--</span>
-              <span class="text-xs font-semibold text-gray-500">/ 100</span>
-            </div>
-            <div id="gradeBadge" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-dark-850 text-gray-400 border border-white/10">Awaiting Audit</div>
-          </div>
-          <!-- Circular progress -->
-          <div class="relative w-20 h-20 flex items-center justify-center">
-            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path class="text-dark-850" stroke-width="3.2" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path id="circleProgress" class="text-cyan-400 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            </svg>
-            <span id="gradeLetter" class="absolute text-xl font-black text-white">?</span>
-          </div>
-        </div>
-
-        <!-- 3-stat grid -->
-        <div class="grid grid-cols-3 gap-2">
-          <div class="glass-card p-3 rounded-xl text-center metric-card">
-            <span class="text-[10px] text-gray-400 font-medium">Functions</span>
-            <p id="statFuncs" class="text-base font-bold text-gray-100 mt-0.5">--</p>
-          </div>
-          <div class="glass-card p-3 rounded-xl text-center metric-card">
-            <span class="text-[10px] text-gray-400 font-medium">Documented</span>
-            <p id="statDocs" class="text-base font-bold text-emerald-400 mt-0.5">--</p>
-          </div>
-          <div class="glass-card p-3 rounded-xl text-center metric-card">
-            <span class="text-[10px] text-gray-400 font-medium">Typed Returns</span>
-            <p id="statTyped" class="text-base font-bold text-fuchsia-400 mt-0.5">--</p>
-          </div>
-        </div>
-
-        <!-- Maintainability + Cyclomatic -->
-        <div class="glass-card p-3 rounded-xl flex items-center justify-between text-xs border border-white/5 shadow-sm metric-card">
-          <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-sm">🧠</div>
+        <!-- 1. Executive Vitals Card (Top) -->
+        <div class="glass-panel p-4 rounded-2xl relative overflow-hidden flex flex-col gap-3">
+          <div class="flex items-center justify-between">
             <div>
-              <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Maintainability</span>
               <div class="flex items-center space-x-1.5">
-                <span id="statMaintainability" class="font-extrabold text-white text-sm">-- / 100</span>
-                <span id="statMiGrade" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40">Grade -</span>
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-extrabold">Documentation Health</span>
+              </div>
+              <div class="flex items-baseline space-x-2 mt-1">
+                <span id="scoreVal" class="text-3xl font-black tracking-tight text-cyan-400">--</span>
+                <span class="text-xs font-semibold text-gray-400">/ 100</span>
+                <div id="gradeBadge" class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-dark-850 text-gray-400 border border-white/10">
+                  Awaiting Audit
+                </div>
               </div>
             </div>
+
+            <!-- Circular progress -->
+            <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-dark-850" stroke-width="3.2" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                <path id="circleProgress" class="text-cyan-400 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              </svg>
+              <span id="gradeLetter" class="absolute text-lg font-black text-white">?</span>
+            </div>
           </div>
-          <div class="text-right">
-            <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Avg Complexity</span>
-            <div class="flex items-center space-x-1.5 justify-end">
-              <span id="statComplexity" class="font-extrabold text-white text-sm">--</span>
-              <span id="complexityStatus" class="text-[10px] font-semibold text-emerald-400">Low Risk</span>
+
+          <!-- Quick Vitals Grid (4 chips giving the whole picture at a glance) -->
+          <div class="grid grid-cols-4 gap-2 pt-2.5 border-t border-white/[0.08]">
+            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
+              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Functions</span>
+              <span id="statFuncsQuick" class="text-xs font-bold text-gray-200 mt-0.5 block">--</span>
+            </div>
+            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
+              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Maintainability</span>
+              <span id="statMiQuick" class="text-xs font-bold text-cyan-300 mt-0.5 block">--</span>
+            </div>
+            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
+              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Complexity</span>
+              <span id="statComplexityQuick" class="text-xs font-bold text-emerald-400 mt-0.5 block">--</span>
+            </div>
+            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
+              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Style</span>
+              <span id="statStyleQuick" class="text-xs font-bold text-fuchsia-300 mt-0.5 block">--</span>
             </div>
           </div>
         </div>
 
-        <!-- ══ NEW: Time & Space Complexity Panel ══ -->
-        <div class="glass-panel rounded-2xl overflow-hidden metric-card">
-          <div class="px-4 py-2.5 border-b border-white/[0.08] bg-dark-950/70 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="text-sm">⏱</span>
-              <span class="text-xs font-bold text-gray-200 tracking-wide uppercase">Time &amp; Space Complexity</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span id="overallTimeBig" class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-indigo-950/80 text-indigo-300 border border-indigo-700/40">Time: --</span>
-              <span id="overallSpaceBig" class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-violet-950/80 text-violet-300 border border-violet-700/40">Space: --</span>
-            </div>
+        <!-- 2. Spacious Tabbed Studio Inspector (Fills the rest of the height) -->
+        <div class="glass-panel rounded-2xl flex flex-col flex-1 overflow-hidden min-h-[500px]">
+          
+          <!-- Tabs Navigation Bar -->
+          <div class="p-2 border-b border-white/[0.08] bg-dark-950/80 flex items-center space-x-1.5 overflow-x-auto select-none">
+            <button id="tabBtnIssues" type="button" onclick="switchRightTab('issues')" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer tab-btn-active">
+              <span>🐛</span>
+              <span>Issues</span>
+              <span id="tabCountIssues" class="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-dark-800 text-gray-300">0</span>
+            </button>
+            <button id="tabBtnComplexity" type="button" onclick="switchRightTab('complexity')" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer tab-btn-inactive">
+              <span>⏱️</span>
+              <span>Complexity</span>
+              <span id="tabBadgeComplexity" class="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-dark-800 text-gray-300">--</span>
+            </button>
+            <button id="tabBtnStyle" type="button" onclick="switchRightTab('style')" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer tab-btn-inactive">
+              <span>🎨</span>
+              <span>Style</span>
+              <span id="tabBadgeStyle" class="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-dark-800 text-gray-300">--</span>
+            </button>
+            <button id="tabBtnMetrics" type="button" onclick="switchRightTab('metrics')" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer tab-btn-inactive">
+              <span>📊</span>
+              <span>Metrics</span>
+            </button>
           </div>
-          <div id="complexityFnList" class="p-3 space-y-2 max-h-44 overflow-y-auto text-xs">
-            <p class="text-gray-500 text-center py-6">Run <b>Audit Code</b> to estimate complexity.</p>
-          </div>
-        </div>
 
-        <!-- ══ NEW: Code Style / Linting Panel ══ -->
-        <div class="glass-panel rounded-2xl overflow-hidden metric-card">
-          <div class="px-4 py-2.5 border-b border-white/[0.08] bg-dark-950/70 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="text-sm">🎨</span>
-              <span class="text-xs font-bold text-gray-200 tracking-wide uppercase">Code Style Score</span>
-              <span class="text-[9px] text-gray-500 font-medium">(naming · structure · formatting)</span>
+          <!-- TAB PANE 1: Issues & Fixes -->
+          <div id="tabPaneIssues" class="tab-pane flex flex-col flex-1 overflow-hidden">
+            <!-- Filter Bar -->
+            <div class="px-4 py-2.5 border-b border-white/[0.06] flex items-center justify-between bg-dark-950/60">
+              <div class="flex items-center space-x-1.5">
+                <button onclick="setFilter('all')" id="filterAll" class="text-[11px] font-semibold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-700/50">All (<span id="countAll">0</span>)</button>
+                <button onclick="setFilter('error')" id="filterError" class="text-[11px] font-semibold text-gray-400 hover:text-red-400 px-2 py-1 rounded-lg">Errors (<span id="countError">0</span>)</button>
+                <button onclick="setFilter('warning')" id="filterWarning" class="text-[11px] font-semibold text-gray-400 hover:text-amber-400 px-2 py-1 rounded-lg">Warnings (<span id="countWarning">0</span>)</button>
+              </div>
+              <span id="issueCountBadge" class="text-xs bg-dark-850 text-gray-400 px-2.5 py-0.5 rounded-full border border-white/10">0 issues</span>
             </div>
-            <div class="flex items-center space-x-2">
-              <span id="styleScoreVal" class="text-xs font-extrabold text-white">--</span>
-              <span id="styleGradeBadge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-dark-850 text-gray-400 border border-white/10">Grade -</span>
-            </div>
-          </div>
-          <!-- Style score bar -->
-          <div class="px-4 pt-3 pb-1">
-            <div class="w-full bg-dark-850 rounded-full h-1.5 overflow-hidden border border-white/[0.06]">
-              <div id="styleScoreBar" class="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-700" style="width:0%"></div>
-            </div>
-            <div class="flex justify-between mt-1 text-[9px] text-gray-500 font-mono">
-              <span>0</span><span>50</span><span>100</span>
-            </div>
-          </div>
-          <!-- Style breakdown -->
-          <div class="px-4 pb-3 grid grid-cols-4 gap-1.5 text-center">
-            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
-              <div class="text-[9px] text-gray-500 uppercase font-bold">Naming</div>
-              <div id="styleNaming" class="text-xs font-bold text-white mt-0.5">--</div>
-            </div>
-            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
-              <div class="text-[9px] text-gray-500 uppercase font-bold">Structure</div>
-              <div id="styleStructure" class="text-xs font-bold text-white mt-0.5">--</div>
-            </div>
-            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
-              <div class="text-[9px] text-gray-500 uppercase font-bold">Format</div>
-              <div id="styleFormat" class="text-xs font-bold text-white mt-0.5">--</div>
-            </div>
-            <div class="bg-dark-850/60 rounded-lg p-1.5 border border-white/[0.05]">
-              <div class="text-[9px] text-gray-500 uppercase font-bold">Issues</div>
-              <div id="styleTotal" class="text-xs font-bold text-white mt-0.5">--</div>
-            </div>
-          </div>
-          <!-- Style issue list -->
-          <div id="styleIssueList" class="border-t border-white/[0.06] p-3 space-y-1.5 max-h-36 overflow-y-auto text-xs">
-            <p class="text-gray-500 text-center py-3">Run <b>Audit Code</b> to check style.</p>
-          </div>
-        </div>
 
-        <!-- Doc Issue List -->
-        <div class="glass-panel rounded-2xl flex flex-col overflow-hidden max-h-64">
-          <div class="px-4 py-2.5 border-b border-white/[0.08] flex items-center justify-between bg-dark-950/70">
-            <div class="flex items-center space-x-1.5">
-              <button onclick="setFilter('all')" id="filterAll" class="text-[11px] font-semibold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-700/50">All (<span id="countAll">0</span>)</button>
-              <button onclick="setFilter('error')" id="filterError" class="text-[11px] font-semibold text-gray-400 hover:text-red-400 px-2 py-1 rounded-lg">Errors (<span id="countError">0</span>)</button>
-              <button onclick="setFilter('warning')" id="filterWarning" class="text-[11px] font-semibold text-gray-400 hover:text-amber-400 px-2 py-1 rounded-lg">Warnings (<span id="countWarning">0</span>)</button>
+            <!-- Issue cards container with full spacious scrolling -->
+            <div id="issuesContainer" class="p-4 overflow-y-auto space-y-3 flex-1 text-xs">
+              <p class="text-gray-500 text-center py-14">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>
             </div>
-            <span id="issueCountBadge" class="text-xs bg-dark-850 text-gray-400 px-2.5 py-0.5 rounded-full border border-white/10">0 issues</span>
           </div>
-          <div id="issuesContainer" class="p-3 overflow-y-auto space-y-2 flex-1 text-xs">
-            <p class="text-gray-500 text-center py-8">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>
+
+          <!-- TAB PANE 2: Time & Space Complexity -->
+          <div id="tabPaneComplexity" class="tab-pane hidden flex-col flex-1 overflow-hidden">
+            <!-- Header banner with scale info -->
+            <div class="p-4 border-b border-white/[0.06] bg-dark-950/40 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="text-base">⏱️</span>
+                  <div>
+                    <h4 class="text-xs font-bold text-gray-100 uppercase tracking-wide">Big-O Complexity Bounds</h4>
+                    <p class="text-[10px] text-gray-400">Worst-case execution time and memory scaling</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span id="overallTimeBig" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-950/80 text-indigo-300 border border-indigo-700/40">Time: --</span>
+                  <span id="overallSpaceBig" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-violet-950/80 text-violet-300 border border-violet-700/40">Space: --</span>
+                </div>
+              </div>
+
+              <!-- Practical Runtime Scale Guide (Answers user query about seconds) -->
+              <div class="p-3 rounded-xl bg-dark-900/90 border border-white/[0.06] text-[11px] space-y-1.5">
+                <div class="flex items-center justify-between text-gray-300 font-semibold">
+                  <span class="flex items-center space-x-1.5">
+                    <span class="text-cyan-400">⚡</span>
+                    <span>Practical Execution Speed Scale</span>
+                  </span>
+                  <span class="text-[10px] text-gray-400 font-normal">Physical time vs Input Size (N)</span>
+                </div>
+                <p class="text-[10px] text-gray-400 leading-relaxed">
+                  Exact execution seconds depend on hardware and dataset size <i>N</i>. Below is the reference transition:
+                </p>
+                <div class="grid grid-cols-3 gap-2 pt-1 text-center text-[10px] font-mono">
+                  <div class="p-1.5 rounded-lg bg-dark-850/70 border border-white/[0.04]">
+                    <span class="text-gray-400 block text-[9px] uppercase">N = 1,000</span>
+                    <span class="text-emerald-400 font-bold block mt-0.5">&lt; 1 ms (Instant)</span>
+                  </div>
+                  <div class="p-1.5 rounded-lg bg-dark-850/70 border border-white/[0.04]">
+                    <span class="text-gray-400 block text-[9px] uppercase">N = 10,000</span>
+                    <span class="text-cyan-300 font-bold block mt-0.5">~15 ms (Fast)</span>
+                  </div>
+                  <div class="p-1.5 rounded-lg bg-dark-850/70 border border-white/[0.04]">
+                    <span class="text-gray-400 block text-[9px] uppercase">N = 1,000,000</span>
+                    <span class="text-amber-300 font-bold block mt-0.5">O(n²): ~16 min</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Function List with spacious padding -->
+            <div id="complexityFnList" class="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
+              <p class="text-gray-500 text-center py-14">Run <b>Audit Code</b> to inspect function time and space bounds.</p>
+            </div>
           </div>
+
+          <!-- TAB PANE 3: Code Style & Linting -->
+          <div id="tabPaneStyle" class="tab-pane hidden flex-col flex-1 overflow-hidden">
+            <div class="p-4 border-b border-white/[0.06] bg-dark-950/40 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs font-bold text-gray-100 uppercase tracking-wide">Code Style &amp; Linting</h4>
+                  <p class="text-[10px] text-gray-400">PEP 8 / naming conventions / structural hygiene</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span id="styleScoreVal" class="text-sm font-black text-white">--</span>
+                  <span id="styleGradeBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-dark-850 text-gray-400 border border-white/10">Grade -</span>
+                </div>
+              </div>
+
+              <!-- Animated Gradient Bar -->
+              <div>
+                <div class="w-full bg-dark-850 rounded-full h-2 overflow-hidden border border-white/[0.06]">
+                  <div id="styleScoreBar" class="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-700" style="width:0%"></div>
+                </div>
+                <div class="flex justify-between mt-1 text-[9px] text-gray-500 font-mono">
+                  <span>0 (Defects)</span><span>50</span><span>100 (Clean)</span>
+                </div>
+              </div>
+
+              <!-- 4 Category Breakdown Chips -->
+              <div class="grid grid-cols-4 gap-2 text-center">
+                <div class="bg-dark-850/60 rounded-xl p-2 border border-white/[0.05]">
+                  <span class="text-[9px] text-gray-400 uppercase font-bold block">Naming</span>
+                  <span id="styleNaming" class="text-xs font-bold text-white mt-0.5 block">--</span>
+                </div>
+                <div class="bg-dark-850/60 rounded-xl p-2 border border-white/[0.05]">
+                  <span class="text-[9px] text-gray-400 uppercase font-bold block">Structure</span>
+                  <span id="styleStructure" class="text-xs font-bold text-white mt-0.5 block">--</span>
+                </div>
+                <div class="bg-dark-850/60 rounded-xl p-2 border border-white/[0.05]">
+                  <span class="text-[9px] text-gray-400 uppercase font-bold block">Formatting</span>
+                  <span id="styleFormat" class="text-xs font-bold text-white mt-0.5 block">--</span>
+                </div>
+                <div class="bg-dark-850/60 rounded-xl p-2 border border-white/[0.05]">
+                  <span class="text-[9px] text-gray-400 uppercase font-bold block">Total Items</span>
+                  <span id="styleTotal" class="text-xs font-bold text-white mt-0.5 block">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Style issues list -->
+            <div id="styleIssueList" class="p-4 space-y-2.5 overflow-y-auto flex-1 text-xs">
+              <p class="text-gray-500 text-center py-14">Run <b>Audit Code</b> to review style and structural conventions.</p>
+            </div>
+          </div>
+
+          <!-- TAB PANE 4: Deep Metrics -->
+          <div id="tabPaneMetrics" class="tab-pane hidden flex-col flex-1 overflow-hidden p-4 space-y-3.5 overflow-y-auto">
+            <!-- 3 Stat cards -->
+            <div class="grid grid-cols-3 gap-2.5">
+              <div class="glass-card p-3 rounded-xl text-center metric-card">
+                <span class="text-[10px] text-gray-400 font-medium">Total Functions</span>
+                <p id="statFuncs" class="text-base font-bold text-gray-100 mt-0.5">--</p>
+              </div>
+              <div class="glass-card p-3 rounded-xl text-center metric-card">
+                <span class="text-[10px] text-gray-400 font-medium">Documented</span>
+                <p id="statDocs" class="text-base font-bold text-emerald-400 mt-0.5">--</p>
+              </div>
+              <div class="glass-card p-3 rounded-xl text-center metric-card">
+                <span class="text-[10px] text-gray-400 font-medium">Typed Returns</span>
+                <p id="statTyped" class="text-base font-bold text-fuchsia-400 mt-0.5">--</p>
+              </div>
+            </div>
+
+            <!-- Maintainability Index Card -->
+            <div class="glass-card p-4 rounded-xl space-y-2 border border-white/5 metric-card">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                  <span class="text-lg">🧠</span>
+                  <div>
+                    <h5 class="text-xs font-bold text-gray-200">Maintainability Index (MI)</h5>
+                    <p class="text-[10px] text-gray-400">Volume + Complexity + Defect Density</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1.5">
+                  <span id="statMaintainability" class="font-black text-white text-sm">-- / 100</span>
+                  <span id="statMiGrade" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40">Grade -</span>
+                </div>
+              </div>
+              <p class="text-[10px] text-gray-400 leading-relaxed pt-1.5 border-t border-white/[0.04]">
+                Scores above 80 (Grade A) denote easy refactoring, high legibility, and minimal technical debt.
+              </p>
+            </div>
+
+            <!-- Cyclomatic Complexity Card -->
+            <div class="glass-card p-4 rounded-xl space-y-2 border border-white/5 metric-card">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                  <span class="text-lg">⚡</span>
+                  <div>
+                    <h5 class="text-xs font-bold text-gray-200">Cyclomatic Decision Paths</h5>
+                    <p class="text-[10px] text-gray-400">Independent branching paths per function</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-1.5">
+                  <span id="statComplexity" class="font-black text-white text-sm">--</span>
+                  <span id="complexityStatus" class="text-[10px] font-semibold text-emerald-400">Low Risk</span>
+                </div>
+              </div>
+              <p class="text-[10px] text-gray-400 leading-relaxed pt-1.5 border-t border-white/[0.04]">
+                Recommended threshold is &le; 5.0 branches per function. Code with higher branching should be split into smaller helpers.
+              </p>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -801,7 +953,37 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   <div id="toastBox" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
   <script>
-    let currentLanguage = 'python';
+    
+    let currentRightTab = 'issues';
+
+    function switchRightTab(tabId) {
+      currentRightTab = tabId;
+      const tabs = ['issues', 'complexity', 'style', 'metrics'];
+      tabs.forEach(t => {
+        const pane = document.getElementById('tabPane' + t.charAt(0).toUpperCase() + t.slice(1));
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (pane) {
+          if (t === tabId) {
+            pane.classList.remove('hidden');
+            pane.classList.add('flex');
+          } else {
+            pane.classList.add('hidden');
+            pane.classList.remove('flex');
+          }
+        }
+        if (btn) {
+          if (t === tabId) {
+            btn.classList.add('tab-btn-active');
+            btn.classList.remove('tab-btn-inactive');
+          } else {
+            btn.classList.remove('tab-btn-active');
+            btn.classList.add('tab-btn-inactive');
+          }
+        }
+      });
+    }
+
+let currentLanguage = 'python';
     let currentIssues = [];
     let activeFilter = 'all';
     let lastPatchedCode = '';
@@ -1076,7 +1258,21 @@ public class PaymentService {
       document.getElementById('styleGradeBadge').innerText = 'Grade -';
       document.getElementById('styleScoreBar').style.width = '0%';
       ['styleNaming','styleStructure','styleFormat','styleTotal'].forEach(id => document.getElementById(id).innerText = '--');
-      document.getElementById('styleIssueList').innerHTML = '<p class="text-gray-500 text-center py-3">Run <b>Audit Code</b> to check style.</p>';
+      document.getElementById('styleIssueList').innerHTML = '<p class="text-gray-500 text-center py-14">Run <b>Audit Code</b> to review style and structural conventions.</p>';
+      const fQuick = document.getElementById('statFuncsQuick');
+      if (fQuick) fQuick.innerText = '--';
+      const miQuick = document.getElementById('statMiQuick');
+      if (miQuick) miQuick.innerText = '--';
+      const compQuick = document.getElementById('statComplexityQuick');
+      if (compQuick) compQuick.innerText = '--';
+      const styleQuick = document.getElementById('statStyleQuick');
+      if (styleQuick) styleQuick.innerText = '--';
+      const tabCnt = document.getElementById('tabCountIssues');
+      if (tabCnt) tabCnt.innerText = '0';
+      const tabComp = document.getElementById('tabBadgeComplexity');
+      if (tabComp) tabComp.innerText = '--';
+      const tabSt = document.getElementById('tabBadgeStyle');
+      if (tabSt) tabSt.innerText = '--';
     }
 
     // ─── Audit ─────────────────────────────────────────────
@@ -1142,6 +1338,16 @@ public class PaymentService {
       document.getElementById('countAll').innerText = data.issues.length;
       document.getElementById('countError').innerText = data.issues.filter(i => i.severity === 'ERROR').length;
       document.getElementById('countWarning').innerText = data.issues.filter(i => i.severity === 'WARNING').length;
+
+      // Update executive vitals summary chips
+      const fQuick = document.getElementById('statFuncsQuick');
+      if (fQuick) fQuick.innerText = `${data.total_functions} fn`;
+      const miQuick = document.getElementById('statMiQuick');
+      if (miQuick) miQuick.innerText = `${data.maintainability_index} (${data.maintainability_grade})`;
+      const compQuick = document.getElementById('statComplexityQuick');
+      if (compQuick) compQuick.innerText = `${data.avg_complexity} avg`;
+      const tabCnt = document.getElementById('tabCountIssues');
+      if (tabCnt) tabCnt.innerText = data.issues.length;
     }
 
     // ── Complexity render ──────────────────────────────────
@@ -1161,7 +1367,9 @@ public class PaymentService {
       timeEl.innerText = `Time: ${data.overall_time}`;
       timeEl.className = `text-xs font-mono font-bold px-2 py-0.5 rounded-lg ${riskCls.bg} ${riskCls.text} border ${riskCls.border}`;
       spaceEl.innerText = `Space: ${data.overall_space}`;
-      spaceEl.className = `text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-violet-950/70 text-violet-300 border border-violet-700/40`;
+      spaceEl.className = `text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-violet-950/70 text-violet-300 border border-violet-700/40`;
+      const tabComp = document.getElementById('tabBadgeComplexity');
+      if (tabComp) tabComp.innerText = data.overall_time;
 
       if (!data.functions || data.functions.length === 0) {
         listEl.innerHTML = `<p class="text-gray-500 text-center py-4">${escapeHtml(data.summary || 'No functions detected.')}</p>`;
@@ -1213,6 +1421,10 @@ public class PaymentService {
       document.getElementById('styleStructure').innerText = bd.structure ?? 0;
       document.getElementById('styleFormat').innerText = bd.formatting ?? 0;
       document.getElementById('styleTotal').innerText = data.issues ? data.issues.length : 0;
+      const styleQuick = document.getElementById('statStyleQuick');
+      if (styleQuick) styleQuick.innerText = `${data.style_score}% (${data.style_grade})`;
+      const tabSt = document.getElementById('tabBadgeStyle');
+      if (tabSt) tabSt.innerText = `${data.style_score}%`;
 
       // Style issues
       const listEl = document.getElementById('styleIssueList');

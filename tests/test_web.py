@@ -222,3 +222,21 @@ def test_ui_has_complexity_and_style_panels():
     assert '/api/style' in html
 
 
+def test_ui_tabbed_studio_inspector():
+    html = index()
+    assert 'tabBtnIssues' in html
+    assert 'tabBtnComplexity' in html
+    assert 'tabBtnStyle' in html
+    assert 'tabBtnMetrics' in html
+    assert 'tabPaneIssues' in html
+    assert 'tabPaneComplexity' in html
+    assert 'tabPaneStyle' in html
+    assert 'tabPaneMetrics' in html
+    assert 'switchRightTab' in html
+    assert 'statFuncsQuick' in html
+    assert 'statMiQuick' in html
+    assert 'statComplexityQuick' in html
+    assert 'statStyleQuick' in html
+
+
+
