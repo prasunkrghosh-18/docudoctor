@@ -96,14 +96,12 @@ def test_web_api_fix_with_use_ai_flag():
 
 
 def test_ui_has_super_smart_ai_elements():
-    """Verify all new AI buttons, mode switches, and modals are present in the UI."""
+    """Verify built-in Gemini AI elements and review studio are present in the UI."""
     html = index()
-    assert "aiConfigBtn" in html
-    assert "modeBtnFast" in html
-    assert "modeBtnAi" in html
-    assert "aiKeyModal" in html
-    assert "geminiKeyInput" in html
+    assert "geminiEngineBadge" in html
+    assert "Gemini AI Built-in" in html
     assert "tabBtnAiReview" in html
     assert "tabPaneAiReview" in html
     assert "runAiReviewBtn" in html
     assert "/api/ai-review" in html
+

@@ -439,12 +439,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <span>GitHub</span>
         </a>
 
-        <!-- AI Key Configuration Button -->
-        <button id="aiConfigBtn" type="button" onclick="toggleAiKeyModal(true)" title="Configure Google Gemini Key for Super Smart AI" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-purple-500/30 hover:border-purple-400 bg-purple-950/30 hover:bg-purple-900/50 text-xs font-semibold text-purple-200 transition-all shadow-sm cursor-pointer group">
-          <span>🧠</span>
-          <span class="hidden sm:inline text-xs font-semibold">AI Key</span>
-          <span id="aiKeyDot" class="w-2 h-2 rounded-full bg-gray-500 transition-colors"></span>
-        </button>
+        <!-- Built-in Gemini AI Status -->
+        <div id="geminiEngineBadge" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-purple-950/50 border border-purple-500/40 text-purple-300 text-xs font-semibold shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+          <span>Gemini AI Built-in</span>
+        </div>
 
         <!-- Theme selector -->
         <div class="relative">
@@ -533,15 +532,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Engine Mode Switcher: Fast AST vs Super Smart AI -->
-        <div class="flex items-center bg-dark-900/95 border border-white/10 rounded-xl p-1 shadow-inner">
-          <button id="modeBtnFast" type="button" onclick="setEngineMode('fast')" title="100% Offline, instant AST compiler engine" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer bg-cyan-950/90 text-cyan-300 border border-cyan-700/60 shadow-sm">
-            <span>⚡</span><span>Fast AST</span>
-          </button>
-          <button id="modeBtnAi" type="button" onclick="setEngineMode('ai')" title="Google Gemini semantic code understanding with AST guardrails" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer text-gray-400 hover:text-purple-300">
-            <span>🧠</span><span>Smart AI</span>
-          </button>
-        </div>
+
 
         <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
         <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
@@ -918,40 +909,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-  <!-- AI Key Configuration Modal -->
-  <div id="aiKeyModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-toast">
-    <div class="glass-panel p-6 rounded-3xl max-w-md w-full border border-purple-500/40 shadow-2xl relative space-y-4">
-      <button type="button" onclick="toggleAiKeyModal(false)" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold p-1 cursor-pointer">&times;</button>
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-xl">🧠</div>
-        <div>
-          <h3 class="font-extrabold text-white text-base">Super Smart AI Engine</h3>
-          <p class="text-xs text-gray-400">Powered by Google Gemini Flash (100% Free)</p>
-        </div>
-      </div>
-
-      <p class="text-xs text-gray-300 leading-relaxed">
-        Enable human-grade docstrings, semantic business logic analysis, and deep AI code reviews with your free Gemini API key.
-      </p>
-
-      <div class="space-y-1.5">
-        <label class="text-[11px] font-bold text-gray-300 uppercase tracking-wider">Gemini API Key</label>
-        <input type="password" id="geminiKeyInput" placeholder="AIzaSy..." class="w-full bg-dark-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500 shadow-inner">
-        <p class="text-[10px] text-gray-500">Stored strictly on your device (localStorage). Never saved on our server.</p>
-      </div>
-
-      <div class="pt-2 flex flex-col sm:flex-row items-center gap-2">
-        <button type="button" onclick="saveAiKey()" class="w-full sm:flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg shadow-purple-950/60 cursor-pointer">
-          💾 Save Key
-        </button>
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="w-full sm:flex-1 text-center bg-dark-850 hover:bg-dark-800 text-cyan-300 border border-cyan-500/30 font-semibold text-xs py-2.5 rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer">
-          <span>Get Free Key</span><span>↗</span>
-        </a>
-      </div>
-    </div>
-  </div>
-
-</main>
+  </main>
 
   <!-- Toast box -->
   <div id="toastBox" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
@@ -960,88 +918,22 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     
     let currentRightTab = 'issues';
 
-    let currentEngineMode = 'fast'; // 'fast' | 'ai'
-
-    function getSavedApiKey() {
-      return localStorage.getItem('docudoctor_gemini_key') || '';
-    }
-
-    function updateAiKeyIndicator() {
-      const key = getSavedApiKey();
-      const dot = document.getElementById('aiKeyDot');
-      if (dot) {
-        dot.className = key ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse' : 'w-2 h-2 rounded-full bg-gray-500';
-      }
-    }
-
-    function toggleAiKeyModal(open) {
-      const modal = document.getElementById('aiKeyModal');
-      if (!modal) return;
-      modal.style.display = open ? 'flex' : 'none';
-      if (open) {
-        const inp = document.getElementById('geminiKeyInput');
-        if (inp) inp.value = getSavedApiKey();
-      }
-    }
-
-    function saveAiKey() {
-      const inp = document.getElementById('geminiKeyInput');
-      const val = inp ? inp.value.trim() : '';
-      localStorage.setItem('docudoctor_gemini_key', val);
-      updateAiKeyIndicator();
-      toggleAiKeyModal(false);
-      if (val) {
-        showToast('🔑 Gemini API Key saved! Super Smart AI active.', 'fuchsia');
-        setEngineMode('ai');
-      } else {
-        showToast('API Key cleared. Switched to Fast AST mode.', 'gray');
-        setEngineMode('fast');
-      }
-    }
-
-    function setEngineMode(mode) {
-      currentEngineMode = mode;
-      const btnFast = document.getElementById('modeBtnFast');
-      const btnAi = document.getElementById('modeBtnAi');
-      if (mode === 'ai') {
-        const key = getSavedApiKey();
-        if (!key) {
-          toggleAiKeyModal(true);
-          showToast('Please enter your free Gemini API key to activate Smart AI.', 'amber');
-          return;
-        }
-        if (btnFast) btnFast.className = 'px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer text-gray-400 hover:text-white';
-        if (btnAi) btnAi.className = 'px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/60';
-        showToast('🧠 Super Smart AI Mode active (Gemini + AST Guardrails)', 'fuchsia');
-      } else {
-        if (btnFast) btnFast.className = 'px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer bg-cyan-950/90 text-cyan-300 border border-cyan-700/60 shadow-sm';
-        if (btnAi) btnAi.className = 'px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer text-gray-400 hover:text-purple-300';
-        showToast('⚡ Fast AST Mode active (Deterministic & 100% Offline)', 'cyan');
-      }
-    }
-
     async function runAiDeepReview() {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) {
         showToast('Please enter or load code first!', 'amber');
         return;
       }
-      const key = getSavedApiKey();
-      if (!key) {
-        toggleAiKeyModal(true);
-        showToast('Configure your Gemini API key for AI Deep Review.', 'amber');
-        return;
-      }
 
       const out = document.getElementById('aiReviewOutput');
       const btn = document.getElementById('runAiReviewBtn');
-      if (btn) btn.innerHTML = '<span>⏳</span><span>Analyzing...</span>';
+      if (btn) btn.innerHTML = '<span>⏳</span><span>Gemini Analyzing...</span>';
 
       try {
         const res = await fetch('/api/ai-review', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, language: currentLanguage, api_key: key })
+          body: JSON.stringify({ code, language: currentLanguage })
         });
         const data = await res.json();
         if (!res.ok) {
@@ -1075,7 +967,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         out.innerHTML = `
           <div class="p-4 rounded-xl glass-card space-y-2 border border-purple-500/20">
             <div class="flex items-center justify-between">
-              <span class="font-bold uppercase tracking-wider text-purple-300 text-[11px]">Executive Assessment</span>
+              <span class="font-bold uppercase tracking-wider text-purple-300 text-[11px]">Gemini Executive Assessment</span>
               <span class="px-2 py-0.5 rounded-lg bg-purple-950 text-purple-300 font-bold border border-purple-700/40 text-[10px]">Score: ${data.cleanliness_score || 8.5}/10</span>
             </div>
             <p class="text-gray-200 text-xs leading-relaxed">${escapeHtml(data.overall_assessment)}</p>
@@ -1098,7 +990,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>` : ''}
         `;
 
-        showToast('🧠 AI Deep Code Review complete!', 'fuchsia');
+        showToast('🧠 Gemini AI Deep Code Review complete!', 'fuchsia');
       } catch (err) {
         showToast('Error during AI review: ' + err.message, 'red');
       } finally {
@@ -1659,7 +1551,7 @@ public class PaymentService {
       const code = document.getElementById('codeEditor').value;
       const style = document.getElementById('docStyle').value;
       try {
-        const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, target:entityName, use_ai: currentEngineMode === 'ai', api_key: getSavedApiKey()}) });
+        const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, target:entityName, use_ai: true}) });
         const data = await res.json();
         if (!res.ok) { showToast(data.detail || 'Fix failed.', 'red'); return; }
         lastPatchedCode = data.patched_code;
@@ -1676,7 +1568,7 @@ public class PaymentService {
       if (!code.trim()) { showToast('Please enter or upload code first!', 'amber'); return; }
       const style = document.getElementById('docStyle').value;
       try {
-        const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, use_ai: currentEngineMode === 'ai', api_key: getSavedApiKey()}) });
+        const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, use_ai: true}) });
         const data = await res.json();
         if (!res.ok) { showToast(data.detail || 'Fix failed.', 'red'); return; }
         lastPatchedCode = data.patched_code;
@@ -1754,7 +1646,6 @@ public class PaymentService {
     // ─── Init ──────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
-      updateAiKeyIndicator();
       onLanguageChange('python', true);
     });
   </script>
