@@ -360,15 +360,91 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     html:not(.dark) #themeMenu button,
     html:not(.dark) #profileDropdown a { color: #1e293b !important; }
     html:not(.dark) #themeMenu button:hover { background-color: rgba(6,182,212,0.08) !important; }
+
+    /* Popover High-Contrast Hub */
+    #geminiPopover {
+      min-width: 330px;
+      background-color: rgba(11, 15, 23, 0.98);
+      border: 1px solid rgba(168, 85, 247, 0.45);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
     html:not(.dark) #geminiPopover {
-      background-color: rgba(255,255,255,0.98) !important;
-      border-color: #e2e8f0 !important;
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(168, 85, 247, 0.25) !important;
     }
+    html:not(.dark) #geminiPopover .popover-title { color: #0f172a !important; font-weight: 800 !important; }
+    html:not(.dark) #geminiPopover .popover-sub { color: #475569 !important; font-weight: 500 !important; }
+    html:not(.dark) #geminiPopover .popover-item { color: #1e293b !important; font-weight: 600 !important; }
+    html:not(.dark) #geminiPopover .popover-item span { color: #1e293b !important; }
     html:not(.dark) #geminiEngineBadge {
-      background-color: rgba(168, 85, 247, 0.1) !important;
-      border-color: rgba(168, 85, 247, 0.4) !important;
-      color: #7e22ce !important;
+      background-color: rgba(168, 85, 247, 0.12) !important;
+      border-color: rgba(168, 85, 247, 0.45) !important;
+      color: #6b21a8 !important;
     }
+
+    /* Preserve Bright White Text on Action Gradient Buttons */
+    html:not(.dark) button.text-white,
+    html:not(.dark) a.text-white,
+    html:not(.dark) [class*="bg-purple-600"] *,
+    html:not(.dark) [class*="from-purple-600"],
+    html:not(.dark) [class*="from-purple-600"] *,
+    html:not(.dark) [class*="from-cyan-600"] *,
+    html:not(.dark) [class*="bg-cyan-600"] *,
+    html:not(.dark) .btn-solid-white {
+      color: #ffffff !important;
+    }
+
+    /* High-Contrast AI Review Cards - Dark Mode */
+    .ai-assessment-card {
+      background: rgba(88, 28, 135, 0.22);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      color: #f1f5f9;
+    }
+    .ai-assessment-title { color: #d8b4fe; }
+    .ai-section-title { color: #cbd5e1; }
+    .ai-card-opt {
+      background: rgba(26, 32, 44, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .ai-card-opt .ai-title { color: #fbbf24; }
+    .ai-card-bug {
+      background: rgba(26, 32, 44, 0.85);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    .ai-card-bug .ai-title { color: #f87171; }
+    .ai-card-tips {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .ai-desc { color: #e2e8f0; }
+
+    /* High-Contrast AI Review Cards - Light Mode */
+    html:not(.dark) .ai-assessment-card {
+      background: #f5f3ff !important;
+      border: 1px solid #ddd6fe !important;
+      color: #1e293b !important;
+    }
+    html:not(.dark) .ai-assessment-title { color: #6b21a8 !important; }
+    html:not(.dark) .ai-section-title { color: #334155 !important; font-weight: 700 !important; }
+    html:not(.dark) .ai-card-opt {
+      background: #fffbeb !important;
+      border: 1px solid #fde68a !important;
+    }
+    html:not(.dark) .ai-card-opt .ai-title { color: #92400e !important; }
+    html:not(.dark) .ai-card-bug {
+      background: #fef2f2 !important;
+      border: 1px solid #fecaca !important;
+    }
+    html:not(.dark) .ai-card-bug .ai-title { color: #991b1b !important; }
+    html:not(.dark) .ai-card-tips {
+      background: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+    }
+    html:not(.dark) .ai-desc { color: #1e293b !important; font-weight: 500 !important; }
+    html:not(.dark) .ai-loading-title { color: #6b21a8 !important; }
+    html:not(.dark) .ai-loading-sub { color: #64748b !important; }
+
     /* Issue cards */
     html:not(.dark) .issue-card { background: rgba(248,250,252,0.9) !important; border-color: #e2e8f0 !important; }
     html:not(.dark) .issue-card:hover { border-color: #cbd5e1 !important; }
@@ -457,36 +533,36 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </button>
 
           <!-- Gemini AI Popover Dropdown -->
-          <div id="geminiPopover" style="display: none;" class="absolute right-0 top-full mt-2 w-80 bg-dark-900/98 border border-purple-500/40 rounded-2xl shadow-2xl backdrop-blur-2xl p-4 z-50 animate-toast space-y-3">
-            <div class="flex items-center space-x-3 pb-2.5 border-b border-white/[0.08]">
+          <div id="geminiPopover" style="display: none;" class="absolute right-0 top-full mt-2 w-80 rounded-2xl p-4 z-50 animate-toast space-y-3">
+            <div class="flex items-center space-x-3 pb-2.5 border-b border-purple-500/20">
               <div class="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-xl shadow-inner">🧠</div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <h4 class="font-extrabold text-sm text-white">Gemini 2.5 Flash</h4>
-                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60">INTEGRATED</span>
+                  <h4 class="font-extrabold text-sm popover-title text-white">Gemini AI Engine</h4>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">ONLINE • FLASH</span>
                 </div>
-                <p class="text-[11px] text-gray-400">Super Smart Semantic Engine</p>
+                <p class="text-[11px] popover-sub text-gray-400">Google Gemini Code Intelligence</p>
               </div>
             </div>
 
-            <div class="space-y-1.5 text-xs text-gray-300">
+            <div class="space-y-2 text-xs popover-item text-gray-200">
               <div class="flex items-center space-x-2">
-                <span class="text-purple-400 font-bold">✓</span>
-                <span>Semantic Business Logic Comprehension</span>
+                <span class="text-purple-400 font-bold">⚡</span>
+                <span>Semantic Architecture &amp; Deep Code Review</span>
               </div>
               <div class="flex items-center space-x-2">
-                <span class="text-purple-400 font-bold">✓</span>
-                <span>AST Guardrail Validation (0% Hallucinations)</span>
+                <span class="text-purple-400 font-bold">🛡️</span>
+                <span>AST Guardrails (0% Hallucinations)</span>
               </div>
               <div class="flex items-center space-x-2">
-                <span class="text-purple-400 font-bold">✓</span>
-                <span>Multi-Language (Python, C, C++, Java)</span>
+                <span class="text-purple-400 font-bold">🌐</span>
+                <span>Multi-Language: Python, C, C++, Java</span>
               </div>
             </div>
 
             <div class="pt-1 flex flex-col space-y-2">
-              <button type="button" onclick="openAiReviewFromPopover()" class="w-full text-center text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 py-2 rounded-xl transition shadow-md flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95">
-                <span>🚀</span><span>Run AI Deep Code Review</span>
+              <button type="button" onclick="openAiReviewFromPopover()" class="w-full text-center text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 py-2.5 px-4 rounded-xl transition shadow-lg shadow-purple-950/50 flex items-center justify-center space-x-2 cursor-pointer active:scale-95 btn-solid-white">
+                <span>🚀</span><span>Launch AI Deep Code Review</span>
               </button>
             </div>
           </div>
@@ -975,6 +1051,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const out = document.getElementById('aiReviewOutput');
       const btn = document.getElementById('runAiReviewBtn');
       if (btn) btn.innerHTML = '<span>⏳</span><span>Gemini Analyzing...</span>';
+      if (out) {
+        out.innerHTML = `
+          <div class="p-8 text-center space-y-3">
+            <div class="inline-block w-8 h-8 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin"></div>
+            <div class="space-y-1">
+              <h5 class="text-xs font-bold text-purple-300 dark:text-purple-300 ai-loading-title">Gemini Analyzing Code...</h5>
+              <p class="text-[11px] text-gray-400 ai-loading-sub">Inspecting AST structure, algorithmic complexity & bug risks</p>
+            </div>
+          </div>
+        `;
+      }
 
       try {
         const res = await fetch('/api/ai-review', {
@@ -989,52 +1076,75 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
 
         if (!data.available) {
-          out.innerHTML = `<div class="p-4 rounded-xl bg-amber-950/40 border border-amber-600/40 text-amber-200">${escapeHtml(data.message)}</div>`;
+          out.innerHTML = `
+            <div class="p-4 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-200 dark:text-amber-200 space-y-2">
+              <div class="flex items-center space-x-2">
+                <span class="text-base">🔑</span>
+                <span class="font-bold text-amber-300 dark:text-amber-300 text-xs uppercase tracking-wide">Gemini AI Setup</span>
+              </div>
+              <p class="text-xs leading-relaxed opacity-95">${escapeHtml(data.message)}</p>
+            </div>
+          `;
           return;
         }
 
         let optsHtml = (data.optimizations || []).map(opt => `
-          <div class="p-3 rounded-xl bg-dark-850/80 border border-white/[0.06] space-y-1">
-            <span class="font-bold text-amber-300 block">⚡ ${escapeHtml(opt.title)}</span>
-            <p class="text-gray-300 text-[11px] leading-relaxed">${escapeHtml(opt.description)}</p>
+          <div class="ai-card-opt p-3.5 rounded-xl border space-y-1.5 shadow-sm transition">
+            <span class="font-bold ai-title block text-xs">⚡ ${escapeHtml(opt.title)}</span>
+            <p class="ai-desc text-[11px] leading-relaxed">${escapeHtml(opt.description)}</p>
           </div>
         `).join('') || '<p class="text-gray-400 italic">No critical algorithmic bottlenecks identified.</p>';
 
         let bugsHtml = (data.bug_risks || []).map(bug => `
-          <div class="p-3 rounded-xl bg-dark-850/80 border border-white/[0.06] space-y-1">
-            <span class="font-bold text-red-300 block">⚠️ ${escapeHtml(bug.title)}</span>
-            <p class="text-gray-300 text-[11px] leading-relaxed">${escapeHtml(bug.description)}</p>
+          <div class="ai-card-bug p-3.5 rounded-xl border space-y-1.5 shadow-sm transition">
+            <span class="font-bold ai-title block text-xs">⚠️ ${escapeHtml(bug.title)}</span>
+            <p class="ai-desc text-[11px] leading-relaxed">${escapeHtml(bug.description)}</p>
           </div>
         `).join('') || '<p class="text-gray-400 italic">No critical unhandled exceptions flagged.</p>';
 
         let practicesHtml = (data.best_practices || []).map(tip => `
-          <li class="text-gray-300 text-[11px] leading-relaxed">💡 ${escapeHtml(tip)}</li>
+          <li class="ai-desc text-[11px] leading-relaxed flex items-start space-x-2">
+            <span class="text-purple-400 font-bold shrink-0">💡</span>
+            <span>${escapeHtml(tip)}</span>
+          </li>
         `).join('');
 
+        const modelTag = data.model_used || 'Gemini Flash Engine';
+        const noticeHtml = data.cloud_notice ? `
+          <div class="p-2 rounded-lg bg-dark-850/50 border border-white/5 text-[10px] text-gray-400 flex items-center space-x-1.5">
+            <span>ℹ️</span><span>${escapeHtml(data.cloud_notice)}</span>
+          </div>
+        ` : '';
+
         out.innerHTML = `
-          <div class="p-4 rounded-xl glass-card space-y-2 border border-purple-500/20">
+          <div class="ai-assessment-card p-4 rounded-xl border space-y-2.5 shadow-sm">
             <div class="flex items-center justify-between">
-              <span class="font-bold uppercase tracking-wider text-purple-300 text-[11px]">Gemini Executive Assessment</span>
-              <span class="px-2 py-0.5 rounded-lg bg-purple-950 text-purple-300 font-bold border border-purple-700/40 text-[10px]">Score: ${data.cleanliness_score || 8.5}/10</span>
+              <div class="flex items-center space-x-2">
+                <span class="font-bold uppercase tracking-wider ai-assessment-title text-[11px]">Executive Assessment</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">${escapeHtml(modelTag)}</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/30 text-[10px]">Score: ${data.cleanliness_score || 8.5}/10</span>
             </div>
-            <p class="text-gray-200 text-xs leading-relaxed">${escapeHtml(data.overall_assessment)}</p>
+            <p class="ai-desc text-xs leading-relaxed">${escapeHtml(data.overall_assessment)}</p>
           </div>
 
           <div class="space-y-2">
-            <span class="font-bold text-gray-300 uppercase tracking-wider text-[10px] block">Algorithmic Optimizations</span>
+            <span class="font-bold ai-section-title uppercase tracking-wider text-[10px] block">Algorithmic Optimizations</span>
             ${optsHtml}
           </div>
 
           <div class="space-y-2">
-            <span class="font-bold text-gray-300 uppercase tracking-wider text-[10px] block">Bug Risks & Edge Cases</span>
+            <span class="font-bold ai-section-title uppercase tracking-wider text-[10px] block">Bug Risks & Edge Cases</span>
             ${bugsHtml}
           </div>
 
           ${practicesHtml ? `
-          <div class="p-3 rounded-xl bg-dark-850/60 border border-white/[0.05] space-y-1.5">
-            <span class="font-bold text-gray-400 uppercase tracking-wider text-[10px] block">Best Practice Tips</span>
-            <ul class="space-y-1 pl-1">${practicesHtml}</ul>
+          <div class="ai-card-tips p-3.5 rounded-xl border space-y-2">
+            <span class="font-bold ai-section-title uppercase tracking-wider text-[10px] block">Engineering Best Practices</span>
+            <ul class="space-y-1.5 pl-0.5">${practicesHtml}</ul>
           </div>` : ''}
+
+          ${noticeHtml}
         `;
 
         showToast('🧠 Gemini AI Deep Code Review complete!', 'fuchsia');

@@ -105,3 +105,28 @@ def test_ui_has_super_smart_ai_elements():
     assert "runAiReviewBtn" in html
     assert "/api/ai-review" in html
 
+
+def test_generate_smart_local_review_detects_nested_loops_and_mutable_defaults():
+    """Verify that local AST review identifies O(n^2) loops and mutable defaults."""
+    from docudoctor.ai_engine import generate_smart_local_review
+
+    code = """def bad_perf(items, cache=[]):
+    for a in items:
+        for b in items:
+            pass
+    return cache
+"""
+    res = generate_smart_local_review(code, language="python")
+    assert res["available"] is True
+    assert "DocuDoctor Smart Semantic Engine" in res["model_used"]
+    assert any("O(n²)" in opt["title"] for opt in res["optimizations"])
+    assert any("Mutable Default" in bug["title"] for bug in res["bug_risks"])
+    assert res["cleanliness_score"] > 0
+
+
+def test_get_effective_api_key_cleans_quotes_and_whitespace():
+    """Verify quotes and whitespace from cloud dashboard environment variables are cleaned."""
+    assert get_effective_api_key(' "AIzaSyTestKey123" ') == "AIzaSyTestKey123"
+    assert get_effective_api_key(" 'AIzaSyTestKey456' ") == "AIzaSyTestKey456"
+
+
