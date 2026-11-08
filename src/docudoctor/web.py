@@ -633,6 +633,62 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-size: 36px 36px;
       mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black, transparent);
     }
+
+    /* Main Workspace Reveal & Kinetic Studio Move */
+    #mainWorkspaceApp {
+      opacity: 0;
+      transform: scale(0.96) translateY(22px);
+      filter: blur(10px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform, filter;
+    }
+
+    #mainWorkspaceApp.studio-revealed {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      filter: blur(0);
+    }
+
+    .welcome-exit-warp {
+      animation: welcomeWarpExit 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+
+    @keyframes welcomeWarpExit {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.1);
+        filter: blur(16px);
+        pointer-events: none;
+      }
+    }
+
+    /* Laser scanline sweep on code editor */
+    .editor-scanline-active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.9), rgba(168, 85, 247, 0.9), transparent);
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.8), 0 0 30px rgba(168, 85, 247, 0.6);
+      animation: scanlineSweep 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    @keyframes scanlineSweep {
+      0% { top: 0%; opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
 </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
@@ -673,16 +729,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </h1>
 
         <p class="text-xs md:text-sm text-gray-300 max-w-sm mx-auto leading-relaxed">
-          Autonomous AST Diagnostics, Complexity Profiling &amp; Multi-Language Docstring Engine.
+          Autonomous AST Engine, Complexity Profiling &amp; Multi-Language Docstring Intelligence.
         </p>
-      </div>
-
-      <!-- Polyglot scanning chip badges -->
-      <div class="flex items-center justify-center flex-wrap gap-2 text-xs font-semibold">
-        <span class="px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-cyan-300">🐍 Python</span>
-        <span class="px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-blue-300">⚡ C / C++</span>
-        <span class="px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-amber-300">☕ Java</span>
-        <span class="px-2.5 py-1 rounded-xl bg-purple-950/70 border border-purple-500/40 text-purple-300">🧠 Gemini AI</span>
       </div>
 
       <!-- Futuristic Cyber HUD Loading Module -->
@@ -692,7 +740,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div class="flex items-center justify-between text-[10px] pb-1.5 border-b border-white/[0.08]">
             <div class="flex items-center space-x-1.5 text-cyan-400">
               <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-              <span class="font-bold tracking-wider">NEURAL_DIAGNOSTICS_BUS</span>
+              <span class="font-bold tracking-wider">NEURAL_TELEMETRY_BUS</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-400">
               <span id="welcomeProgressHex" class="text-purple-300 font-bold">0x7F4A</span>
@@ -724,22 +772,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Micro telemetry footer without button -->
+        <!-- Micro telemetry footer without buttons -->
         <div class="flex items-center justify-between text-[10px] font-mono text-gray-500 px-1 pt-1">
           <span class="flex items-center space-x-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-emerald-400/90 font-bold tracking-wide">SYSTEM ARMED</span>
+            <span class="text-emerald-400/90 font-bold tracking-wide">QUANTUM CORE ACTIVE</span>
           </span>
-          <div class="flex items-center space-x-2">
-            <button type="button" id="sfxToggleBtn" onclick="toggleSfx(event)" class="text-[9px] font-mono px-2 py-0.5 rounded bg-dark-900 hover:bg-dark-850 text-cyan-400 border border-cyan-500/30 flex items-center space-x-1 transition cursor-pointer">
-              <span id="sfxIcon">🔊</span><span id="sfxLabel">SFX ON</span>
-            </button>
-            <span class="text-cyan-400/80 font-mono tracking-widest text-[9px] uppercase">DIAGNOSTICS</span>
-          </div>
+          <span class="text-gray-400/80 font-mono text-[9px] tracking-wider">DOCUDOCTOR OS // v0.4.0</span>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- ════════════════════════ MAIN WORKSPACE WRAPPER ════════════════════════ -->
+  <div id="mainWorkspaceApp" class="flex-1 flex flex-col">
 
   <!-- ════════════════════════ HEADER ════════════════════════ -->
   <header class="border-b border-white/[0.08] bg-dark-950/80 sticky top-0 z-50 backdrop-blur-2xl transition-colors duration-200">
@@ -944,7 +990,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
 
       <!-- Left: Code Editor (7 cols) -->
-      <div class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden min-h-[520px]">
+      <div id="codeEditorPanel" class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden min-h-[520px] relative">
         <!-- Editor header -->
         <div class="bg-dark-950/90 border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between">
           <div class="flex items-center space-x-3">
@@ -1281,6 +1327,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
   </main>
+  </div>
 
   <!-- Toast box -->
   <div id="toastBox" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
@@ -2073,7 +2120,7 @@ public class PaymentService {
       return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // ─── Cyber SFX Audio Engine (Web Audio API) ─────────────
+    // ─── Cinematic Sci-Fi Audio Synthesizer (Web Audio API) ───
     let audioCtx = null;
     let sfxEnabled = true;
 
@@ -2088,134 +2135,179 @@ public class PaymentService {
       return audioCtx;
     }
 
-    function toggleSfx(e) {
-      if (e) e.stopPropagation();
-      sfxEnabled = !sfxEnabled;
-      const icon = document.getElementById('sfxIcon');
-      const label = document.getElementById('sfxLabel');
-      if (icon) icon.innerText = sfxEnabled ? '🔊' : '🔇';
-      if (label) label.innerText = sfxEnabled ? 'SFX ON' : 'SFX OFF';
-      if (sfxEnabled) {
-        const ctx = getAudioCtx();
-        if (ctx) playTelemetryBlip(980);
-      }
-    }
-
-    // Power-up boot resonance sweep
-    function playBootHum() {
+    // Power-up resonant cinematic low-pass sweep
+    function playCinematicSweep() {
       if (!sfxEnabled) return;
       try {
         const ctx = getAudioCtx();
         if (!ctx) return;
         const now = ctx.currentTime;
+
+        // Dual oscillators: warm saw + deep sub sine
+        const oscSaw = ctx.createOscillator();
+        const oscSine = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const masterGain = ctx.createGain();
+
+        oscSaw.type = 'sawtooth';
+        oscSaw.frequency.setValueAtTime(65, now);
+        oscSaw.frequency.exponentialRampToValueAtTime(120, now + 1.1);
+
+        oscSine.type = 'sine';
+        oscSine.frequency.setValueAtTime(55, now);
+        oscSine.frequency.exponentialRampToValueAtTime(82, now + 1.1);
+
+        // Resonant lowpass filter sweep
+        filter.type = 'lowpass';
+        filter.Q.setValueAtTime(6.0, now);
+        filter.frequency.setValueAtTime(90, now);
+        filter.frequency.exponentialRampToValueAtTime(1400, now + 1.0);
+
+        // Smooth cinematic gain envelope
+        masterGain.gain.setValueAtTime(0.0001, now);
+        masterGain.gain.linearRampToValueAtTime(0.05, now + 0.25);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
+
+        oscSaw.connect(filter);
+        oscSine.connect(filter);
+        filter.connect(masterGain);
+        masterGain.connect(ctx.destination);
+
+        oscSaw.start(now);
+        oscSine.start(now);
+        oscSaw.stop(now + 1.3);
+        oscSine.stop(now + 1.3);
+      } catch (err) {}
+    }
+
+    // High-tech laser optic micro-tick for telemetry steps
+    function playSciFiTick(freq = 1400) {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
         const osc = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
         const gain = ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(110, now);
-        osc.frequency.exponentialRampToValueAtTime(330, now + 0.6);
+        osc.frequency.setValueAtTime(freq * 1.4, now);
+        osc.frequency.exponentialRampToValueAtTime(freq, now + 0.035);
+
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(600, now);
 
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.06, now + 0.15);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+        gain.gain.linearRampToValueAtTime(0.04, now + 0.006);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
 
-        osc.connect(gain);
+        osc.connect(filter);
+        filter.connect(gain);
         gain.connect(ctx.destination);
+
         osc.start(now);
-        osc.stop(now + 0.75);
+        osc.stop(now + 0.055);
       } catch (err) {}
     }
 
-    // Telemetry blip sound for each subsystem milestone
-    function playTelemetryBlip(freq = 980) {
+    // Epic quantum impact boom + celestial chord at 100%
+    function playQuantumChime() {
       if (!sfxEnabled) return;
       try {
         const ctx = getAudioCtx();
         if (!ctx) return;
         const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
 
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, now);
-        osc.frequency.exponentialRampToValueAtTime(freq * 1.25, now + 0.04);
+        // 1. Sub-bass cinematic impact boom
+        const subOsc = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(75, now);
+        subOsc.frequency.exponentialRampToValueAtTime(36, now + 0.8);
+        subGain.gain.setValueAtTime(0.001, now);
+        subGain.gain.linearRampToValueAtTime(0.08, now + 0.04);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+        subOsc.connect(subGain);
+        subGain.connect(ctx.destination);
+        subOsc.start(now);
+        subOsc.stop(now + 0.9);
 
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.04, now + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.07);
-      } catch (err) {}
-    }
-
-    // Ascending harmonic chime when system hits 100%
-    function playReadyChime() {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        const now = ctx.currentTime;
-        [587.33, 739.99, 880, 1174.66].forEach((f, idx) => {
+        // 2. Celestial harmonic shimmer chord (C#5, E#5, G#5, C#6)
+        const chordFreqs = [554.37, 659.25, 830.61, 1108.73];
+        chordFreqs.forEach((f, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-          const t = now + idx * 0.07;
+          const t = now + idx * 0.045;
 
           osc.type = 'sine';
           osc.frequency.setValueAtTime(f, t);
 
           gain.gain.setValueAtTime(0.001, t);
-          gain.gain.linearRampToValueAtTime(0.045, t + 0.03);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.65);
+          gain.gain.linearRampToValueAtTime(0.035, t + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
 
           osc.connect(gain);
           gain.connect(ctx.destination);
           osc.start(t);
-          osc.stop(t + 0.7);
+          osc.stop(t + 0.85);
         });
       } catch (err) {}
     }
 
-    // ─── Welcome Intro Animation ───────────────────────────
+    // ─── Welcome Intro Animation & Studio Move ────────────────
     let welcomeDismissed = false;
     function dismissWelcomeIntro() {
       if (welcomeDismissed) return;
       welcomeDismissed = true;
+
       const overlay = document.getElementById('welcomeIntroOverlay');
-      if (!overlay) return;
-      overlay.style.transition = 'opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease';
-      overlay.style.opacity = '0';
-      overlay.style.transform = 'scale(1.04)';
-      overlay.style.filter = 'blur(10px)';
-      overlay.style.pointerEvents = 'none';
+      const mainApp = document.getElementById('mainWorkspaceApp');
+      const codeEditorPanel = document.getElementById('codeEditorPanel');
+
+      // Cinematic warp exit on overlay
+      if (overlay) {
+        overlay.classList.add('welcome-exit-warp');
+      }
+
+      // Smooth kinetic move to reveal main studio screen
+      if (mainApp) {
+        mainApp.classList.add('studio-revealed');
+      }
+
+      // Laser scanline sweeping down the code editor
+      if (codeEditorPanel) {
+        codeEditorPanel.classList.add('editor-scanline-active');
+      }
+
       setTimeout(() => {
         if (overlay) overlay.style.display = 'none';
         const ed = document.getElementById('codeEditor');
         if (ed) ed.focus();
-      }, 500);
+      }, 620);
     }
 
     function initWelcomeAnimation() {
-      // Unlock audio context on first interaction if suspended
+      // Unlock audio context on user interaction if browser policy suspended it
       const unlockAudio = () => {
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
+        const ctx = getAudioCtx();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
         }
       };
-      ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+      ['pointerdown', 'keydown', 'touchstart', 'mousemove'].forEach(evt => {
         window.addEventListener(evt, unlockAudio, { once: true });
       });
 
-      // Try playing boot resonance hum
-      playBootHum();
+      // Launch cinematic lowpass power-up sweep
+      playCinematicSweep();
 
       const steps = [
-        { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A', freq: 880 },
-        { pct: 38, text: '[METRICS] Calibrating cyclomatic complexity & MI...', hex: '0x8B12', freq: 1108 },
-        { pct: 65, text: '[POLYGLOT] Python 3.13 · LLVM C/C++ · JVM armed...', hex: '0x9C33', freq: 1320 },
-        { pct: 88, text: '[COGNITIVE] Gemini Flash AI coprocessor synced...', hex: '0xFA01', freq: 1760 },
+        { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A', freq: 1100 },
+        { pct: 38, text: '[METRICS] Calibrating cyclomatic complexity & MI...', hex: '0x8B12', freq: 1320 },
+        { pct: 65, text: '[POLYGLOT] Python 3.13 · LLVM C/C++ · JVM armed...', hex: '0x9C33', freq: 1540 },
+        { pct: 88, text: '[COGNITIVE] Gemini Flash AI coprocessor synced...', hex: '0xFA01', freq: 1880 },
         { pct: 100, text: '[SYS.ONLINE] All telemetry nominal. Entering studio...', hex: '0xFFFF', freq: 0 }
       ];
 
@@ -2244,24 +2336,24 @@ public class PaymentService {
           });
         }
 
-        // Advance telemetry messages and play audio feedback
+        // Advance telemetry messages and play sci-fi audio tick
         if (stepIdx < steps.length && currentPct >= steps[stepIdx].pct) {
           if (textEl) textEl.innerText = steps[stepIdx].text;
           if (hexEl) hexEl.innerText = steps[stepIdx].hex;
           if (steps[stepIdx].freq > 0) {
-            playTelemetryBlip(steps[stepIdx].freq);
+            playSciFiTick(steps[stepIdx].freq);
           }
           stepIdx++;
         }
 
         if (currentPct >= 100) {
           clearInterval(timer);
-          playReadyChime();
+          playQuantumChime();
           setTimeout(() => {
             dismissWelcomeIntro();
-          }, 450);
+          }, 350);
         }
-      }, 40);
+      }, 35);
     }
 
     // ─── Init ──────────────────────────────────────────────

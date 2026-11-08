@@ -240,18 +240,34 @@ def test_ui_tabbed_studio_inspector():
 
 
 def test_ui_welcome_intro_overlay():
-    """Verify cinematic welcome intro overlay, SFX audio engine, and no-skip policy."""
+    """Verify cinematic welcome intro overlay, quantum audio engine, and studio transition."""
     html = index()
     assert 'welcomeIntroOverlay' in html
     assert 'Welcome to DocuDoctor' in html
     assert 'dismissWelcomeIntro' in html
     assert 'initWelcomeAnimation' in html
     assert "onLanguageChange('python', false)" in html
-    assert 'sfxToggleBtn' in html
-    assert 'playBootHum' in html
-    assert 'playReadyChime' in html
+    assert 'mainWorkspaceApp' in html
+    assert 'studio-revealed' in html
+    assert 'welcome-exit-warp' in html
+    assert 'codeEditorPanel' in html
+    assert 'editor-scanline-active' in html
+    assert 'playCinematicSweep' in html
+    assert 'playQuantumChime' in html
+    assert 'playSciFiTick' in html
+    assert 'sfxToggleBtn' not in html
+    assert 'DIAGNOSTICS' not in html
     assert 'CLICK ANYWHERE TO SKIP' not in html
     assert 'onclick="dismissWelcomeIntro()"' not in html
+
+    # Verify no language chips or SFX controls in welcome overlay
+    overlay_html = html.split('id="welcomeIntroOverlay"')[1].split('<!-- ════════════════════════ MAIN WORKSPACE WRAPPER')[0]
+    assert '🐍 Python' not in overlay_html
+    assert '⚡ C / C++' not in overlay_html
+    assert '☕ Java' not in overlay_html
+    assert '🧠 Gemini AI' not in overlay_html
+    assert 'sfxToggleBtn' not in overlay_html
+    assert 'DIAGNOSTICS' not in overlay_html
 
 
 
