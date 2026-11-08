@@ -255,6 +255,11 @@ def test_ui_welcome_intro_overlay():
     assert 'playCinematicSweep' in html
     assert 'playQuantumChime' in html
     assert 'playSciFiTick' in html
+    assert 'playCyberpunkRiser' in html
+    assert 'playCyberpunkImpact' in html
+    assert 'playCyberpunkTick' in html
+    assert 'makeDistortionCurve' in html
+    assert 'createNoiseBuffer' in html
     assert 'sfxToggleBtn' not in html
     assert 'DIAGNOSTICS' not in html
     assert 'CLICK ANYWHERE TO SKIP' not in html

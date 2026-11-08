@@ -2120,7 +2120,7 @@ public class PaymentService {
       return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // ─── Cinematic Sci-Fi Audio Synthesizer (Web Audio API) ───
+    // ─── Cyberpunk / Sci-Fi Audio Synthesizer (Web Audio API) ───
     let audioCtx = null;
     let sfxEnabled = true;
 
@@ -2135,126 +2135,224 @@ public class PaymentService {
       return audioCtx;
     }
 
-    // Power-up resonant cinematic low-pass sweep
-    function playCinematicSweep() {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        const now = ctx.currentTime;
-
-        // Dual oscillators: warm saw + deep sub sine
-        const oscSaw = ctx.createOscillator();
-        const oscSine = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        const masterGain = ctx.createGain();
-
-        oscSaw.type = 'sawtooth';
-        oscSaw.frequency.setValueAtTime(65, now);
-        oscSaw.frequency.exponentialRampToValueAtTime(120, now + 1.1);
-
-        oscSine.type = 'sine';
-        oscSine.frequency.setValueAtTime(55, now);
-        oscSine.frequency.exponentialRampToValueAtTime(82, now + 1.1);
-
-        // Resonant lowpass filter sweep
-        filter.type = 'lowpass';
-        filter.Q.setValueAtTime(6.0, now);
-        filter.frequency.setValueAtTime(90, now);
-        filter.frequency.exponentialRampToValueAtTime(1400, now + 1.0);
-
-        // Smooth cinematic gain envelope
-        masterGain.gain.setValueAtTime(0.0001, now);
-        masterGain.gain.linearRampToValueAtTime(0.05, now + 0.25);
-        masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
-
-        oscSaw.connect(filter);
-        oscSine.connect(filter);
-        filter.connect(masterGain);
-        masterGain.connect(ctx.destination);
-
-        oscSaw.start(now);
-        oscSine.start(now);
-        oscSaw.stop(now + 1.3);
-        oscSine.stop(now + 1.3);
-      } catch (err) {}
+    // Soft saturation curve generator for analog warmth and aggressive harmonics
+    function makeDistortionCurve(amount = 25) {
+      const n_samples = 44100;
+      const curve = new Float32Array(n_samples);
+      const deg = Math.PI / 180;
+      for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+      }
+      return curve;
     }
 
-    // High-tech laser optic micro-tick for telemetry steps
-    function playSciFiTick(freq = 1400) {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        const now = ctx.currentTime;
-
-        const osc = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq * 1.4, now);
-        osc.frequency.exponentialRampToValueAtTime(freq, now + 0.035);
-
-        filter.type = 'highpass';
-        filter.frequency.setValueAtTime(600, now);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.04, now + 0.006);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.055);
-      } catch (err) {}
+    // White noise buffer generator for pneumatic whooshes and mechanical textures
+    function createNoiseBuffer(ctx, duration = 1.6) {
+      const bufferSize = Math.floor(ctx.sampleRate * duration);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      return buffer;
     }
 
-    // Epic quantum impact boom + celestial chord at 100%
-    function playQuantumChime() {
+    // 1. Cyberpunk Pneumatic Tech Riser (Pneumatic whoosh + detuned supersaw engine)
+    function playCyberpunkRiser() {
       if (!sfxEnabled) return;
       try {
         const ctx = getAudioCtx();
         if (!ctx) return;
         const now = ctx.currentTime;
 
-        // 1. Sub-bass cinematic impact boom
+        // Layer A: Pneumatic Cyber Whoosh (sweeping bandpass noise)
+        const noiseNode = ctx.createBufferSource();
+        noiseNode.buffer = createNoiseBuffer(ctx, 1.8);
+
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.Q.setValueAtTime(4.5, now);
+        noiseFilter.frequency.setValueAtTime(220, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(3600, now + 1.4);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.0001, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.065, now + 1.15);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+
+        noiseNode.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noiseNode.start(now);
+        noiseNode.stop(now + 1.5);
+
+        // Layer B: Detuned Dual Supersaw Engine Riser
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
         const subOsc = ctx.createOscillator();
-        const subGain = ctx.createGain();
+
+        const synthFilter = ctx.createBiquadFilter();
+        synthFilter.type = 'lowpass';
+        synthFilter.Q.setValueAtTime(7.0, now);
+        synthFilter.frequency.setValueAtTime(110, now);
+        synthFilter.frequency.exponentialRampToValueAtTime(1600, now + 1.3);
+
+        const distNode = ctx.createWaveShaper();
+        distNode.curve = makeDistortionCurve(20);
+        distNode.oversample = '2x';
+
+        const synthGain = ctx.createGain();
+        synthGain.gain.setValueAtTime(0.0001, now);
+        synthGain.gain.linearRampToValueAtTime(0.05, now + 0.3);
+        synthGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+
+        osc1.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(55, now);
+        osc1.frequency.exponentialRampToValueAtTime(110, now + 1.3);
+
+        // Detuned by +8 cents for rich analog phasing
+        osc2.type = 'sawtooth';
+        osc2.frequency.setValueAtTime(55.25, now);
+        osc2.frequency.exponentialRampToValueAtTime(110.5, now + 1.3);
+
         subOsc.type = 'sine';
-        subOsc.frequency.setValueAtTime(75, now);
-        subOsc.frequency.exponentialRampToValueAtTime(36, now + 0.8);
+        subOsc.frequency.setValueAtTime(45, now);
+        subOsc.frequency.exponentialRampToValueAtTime(80, now + 1.3);
+
+        osc1.connect(synthFilter);
+        osc2.connect(synthFilter);
+        subOsc.connect(synthFilter);
+        synthFilter.connect(distNode);
+        distNode.connect(synthGain);
+        synthGain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        subOsc.start(now);
+        osc1.stop(now + 1.48);
+        osc2.stop(now + 1.48);
+        subOsc.stop(now + 1.48);
+      } catch (err) {}
+    }
+
+    // 2. Holographic HUD Optical Micro-Tick (Tactile mechanical click + FM laser chirp)
+    function playCyberpunkTick(freq = 1400) {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
+        // Tactile mechanical noise impulse
+        const noise = ctx.createBufferSource();
+        noise.buffer = createNoiseBuffer(ctx, 0.04);
+        const noiseFilt = ctx.createBiquadFilter();
+        noiseFilt.type = 'highpass';
+        noiseFilt.frequency.setValueAtTime(3200, now);
+        const noiseG = ctx.createGain();
+        noiseG.gain.setValueAtTime(0.025, now);
+        noiseG.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+        noise.connect(noiseFilt);
+        noiseFilt.connect(noiseG);
+        noiseG.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.04);
+
+        // Futuristic FM laser micro-chirp
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq * 1.5, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.85, now + 0.035);
+
+        oscGain.gain.setValueAtTime(0.001, now);
+        oscGain.gain.linearRampToValueAtTime(0.04, now + 0.005);
+        oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.045);
+      } catch (err) {}
+    }
+
+    // 3. Cyberpunk 808 Sub-Drop Boom + Holographic Cyber-Chord Impact
+    function playCyberpunkImpact() {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
+        // Layer A: Saturated 808 Sub-Bass Shockwave Impact
+        const subOsc = ctx.createOscillator();
+        const subDist = ctx.createWaveShaper();
+        const subGain = ctx.createGain();
+
+        subOsc.type = 'sine';
+        // Transient snap from 135Hz down to 42Hz, then vibrating sub-rumble
+        subOsc.frequency.setValueAtTime(135, now);
+        subOsc.frequency.exponentialRampToValueAtTime(42, now + 0.07);
+        subOsc.frequency.exponentialRampToValueAtTime(26, now + 1.2);
+
+        subDist.curve = makeDistortionCurve(15);
+        subDist.oversample = '2x';
+
         subGain.gain.setValueAtTime(0.001, now);
-        subGain.gain.linearRampToValueAtTime(0.08, now + 0.04);
-        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
-        subOsc.connect(subGain);
+        subGain.gain.linearRampToValueAtTime(0.09, now + 0.035);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
+
+        subOsc.connect(subDist);
+        subDist.connect(subGain);
         subGain.connect(ctx.destination);
         subOsc.start(now);
-        subOsc.stop(now + 0.9);
+        subOsc.stop(now + 1.3);
 
-        // 2. Celestial harmonic shimmer chord (C#5, E#5, G#5, C#6)
-        const chordFreqs = [554.37, 659.25, 830.61, 1108.73];
+        // Layer B: Holographic Cyber Chime Chord (D Minor Sci-Fi Triad: D4, A4, F5, C6)
+        const chordFreqs = [293.66, 440.00, 698.46, 1046.50];
         chordFreqs.forEach((f, idx) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          const t = now + idx * 0.045;
+          const chordOsc = ctx.createOscillator();
+          const chordGain = ctx.createGain();
+          const t = now + idx * 0.03;
 
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(f, t);
+          chordOsc.type = 'triangle';
+          chordOsc.frequency.setValueAtTime(f, t);
 
-          gain.gain.setValueAtTime(0.001, t);
-          gain.gain.linearRampToValueAtTime(0.035, t + 0.03);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+          chordGain.gain.setValueAtTime(0.001, t);
+          chordGain.gain.linearRampToValueAtTime(0.035, t + 0.025);
+          chordGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
 
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(t);
-          osc.stop(t + 0.85);
+          chordOsc.connect(chordGain);
+          chordGain.connect(ctx.destination);
+          chordOsc.start(t);
+          chordOsc.stop(t + 0.9);
         });
+
+        // Layer C: Hydraulic Air-Release Exhale (Highpass noise sweep)
+        const airNode = ctx.createBufferSource();
+        airNode.buffer = createNoiseBuffer(ctx, 0.6);
+        const airFilt = ctx.createBiquadFilter();
+        airFilt.type = 'highpass';
+        airFilt.frequency.setValueAtTime(2200, now);
+        airFilt.frequency.exponentialRampToValueAtTime(600, now + 0.45);
+
+        const airGain = ctx.createGain();
+        airGain.gain.setValueAtTime(0.03, now);
+        airGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+
+        airNode.connect(airFilt);
+        airFilt.connect(airGain);
+        airGain.connect(ctx.destination);
+        airNode.start(now);
+        airNode.stop(now + 0.55);
       } catch (err) {}
     }
+
+    // Aliases for compatibility
+    const playCinematicSweep = playCyberpunkRiser;
+    const playSciFiTick = playCyberpunkTick;
+    const playQuantumChime = playCyberpunkImpact;
 
     // ─── Welcome Intro Animation & Studio Move ────────────────
     let welcomeDismissed = false;
@@ -2300,8 +2398,8 @@ public class PaymentService {
         window.addEventListener(evt, unlockAudio, { once: true });
       });
 
-      // Launch cinematic lowpass power-up sweep
-      playCinematicSweep();
+      // Launch cyberpunk pneumatic tech riser sweep
+      playCyberpunkRiser();
 
       const steps = [
         { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A', freq: 1100 },
@@ -2336,19 +2434,19 @@ public class PaymentService {
           });
         }
 
-        // Advance telemetry messages and play sci-fi audio tick
+        // Advance telemetry messages and play cyberpunk audio tick
         if (stepIdx < steps.length && currentPct >= steps[stepIdx].pct) {
           if (textEl) textEl.innerText = steps[stepIdx].text;
           if (hexEl) hexEl.innerText = steps[stepIdx].hex;
           if (steps[stepIdx].freq > 0) {
-            playSciFiTick(steps[stepIdx].freq);
+            playCyberpunkTick(steps[stepIdx].freq);
           }
           stepIdx++;
         }
 
         if (currentPct >= 100) {
           clearInterval(timer);
-          playQuantumChime();
+          playCyberpunkImpact();
           setTimeout(() => {
             dismissWelcomeIntro();
           }, 350);
