@@ -240,13 +240,19 @@ def test_ui_tabbed_studio_inspector():
 
 
 def test_ui_welcome_intro_overlay():
-    """Verify cinematic welcome intro overlay and blank opening editor scripts are present."""
+    """Verify cinematic welcome intro overlay, SFX audio engine, and no-skip policy."""
     html = index()
     assert 'welcomeIntroOverlay' in html
     assert 'Welcome to DocuDoctor' in html
     assert 'dismissWelcomeIntro' in html
     assert 'initWelcomeAnimation' in html
     assert "onLanguageChange('python', false)" in html
+    assert 'sfxToggleBtn' in html
+    assert 'playBootHum' in html
+    assert 'playReadyChime' in html
+    assert 'CLICK ANYWHERE TO SKIP' not in html
+    assert 'onclick="dismissWelcomeIntro()"' not in html
+
 
 
 

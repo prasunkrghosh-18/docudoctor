@@ -638,7 +638,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
 
   <!-- ════════════════════════ WELCOME CINEMATIC INTRO ════════════════════════ -->
-  <div id="welcomeIntroOverlay" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark-950/98 backdrop-blur-3xl select-none cursor-pointer" onclick="dismissWelcomeIntro()" title="Click anywhere to enter">
+  <div id="welcomeIntroOverlay" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark-950/98 backdrop-blur-3xl select-none">
     <!-- Ambient glowing nebulas -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="welcome-nebula welcome-nebula-cyan"></div>
@@ -730,7 +730,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="text-emerald-400/90 font-bold tracking-wide">SYSTEM ARMED</span>
           </span>
-          <span class="text-gray-400 hover:text-cyan-300 transition">CLICK ANYWHERE TO SKIP</span>
+          <div class="flex items-center space-x-2">
+            <button type="button" id="sfxToggleBtn" onclick="toggleSfx(event)" class="text-[9px] font-mono px-2 py-0.5 rounded bg-dark-900 hover:bg-dark-850 text-cyan-400 border border-cyan-500/30 flex items-center space-x-1 transition cursor-pointer">
+              <span id="sfxIcon">🔊</span><span id="sfxLabel">SFX ON</span>
+            </button>
+            <span class="text-cyan-400/80 font-mono tracking-widest text-[9px] uppercase">DIAGNOSTICS</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2068,6 +2073,111 @@ public class PaymentService {
       return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    // ─── Cyber SFX Audio Engine (Web Audio API) ─────────────
+    let audioCtx = null;
+    let sfxEnabled = true;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) audioCtx = new AudioClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function toggleSfx(e) {
+      if (e) e.stopPropagation();
+      sfxEnabled = !sfxEnabled;
+      const icon = document.getElementById('sfxIcon');
+      const label = document.getElementById('sfxLabel');
+      if (icon) icon.innerText = sfxEnabled ? '🔊' : '🔇';
+      if (label) label.innerText = sfxEnabled ? 'SFX ON' : 'SFX OFF';
+      if (sfxEnabled) {
+        const ctx = getAudioCtx();
+        if (ctx) playTelemetryBlip(980);
+      }
+    }
+
+    // Power-up boot resonance sweep
+    function playBootHum() {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(110, now);
+        osc.frequency.exponentialRampToValueAtTime(330, now + 0.6);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.06, now + 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.75);
+      } catch (err) {}
+    }
+
+    // Telemetry blip sound for each subsystem milestone
+    function playTelemetryBlip(freq = 980) {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.25, now + 0.04);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.04, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.07);
+      } catch (err) {}
+    }
+
+    // Ascending harmonic chime when system hits 100%
+    function playReadyChime() {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        [587.33, 739.99, 880, 1174.66].forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const t = now + idx * 0.07;
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, t);
+
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.linearRampToValueAtTime(0.045, t + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.65);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.7);
+        });
+      } catch (err) {}
+    }
+
     // ─── Welcome Intro Animation ───────────────────────────
     let welcomeDismissed = false;
     function dismissWelcomeIntro() {
@@ -2075,7 +2185,7 @@ public class PaymentService {
       welcomeDismissed = true;
       const overlay = document.getElementById('welcomeIntroOverlay');
       if (!overlay) return;
-      overlay.style.transition = 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease';
+      overlay.style.transition = 'opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease';
       overlay.style.opacity = '0';
       overlay.style.transform = 'scale(1.04)';
       overlay.style.filter = 'blur(10px)';
@@ -2084,16 +2194,29 @@ public class PaymentService {
         if (overlay) overlay.style.display = 'none';
         const ed = document.getElementById('codeEditor');
         if (ed) ed.focus();
-      }, 450);
+      }, 500);
     }
 
     function initWelcomeAnimation() {
+      // Unlock audio context on first interaction if suspended
+      const unlockAudio = () => {
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+      };
+      ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+        window.addEventListener(evt, unlockAudio, { once: true });
+      });
+
+      // Try playing boot resonance hum
+      playBootHum();
+
       const steps = [
-        { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A' },
-        { pct: 38, text: '[METRICS] Calibrating cyclomatic complexity & MI...', hex: '0x8B12' },
-        { pct: 65, text: '[POLYGLOT] Python 3.13 · LLVM C/C++ · JVM armed...', hex: '0x9C33' },
-        { pct: 88, text: '[COGNITIVE] Gemini Flash AI coprocessor synced...', hex: '0xFA01' },
-        { pct: 100, text: '[SYS.ONLINE] All telemetry nominal. Entering studio...', hex: '0xFFFF' }
+        { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A', freq: 880 },
+        { pct: 38, text: '[METRICS] Calibrating cyclomatic complexity & MI...', hex: '0x8B12', freq: 1108 },
+        { pct: 65, text: '[POLYGLOT] Python 3.13 · LLVM C/C++ · JVM armed...', hex: '0x9C33', freq: 1320 },
+        { pct: 88, text: '[COGNITIVE] Gemini Flash AI coprocessor synced...', hex: '0xFA01', freq: 1760 },
+        { pct: 100, text: '[SYS.ONLINE] All telemetry nominal. Entering studio...', hex: '0xFFFF', freq: 0 }
       ];
 
       const pctEl = document.getElementById('welcomeProgressPct');
@@ -2105,11 +2228,6 @@ public class PaymentService {
       let stepIdx = 0;
 
       const timer = setInterval(() => {
-        if (welcomeDismissed) {
-          clearInterval(timer);
-          return;
-        }
-
         currentPct += 2;
         if (currentPct > 100) currentPct = 100;
 
@@ -2126,27 +2244,24 @@ public class PaymentService {
           });
         }
 
-        // Advance telemetry messages
+        // Advance telemetry messages and play audio feedback
         if (stepIdx < steps.length && currentPct >= steps[stepIdx].pct) {
           if (textEl) textEl.innerText = steps[stepIdx].text;
           if (hexEl) hexEl.innerText = steps[stepIdx].hex;
+          if (steps[stepIdx].freq > 0) {
+            playTelemetryBlip(steps[stepIdx].freq);
+          }
           stepIdx++;
         }
 
         if (currentPct >= 100) {
           clearInterval(timer);
+          playReadyChime();
           setTimeout(() => {
             dismissWelcomeIntro();
-          }, 350);
+          }, 450);
         }
       }, 40);
-
-      window.addEventListener('keydown', (e) => {
-        if (!welcomeDismissed) {
-          clearInterval(timer);
-          dismissWelcomeIntro();
-        }
-      }, { once: true });
     }
 
     // ─── Init ──────────────────────────────────────────────
