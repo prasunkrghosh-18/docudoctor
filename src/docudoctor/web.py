@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
 
 from docudoctor.languages import (
@@ -216,6 +216,36 @@ def api_ai_review(req: AIReviewRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+DOCUDOCTOR_FAVICON_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060913"/>
+      <stop offset="50%" stop-color="#0b1329"/>
+      <stop offset="100%" stop-color="#180b2b"/>
+    </linearGradient>
+    <linearGradient id="c" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="p" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#g)" stroke="#22d3ee" stroke-width="2.5" stroke-opacity="0.8"/>
+  <path d="M20 22L12 32l8 10" fill="none" stroke="url(#c)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M44 22l8 10-8 10" fill="none" stroke="url(#p)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22 32h5l3-9 4 18 3-9h5" fill="none" stroke="#22d3ee" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="13" r="3.5" fill="#c084fc"/>
+</svg>"""
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    """Serves the official DocuDoctor SVG favicon for the browser title bar & tab."""
+    return Response(content=DOCUDOCTOR_FAVICON_SVG, media_type="image/svg+xml")
+
+
 @app.get("/", response_class=HTMLResponse)
 def index():
     """Serves the interactive DocuDoctor single-page web app."""
@@ -227,6 +257,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DocuDoctor • Multi-Language Code Health &amp; Docstring Engine</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23060913%22%2F%3E%3Cstop%20offset%3D%2250%25%22%20stop-color%3D%22%230b1329%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23180b2b%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22c%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%2322d3ee%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2306b6d4%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22p%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23c084fc%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%239333ea%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2216%22%20fill%3D%22url(%23g)%22%20stroke%3D%22%2322d3ee%22%20stroke-width%3D%222.5%22%20stroke-opacity%3D%220.8%22%2F%3E%3Cpath%20d%3D%22M20%2022L12%2032l8%2010%22%20fill%3D%22none%22%20stroke%3D%22url(%23c)%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M44%2022l8%2010-8%2010%22%20fill%3D%22none%22%20stroke%3D%22url(%23p)%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M22%2032h5l3-9%204%2018%203-9h5%22%20fill%3D%22none%22%20stroke%3D%22%2322d3ee%22%20stroke-width%3D%223.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2213%22%20r%3D%223.5%22%20fill%3D%22%23c084fc%22%2F%3E%3C%2Fsvg%3E">
+  <link rel="alternate icon" href="/favicon.ico">
   <script>
     // Immediate Theme Init — no flash on first load
     (function() {
@@ -793,7 +825,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <!-- Brand -->
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-fuchsia-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-lg shadow-lg shadow-cyan-500/20">⚕</div>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-fuchsia-500/20 border border-cyan-500/40 flex items-center justify-center p-1.5 shadow-lg shadow-cyan-500/20">
+          <svg class="w-full h-full" viewBox="0 0 64 64" fill="none">
+            <path d="M20 22L12 32l8 10" stroke="#22d3ee" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M44 22l8 10-8 10" stroke="#c084fc" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 32h5l3-9 4 18 3-9h5" stroke="#22d3ee" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="32" cy="13" r="3.5" fill="#c084fc"/>
+          </svg>
+        </div>
         <div>
           <div class="flex items-center space-x-2">
             <span class="font-extrabold text-xl tracking-tight text-cyan-400">DOCU</span>

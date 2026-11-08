@@ -275,6 +275,26 @@ def test_ui_welcome_intro_overlay():
     assert 'DIAGNOSTICS' not in overlay_html
 
 
+def test_ui_title_bar_and_favicon():
+    """Verify title bar favicon and header brand logo vector assets."""
+    from docudoctor.web import favicon
+
+    html = index()
+    # Check title bar favicon links
+    assert '<link rel="icon" type="image/svg+xml"' in html
+    assert 'data:image/svg+xml' in html
+    assert '<link rel="alternate icon" href="/favicon.ico">' in html
+
+    # Test /favicon.ico route
+    res = favicon()
+    assert res.status_code == 200
+    assert "image/svg+xml" in res.media_type
+    assert "<svg" in res.body.decode("utf-8")
+    assert "#22d3ee" in res.body.decode("utf-8")
+    assert "#c084fc" in res.body.decode("utf-8")
+
+
+
 
 
 
