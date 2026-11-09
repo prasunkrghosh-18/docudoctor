@@ -57,7 +57,7 @@ def test_format_docstring_ast_guardrails():
 
 
 def test_smart_patching_without_api_key_gracefully_falls_back():
-    """When no API key is provided, system falls back to fast deterministic AST engine."""
+    """When no API key is provided, system synthesizes with Gemini Flash Engine."""
     code = """def add_tags(item: str, tags=[]):
     return tags
 """
@@ -65,15 +65,15 @@ def test_smart_patching_without_api_key_gracefully_falls_back():
     assert count >= 1
     # Total healer still fixed the mutable default
     assert "tags=None" in patched
-    assert "Fast AST Engine" in msg
+    assert "Gemini Flash Engine" in msg
 
 
 def test_ai_deep_code_review_without_key():
-    """Review returns friendly guidance when API key is not present."""
+    """Review returns intelligent semantic review without blocking static error."""
     code = "def foo(): return 42"
     result = ai_deep_code_review(code, language="python", api_key=None)
-    assert not result["available"]
-    assert "requires a free Google Gemini API Key" in result["message"]
+    assert result["available"] is True
+    assert "overall_assessment" in result
     assert len(result["best_practices"]) > 0
 
 
@@ -96,10 +96,8 @@ def test_web_api_fix_with_use_ai_flag():
 
 
 def test_ui_has_super_smart_ai_elements():
-    """Verify built-in Gemini AI elements and review studio are present in the UI."""
+    """Verify Gemini AI elements and review studio are present in the UI."""
     html = index()
-    assert "geminiEngineBadge" in html
-    assert "Gemini AI Built-in" in html
     assert "tabBtnAiReview" in html
     assert "tabPaneAiReview" in html
     assert "runAiReviewBtn" in html

@@ -393,28 +393,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     html:not(.dark) #profileDropdown a { color: #1e293b !important; }
     html:not(.dark) #themeMenu button:hover { background-color: rgba(6,182,212,0.08) !important; }
 
-    /* Popover High-Contrast Hub */
-    #geminiPopover {
-      min-width: 330px;
-      background-color: rgba(11, 15, 23, 0.98);
-      border: 1px solid rgba(168, 85, 247, 0.45);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    }
-    html:not(.dark) #geminiPopover {
-      background-color: #ffffff !important;
-      border: 1px solid #cbd5e1 !important;
-      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(168, 85, 247, 0.25) !important;
-    }
-    html:not(.dark) #geminiPopover .popover-title { color: #0f172a !important; font-weight: 800 !important; }
-    html:not(.dark) #geminiPopover .popover-sub { color: #475569 !important; font-weight: 500 !important; }
-    html:not(.dark) #geminiPopover .popover-item { color: #1e293b !important; font-weight: 600 !important; }
-    html:not(.dark) #geminiPopover .popover-item span { color: #1e293b !important; }
-    html:not(.dark) #geminiEngineBadge {
-      background-color: rgba(168, 85, 247, 0.12) !important;
-      border-color: rgba(168, 85, 247, 0.45) !important;
-      color: #6b21a8 !important;
-    }
-
     /* Preserve Bright White Text on Action Gradient Buttons */
     html:not(.dark) button.text-white,
     html:not(.dark) a.text-white,
@@ -853,50 +831,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <!-- Right header controls -->
       <div class="flex items-center space-x-2.5">
-        <!-- Built-in Gemini AI Interactive Hub -->
-        <div class="relative">
-          <button id="geminiEngineBadge" type="button" onclick="toggleGeminiPopover(event)" title="Click to open Gemini AI Engine Hub" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-purple-950/60 hover:bg-purple-900/80 border border-purple-500/40 hover:border-purple-400 text-purple-200 text-xs font-semibold shadow-sm cursor-pointer transition-all active:scale-95 group">
-            <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-            <span>Gemini AI Built-in</span>
-            <svg class="w-3 h-3 text-purple-400 group-hover:text-purple-200 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-
-          <!-- Gemini AI Popover Dropdown -->
-          <div id="geminiPopover" style="display: none;" class="absolute right-0 top-full mt-2 w-80 rounded-2xl p-4 z-50 animate-toast space-y-3">
-            <div class="flex items-center space-x-3 pb-2.5 border-b border-purple-500/20">
-              <div class="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-xl shadow-inner">🧠</div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between">
-                  <h4 class="font-extrabold text-sm popover-title text-white">Gemini AI Engine</h4>
-                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">ONLINE • FLASH</span>
-                </div>
-                <p class="text-[11px] popover-sub text-gray-400">Google Gemini Code Intelligence</p>
-              </div>
-            </div>
-
-            <div class="space-y-2 text-xs popover-item text-gray-200">
-              <div class="flex items-center space-x-2">
-                <span class="text-purple-400 font-bold">⚡</span>
-                <span>Semantic Architecture &amp; Deep Code Review</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="text-purple-400 font-bold">🛡️</span>
-                <span>AST Guardrails (0% Hallucinations)</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="text-purple-400 font-bold">🌐</span>
-                <span>Multi-Language: Python, C, C++, Java</span>
-              </div>
-            </div>
-
-            <div class="pt-1 flex flex-col space-y-2">
-              <button type="button" onclick="openAiReviewFromPopover()" class="w-full text-center text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 py-2.5 px-4 rounded-xl transition shadow-lg shadow-purple-950/50 flex items-center justify-center space-x-2 cursor-pointer active:scale-95 btn-solid-white">
-                <span>🚀</span><span>Launch AI Deep Code Review</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
         <!-- Theme selector -->
         <div class="relative">
           <button id="themeBtn" type="button" onclick="toggleThemeMenu(event)" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-white/10 hover:border-cyan-500/40 bg-dark-850 hover:bg-dark-800 text-xs font-semibold text-gray-200 transition-all shadow-sm cursor-pointer group">
@@ -1371,17 +1305,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     
     let currentRightTab = 'issues';
 
-    async function runAiDeepReview() {
+    async function runAiDeepReview(silent = false) {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) {
-        showToast('Please enter or load code first!', 'amber');
+        if (!silent) showToast('Please enter or load code first!', 'amber');
         return;
       }
 
       const out = document.getElementById('aiReviewOutput');
       const btn = document.getElementById('runAiReviewBtn');
       if (btn) btn.innerHTML = '<span>⏳</span><span>Gemini Analyzing...</span>';
-      if (out) {
+      if (out && !silent) {
         out.innerHTML = `
           <div class="p-8 text-center space-y-3">
             <div class="inline-block w-8 h-8 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin"></div>
@@ -1477,9 +1411,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           ${noticeHtml}
         `;
 
-        showToast('🧠 Gemini AI Deep Code Review complete!', 'fuchsia');
+        if (!silent) showToast('🧠 Gemini AI Deep Code Review complete!', 'fuchsia');
       } catch (err) {
-        showToast('Error during AI review: ' + err.message, 'red');
+        if (!silent) showToast('Error during AI review: ' + err.message, 'red');
       } finally {
         if (btn) btn.innerHTML = '<span>🚀</span><span>Run Review</span>';
       }
@@ -1662,7 +1596,6 @@ public class PaymentService {
     function toggleThemeMenu(e) {
       if (e) e.stopPropagation();
       closeProfileDropdown();
-      closeGeminiPopover();
       const m = document.getElementById('themeMenu');
       if (!m) return;
       m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
@@ -1682,7 +1615,6 @@ public class PaymentService {
     function toggleProfileDropdown(e) {
       if (e) e.stopPropagation();
       closeThemeMenu();
-      closeGeminiPopover();
       const m = document.getElementById('profileDropdown');
       if (!m) return;
       m.style.display = m.style.display === 'block' ? 'none' : 'block';
@@ -1699,9 +1631,6 @@ public class PaymentService {
       const theme = document.getElementById('themeMenu');
       const themeBtn = document.getElementById('themeBtn');
       if (theme && !theme.contains(e.target) && (!themeBtn || !themeBtn.contains(e.target))) theme.style.display = 'none';
-      const gem = document.getElementById('geminiPopover');
-      const gemBtn = document.getElementById('geminiEngineBadge');
-      if (gem && !gem.contains(e.target) && (!gemBtn || !gemBtn.contains(e.target))) gem.style.display = 'none';
     });
 
     // ─── Language ──────────────────────────────────────────
@@ -1853,6 +1782,9 @@ public class PaymentService {
         renderIssues();
         if (complexityData) renderComplexity(complexityData);
         if (styleData) renderStyle(styleData);
+
+        // Pre-run Gemini AI review simultaneously so AI Review tab has fresh intelligence
+        runAiDeepReview(true);
 
         showToast(`Audit ✓ — Health ${auditData.score}% · MI ${auditData.maintainability_index}% · Style ${styleData ? styleData.style_score : '--'}%`, 'emerald');
       } catch (err) {

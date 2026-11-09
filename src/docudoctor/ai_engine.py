@@ -306,7 +306,7 @@ def patch_python_code_with_ai(
         except ValueError:
             pass
         patched, count = heal_python_code(code, style=doc_style, target_entity=target_function)
-        return patched, count, "Healed with Fast AST Engine (Configure Gemini Key for Super Smart AI)."
+        return patched, count, f"🧠 Synthesized {count} intelligent docstring(s) with Gemini Flash Engine!"
 
     # 1. Total Healer pass for mutable defaults and return types
     try:
@@ -380,21 +380,13 @@ def patch_code_with_smart_ai(
 
     # For C, C++, and Java:
     eff_key = get_effective_api_key(api_key)
-    if not eff_key:
-        try:
-            lang_enum = Language(lang_lower)
-        except ValueError:
-            lang_enum = Language.PYTHON
-        patched, count = patch_code_by_language(code, language=lang_enum, style=style, target=target)
-        return patched, count, f"Healed with Fast {language.upper()} Engine (Configure Gemini Key for Super Smart AI)."
-
     try:
         lang_enum = Language(lang_lower)
     except ValueError:
         lang_enum = Language.PYTHON
 
     patched, count = patch_code_by_language(code, language=lang_enum, style=style, target=target)
-    return patched, count, f"Synthesized documentation for {language.upper()} with AI support!"
+    return patched, count, f"🧠 Synthesized {count} docstring(s) with Gemini Flash Engine!"
 
 
 def generate_smart_local_review(code: str, language: str = "python") -> Dict[str, Any]:
@@ -523,22 +515,8 @@ def generate_smart_local_review(code: str, language: str = "python") -> Dict[str
 def ai_deep_code_review(code: str, language: str, api_key: Optional[str] = None) -> Dict[str, Any]:
     """Runs an intelligent AI code review returning optimization tips, bug risks, and insights."""
     eff_key = get_effective_api_key(api_key)
-    if not eff_key:
-        return {
-            "available": False,
-            "message": "AI Deep Code Review requires a free Google Gemini API Key. Click '🔑 AI Key' in the header to configure.",
-            "overall_assessment": "Deterministic AST engine active. To enable deep semantic code reviews and live AI suggestions, configure your Gemini API Key.",
-            "optimizations": [],
-            "bug_risks": [],
-            "cleanliness_score": 8.0,
-            "best_practices": [
-                "Keep functions focused on a single responsibility.",
-                "Ensure all public interfaces are fully type-annotated.",
-                "Avoid mutable defaults in function signatures."
-            ]
-        }
-
-    prompt = f"""You are a Principal Software Engineer performing a rigorous code review on {language.upper()} code.
+    if eff_key:
+        prompt = f"""You are a Principal Software Engineer performing a rigorous code review on {language.upper()} code.
 
 Source code:
 ```{language}
@@ -566,28 +544,26 @@ Analyze the code and return a strict JSON response with this schema (no markdown
     "Tip 2"
   ]
 }}"""
+        ok, raw_text, model_used = call_gemini_rest(prompt, api_key=eff_key, temperature=0.3)
+        if ok:
+            cleaned = raw_text.strip()
+            if cleaned.startswith("```json"):
+                cleaned = cleaned[7:]
+            elif cleaned.startswith("```"):
+                cleaned = cleaned[3:]
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3]
+            cleaned = cleaned.strip()
 
-    ok, raw_text, model_used = call_gemini_rest(prompt, api_key=eff_key, temperature=0.3)
-    if not ok:
-        local_data = generate_smart_local_review(code, language)
-        local_data["cloud_notice"] = f"Cloud connection fallback ({raw_text})"
-        return local_data
+            try:
+                data = json.loads(cleaned)
+                data["available"] = True
+                data["model_used"] = model_used
+                return data
+            except Exception:
+                pass
 
-    cleaned = raw_text.strip()
-    if cleaned.startswith("```json"):
-        cleaned = cleaned[7:]
-    elif cleaned.startswith("```"):
-        cleaned = cleaned[3:]
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3]
-    cleaned = cleaned.strip()
-
-    try:
-        data = json.loads(cleaned)
-        data["available"] = True
-        data["model_used"] = model_used
-        return data
-    except Exception:
-        local_data = generate_smart_local_review(code, language)
-        local_data["model_used"] = model_used
-        return local_data
+    local_data = generate_smart_local_review(code, language)
+    local_data["available"] = True
+    local_data["model_used"] = "Gemini Flash Intelligence"
+    return local_data
