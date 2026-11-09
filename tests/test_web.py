@@ -264,6 +264,9 @@ def test_ui_welcome_intro_overlay():
     assert 'unlockAudioAndPlay' in html
     assert 'startSyncedBootSequence' in html
     assert 'unlockAudioAndStart' in html
+    assert 'userInitiatedBoot' in html
+    assert 'standbyLaunchWrapper' in html
+    assert 'standbyLaunchBtn' in html
     assert 'sfxToggleBtn' not in html
     assert 'DIAGNOSTICS' not in html
     assert 'CLICK ANYWHERE TO SKIP' not in html

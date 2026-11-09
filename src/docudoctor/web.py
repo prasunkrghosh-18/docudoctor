@@ -802,6 +802,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
             <div class="hud-seg h-1.5 rounded-sm bg-slate-800 transition-all duration-150"></div>
           </div>
+
+          <!-- Standby prompt for browsers where autoplay requires user activation -->
+          <div id="standbyLaunchWrapper" class="pt-2 hidden">
+            <button type="button" id="standbyLaunchBtn" onclick="userInitiatedBoot(event)" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-mono font-bold text-xs tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-cyan-950/80 hover:shadow-cyan-500/40 transition-all cursor-pointer active:scale-95 animate-pulse">
+              <span>🔊</span>
+              <span>INITIALIZE DOCUDOCTOR // AUDIO ON</span>
+            </button>
+          </div>
         </div>
 
         <!-- Micro telemetry footer without buttons -->
@@ -2493,8 +2501,9 @@ public class PaymentService {
 
     let bootSequenceStarted = false;
 
-    // Helper to immediately unlock & start synchronized audio + animation
-    function unlockAudioAndStart() {
+    // Helper to immediately unlock & start synchronized audio + animation on user gesture
+    function userInitiatedBoot(event) {
+      if (event && event.stopPropagation) event.stopPropagation();
       const ctx = getAudioCtx();
       if (ctx && ctx.state === 'suspended') {
         ctx.resume().then(() => {
@@ -2506,12 +2515,15 @@ public class PaymentService {
         startSyncedBootSequence();
       }
     }
-    const unlockAudioAndPlay = unlockAudioAndStart;
+    const unlockAudioAndStart = userInitiatedBoot;
+    const unlockAudioAndPlay = userInitiatedBoot;
 
     function showStandbyTelemetry() {
       if (bootSequenceStarted) return;
       const textEl = document.getElementById('welcomeProgressText');
-      if (textEl) textEl.innerText = '⚡ Click anywhere to initialize neural bus...';
+      if (textEl) textEl.innerText = '⚡ Tap to initialize neural bus with audio...';
+      const standby = document.getElementById('standbyLaunchWrapper');
+      if (standby) standby.classList.remove('hidden');
       const hint = document.getElementById('welcomeAudioHint');
       if (hint) hint.classList.remove('hidden');
       const osLabel = document.getElementById('welcomeOsLabel');
@@ -2523,17 +2535,19 @@ public class PaymentService {
       if (bootSequenceStarted) return;
       bootSequenceStarted = true;
 
-      const ctx = getAudioCtx();
-      // If audio is running, fire the catchy cyberpunk motif & riser at exact t=0
-      if (ctx && ctx.state === 'running') {
-        playCyberpunkRiserActual(ctx);
-      }
-
-      // Hide standby hint and restore standard telemetry display
+      const standby = document.getElementById('standbyLaunchWrapper');
+      if (standby) standby.classList.add('hidden');
       const hint = document.getElementById('welcomeAudioHint');
       if (hint) hint.classList.add('hidden');
       const osLabel = document.getElementById('welcomeOsLabel');
       if (osLabel) osLabel.classList.remove('hidden');
+
+      const ctx = getAudioCtx();
+      // If audio is running, fire the catchy cyberpunk motif & riser at exact t=0
+      if (ctx && ctx.state === 'running' && !riserHasPlayed) {
+        riserHasPlayed = true;
+        playCyberpunkRiserActual(ctx);
+      }
 
       const steps = [
         { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A', freq: 1100 },
@@ -2621,9 +2635,9 @@ public class PaymentService {
     }
 
     function initWelcomeAnimation() {
-      // 1. One-time user gesture listeners to start in 100% lockstep
+      // 1. One-time user gesture listeners on window to start in 100% lockstep
       ['pointerdown', 'mousedown', 'touchstart', 'keydown'].forEach(evt => {
-        window.addEventListener(evt, unlockAudioAndStart, { once: true, passive: true });
+        window.addEventListener(evt, userInitiatedBoot, { once: true, passive: true });
       });
 
       // 2. Try auto-resuming AudioContext immediately on page load
@@ -2644,12 +2658,12 @@ public class PaymentService {
         startSyncedBootSequence();
       }
 
-      // 3. Fallback: If no interaction after 1.8s, auto-start boot anyway
+      // 3. Graceful fallback: If untouched after 5.0s, auto-start boot anyway
       setTimeout(() => {
         if (!bootSequenceStarted) {
           startSyncedBootSequence();
         }
-      }, 1800);
+      }, 5000);
     }
 
     // ─── Init ──────────────────────────────────────────────
