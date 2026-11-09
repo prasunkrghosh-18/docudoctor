@@ -726,7 +726,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
 
   <!-- ════════════════════════ WELCOME CINEMATIC INTRO ════════════════════════ -->
-  <div id="welcomeIntroOverlay" onclick="unlockAudioAndPlay()" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark-950/98 backdrop-blur-3xl select-none cursor-pointer">
+  <div id="welcomeIntroOverlay" onclick="unlockAudioAndStart()" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark-950/98 backdrop-blur-3xl select-none cursor-pointer">
     <!-- Ambient glowing nebulas -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="welcome-nebula welcome-nebula-cyan"></div>
@@ -810,7 +810,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="text-emerald-400/90 font-bold tracking-wide">QUANTUM CORE ACTIVE</span>
           </span>
-          <span class="text-gray-400/80 font-mono text-[9px] tracking-wider">DOCUDOCTOR OS // v0.4.0</span>
+          <span id="welcomeAudioHint" class="text-cyan-400 font-mono text-[9px] tracking-wider animate-pulse hidden">⚡ CLICK TO ARM AUDIO</span>
+          <span id="welcomeOsLabel" class="text-gray-400/80 font-mono text-[9px] tracking-wider">DOCUDOCTOR OS // v0.4.0</span>
         </div>
       </div>
     </div>
@@ -2490,17 +2491,101 @@ public class PaymentService {
     const playSciFiTick = playCyberpunkTick;
     const playQuantumChime = playCyberpunkImpact;
 
-    // Helper to immediately unlock & play audio if browser suspended it
-    function unlockAudioAndPlay() {
+    let bootSequenceStarted = false;
+
+    // Helper to immediately unlock & start synchronized audio + animation
+    function unlockAudioAndStart() {
       const ctx = getAudioCtx();
       if (ctx && ctx.state === 'suspended') {
         ctx.resume().then(() => {
-          if (!riserHasPlayed && !welcomeDismissed) {
-            riserHasPlayed = true;
-            playCyberpunkRiserActual(ctx);
-          }
-        }).catch(() => {});
+          startSyncedBootSequence();
+        }).catch(() => {
+          startSyncedBootSequence();
+        });
+      } else {
+        startSyncedBootSequence();
       }
+    }
+    const unlockAudioAndPlay = unlockAudioAndStart;
+
+    function showStandbyTelemetry() {
+      if (bootSequenceStarted) return;
+      const textEl = document.getElementById('welcomeProgressText');
+      if (textEl) textEl.innerText = '⚡ Click anywhere to initialize neural bus...';
+      const hint = document.getElementById('welcomeAudioHint');
+      if (hint) hint.classList.remove('hidden');
+      const osLabel = document.getElementById('welcomeOsLabel');
+      if (osLabel) osLabel.classList.add('hidden');
+    }
+
+    // ─── Synchronized 1:1 Boot Sequence (Audio + Animation in Lockstep) ───
+    function startSyncedBootSequence() {
+      if (bootSequenceStarted) return;
+      bootSequenceStarted = true;
+
+      const ctx = getAudioCtx();
+      // If audio is running, fire the catchy cyberpunk motif & riser at exact t=0
+      if (ctx && ctx.state === 'running') {
+        playCyberpunkRiserActual(ctx);
+      }
+
+      // Hide standby hint and restore standard telemetry display
+      const hint = document.getElementById('welcomeAudioHint');
+      if (hint) hint.classList.add('hidden');
+      const osLabel = document.getElementById('welcomeOsLabel');
+      if (osLabel) osLabel.classList.remove('hidden');
+
+      const steps = [
+        { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A', freq: 1100 },
+        { pct: 38, text: '[METRICS] Calibrating cyclomatic complexity & MI...', hex: '0x8B12', freq: 1320 },
+        { pct: 65, text: '[POLYGLOT] Python 3.13 · LLVM C/C++ · JVM armed...', hex: '0x9C33', freq: 1540 },
+        { pct: 88, text: '[COGNITIVE] Gemini Flash AI coprocessor synced...', hex: '0xFA01', freq: 1880 },
+        { pct: 100, text: '[SYS.ONLINE] All telemetry nominal. Entering studio...', hex: '0xFFFF', freq: 0 }
+      ];
+
+      const pctEl = document.getElementById('welcomeProgressPct');
+      const textEl = document.getElementById('welcomeProgressText');
+      const hexEl = document.getElementById('welcomeProgressHex');
+      const segments = document.querySelectorAll('.hud-seg');
+
+      let currentPct = 0;
+      let stepIdx = 0;
+
+      const timer = setInterval(() => {
+        currentPct += 2;
+        if (currentPct > 100) currentPct = 100;
+
+        if (pctEl) pctEl.innerText = `${currentPct}%`;
+
+        // Update active neon segments
+        if (segments && segments.length) {
+          const activeCount = Math.floor((currentPct / 100) * segments.length);
+          segments.forEach((seg, i) => {
+            if (i < activeCount) {
+              seg.style.backgroundColor = '#22d3ee';
+              seg.style.boxShadow = '0 0 10px rgba(34, 211, 238, 0.7)';
+            }
+          });
+        }
+
+        // Advance telemetry messages and play synchronized cyberpunk audio tick
+        if (stepIdx < steps.length && currentPct >= steps[stepIdx].pct) {
+          if (textEl) textEl.innerText = steps[stepIdx].text;
+          if (hexEl) hexEl.innerText = steps[stepIdx].hex;
+          if (steps[stepIdx].freq > 0) {
+            playCyberpunkTick(steps[stepIdx].freq);
+          }
+          stepIdx++;
+        }
+
+        if (currentPct >= 100) {
+          clearInterval(timer);
+          playCyberpunkImpact();
+          setTimeout(() => {
+            dismissWelcomeIntro();
+          }, 350);
+        }
+      }, 35);
     }
 
     // ─── Welcome Intro Animation & Studio Move ────────────────
@@ -2536,65 +2621,35 @@ public class PaymentService {
     }
 
     function initWelcomeAnimation() {
-      // User gesture listeners to unlock audio immediately
+      // 1. One-time user gesture listeners to start in 100% lockstep
       ['pointerdown', 'mousedown', 'touchstart', 'keydown'].forEach(evt => {
-        window.addEventListener(evt, unlockAudioAndPlay, { passive: true });
+        window.addEventListener(evt, unlockAudioAndStart, { once: true, passive: true });
       });
 
-      // Launch cyberpunk pneumatic tech riser sweep
-      playCyberpunkRiser();
-
-      const steps = [
-        { pct: 15, text: '[AST.CORE] Compiling deterministic syntax tree...', hex: '0x7F4A', freq: 1100 },
-        { pct: 38, text: '[METRICS] Calibrating cyclomatic complexity & MI...', hex: '0x8B12', freq: 1320 },
-        { pct: 65, text: '[POLYGLOT] Python 3.13 · LLVM C/C++ · JVM armed...', hex: '0x9C33', freq: 1540 },
-        { pct: 88, text: '[COGNITIVE] Gemini Flash AI coprocessor synced...', hex: '0xFA01', freq: 1880 },
-        { pct: 100, text: '[SYS.ONLINE] All telemetry nominal. Entering studio...', hex: '0xFFFF', freq: 0 }
-      ];
-
-      const pctEl = document.getElementById('welcomeProgressPct');
-      const textEl = document.getElementById('welcomeProgressText');
-      const hexEl = document.getElementById('welcomeProgressHex');
-      const segments = document.querySelectorAll('.hud-seg');
-
-      let currentPct = 0;
-      let stepIdx = 0;
-
-      const timer = setInterval(() => {
-        currentPct += 2;
-        if (currentPct > 100) currentPct = 100;
-
-        if (pctEl) pctEl.innerText = `${currentPct}%`;
-
-        // Update active neon segments
-        if (segments && segments.length) {
-          const activeCount = Math.floor((currentPct / 100) * segments.length);
-          segments.forEach((seg, i) => {
-            if (i < activeCount) {
-              seg.style.backgroundColor = '#22d3ee';
-              seg.style.boxShadow = '0 0 10px rgba(34, 211, 238, 0.7)';
-            }
-          });
-        }
-
-        // Advance telemetry messages and play cyberpunk audio tick
-        if (stepIdx < steps.length && currentPct >= steps[stepIdx].pct) {
-          if (textEl) textEl.innerText = steps[stepIdx].text;
-          if (hexEl) hexEl.innerText = steps[stepIdx].hex;
-          if (steps[stepIdx].freq > 0) {
-            playCyberpunkTick(steps[stepIdx].freq);
+      // 2. Try auto-resuming AudioContext immediately on page load
+      const ctx = getAudioCtx();
+      if (ctx) {
+        ctx.resume().then(() => {
+          if (ctx.state === 'running') {
+            // Autoplay permitted by browser policy: start immediately with sound in sync
+            startSyncedBootSequence();
+          } else {
+            // Autoplay suspended by browser: show standby prompt awaiting touch/click
+            showStandbyTelemetry();
           }
-          stepIdx++;
-        }
+        }).catch(() => {
+          showStandbyTelemetry();
+        });
+      } else {
+        startSyncedBootSequence();
+      }
 
-        if (currentPct >= 100) {
-          clearInterval(timer);
-          playCyberpunkImpact();
-          setTimeout(() => {
-            dismissWelcomeIntro();
-          }, 350);
+      // 3. Fallback: If no interaction after 1.8s, auto-start boot anyway
+      setTimeout(() => {
+        if (!bootSequenceStarted) {
+          startSyncedBootSequence();
         }
-      }, 35);
+      }, 1800);
     }
 
     // ─── Init ──────────────────────────────────────────────
