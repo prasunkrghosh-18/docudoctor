@@ -726,7 +726,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <body class="min-h-screen flex flex-col antialiased selection:bg-cyan-500/25 selection:text-cyan-200">
 
   <!-- ════════════════════════ WELCOME CINEMATIC INTRO ════════════════════════ -->
-  <div id="welcomeIntroOverlay" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark-950/98 backdrop-blur-3xl select-none">
+  <div id="welcomeIntroOverlay" onclick="unlockAudioAndPlay()" class="fixed inset-0 z-[9999] flex items-center justify-center bg-dark-950/98 backdrop-blur-3xl select-none cursor-pointer">
     <!-- Ambient glowing nebulas -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="welcome-nebula welcome-nebula-cyan"></div>
@@ -2161,12 +2161,31 @@ public class PaymentService {
 
     // ─── Cyberpunk / Sci-Fi Audio Synthesizer (Web Audio API) ───
     let audioCtx = null;
+    let masterCompressor = null;
+    let masterOut = null;
     let sfxEnabled = true;
+    let riserHasPlayed = false;
 
     function getAudioCtx() {
       if (!audioCtx) {
         const AudioClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioClass) audioCtx = new AudioClass();
+        if (AudioClass) {
+          audioCtx = new AudioClass();
+          try {
+            masterCompressor = audioCtx.createDynamicsCompressor();
+            masterCompressor.threshold.setValueAtTime(-12, audioCtx.currentTime);
+            masterCompressor.knee.setValueAtTime(24, audioCtx.currentTime);
+            masterCompressor.ratio.setValueAtTime(10, audioCtx.currentTime);
+            masterCompressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+            masterCompressor.release.setValueAtTime(0.2, audioCtx.currentTime);
+
+            masterOut = audioCtx.createGain();
+            masterOut.gain.setValueAtTime(0.85, audioCtx.currentTime);
+
+            masterCompressor.connect(masterOut);
+            masterOut.connect(audioCtx.destination);
+          } catch (e) {}
+        }
       }
       if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume().catch(() => {});
@@ -2174,8 +2193,14 @@ public class PaymentService {
       return audioCtx;
     }
 
+    function getAudioDest() {
+      const ctx = getAudioCtx();
+      if (!ctx) return null;
+      return masterCompressor || ctx.destination;
+    }
+
     // Soft saturation curve generator for analog warmth and aggressive harmonics
-    function makeDistortionCurve(amount = 25) {
+    function makeDistortionCurve(amount = 20) {
       const n_samples = 44100;
       const curve = new Float32Array(n_samples);
       const deg = Math.PI / 180;
@@ -2197,81 +2222,144 @@ public class PaymentService {
       return buffer;
     }
 
-    // 1. Cyberpunk Pneumatic Tech Riser (Pneumatic whoosh + detuned supersaw engine)
+    // Actual execution of the catchy cyberpunk riser
+    function playCyberpunkRiserActual(ctx) {
+      try {
+        const now = ctx.currentTime;
+        const dest = getAudioDest();
+        if (!dest) return;
+
+        // ── 1. Catchy Melodic Cyber-Signature Motif (D4 -> F#4 -> A4 -> D5) ──
+        const motif = [
+          { f: 293.66, t: 0.00 },
+          { f: 369.99, t: 0.16 },
+          { f: 440.00, t: 0.32 },
+          { f: 587.33, t: 0.48 }
+        ];
+
+        motif.forEach(note => {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          const t = now + note.t;
+
+          osc1.type = 'sawtooth';
+          osc1.frequency.setValueAtTime(note.f, t);
+
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(note.f * 1.006, t);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(4500, t);
+          filter.frequency.exponentialRampToValueAtTime(800, t + 0.42);
+
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.linearRampToValueAtTime(0.35, t + 0.018);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+
+          osc1.connect(filter);
+          osc2.connect(filter);
+          filter.connect(gain);
+          gain.connect(dest);
+
+          osc1.start(t);
+          osc2.start(t);
+          osc1.stop(t + 0.48);
+          osc2.stop(t + 0.48);
+        });
+
+        // ── 2. Pneumatic Cyber Whoosh (Sweeping Bandpass Riser) ──
+        const noiseNode = ctx.createBufferSource();
+        noiseNode.buffer = createNoiseBuffer(ctx, 1.8);
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.Q.setValueAtTime(4.0, now);
+        noiseFilter.frequency.setValueAtTime(240, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(4200, now + 1.35);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.001, now);
+        noiseGain.gain.linearRampToValueAtTime(0.28, now + 1.1);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+
+        noiseNode.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(dest);
+        noiseNode.start(now);
+        noiseNode.stop(now + 1.5);
+
+        // ── 3. Detuned Dual Supersaw Engine Drone ──
+        const subOsc1 = ctx.createOscillator();
+        const subOsc2 = ctx.createOscillator();
+        const subBass = ctx.createOscillator();
+        const synthFilter = ctx.createBiquadFilter();
+        const distNode = ctx.createWaveShaper();
+        const synthGain = ctx.createGain();
+
+        synthFilter.type = 'lowpass';
+        synthFilter.Q.setValueAtTime(5.0, now);
+        synthFilter.frequency.setValueAtTime(140, now);
+        synthFilter.frequency.exponentialRampToValueAtTime(1800, now + 1.25);
+
+        distNode.curve = makeDistortionCurve(18);
+        distNode.oversample = '2x';
+
+        synthGain.gain.setValueAtTime(0.001, now);
+        synthGain.gain.linearRampToValueAtTime(0.32, now + 0.35);
+        synthGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+
+        subOsc1.type = 'sawtooth';
+        subOsc1.frequency.setValueAtTime(55, now);
+        subOsc1.frequency.exponentialRampToValueAtTime(110, now + 1.25);
+
+        subOsc2.type = 'sawtooth';
+        subOsc2.frequency.setValueAtTime(55.3, now);
+        subOsc2.frequency.exponentialRampToValueAtTime(110.6, now + 1.25);
+
+        subBass.type = 'sine';
+        subBass.frequency.setValueAtTime(45, now);
+        subBass.frequency.exponentialRampToValueAtTime(90, now + 1.25);
+
+        subOsc1.connect(synthFilter);
+        subOsc2.connect(synthFilter);
+        subBass.connect(synthFilter);
+        synthFilter.connect(distNode);
+        distNode.connect(synthGain);
+        synthGain.connect(dest);
+
+        subOsc1.start(now);
+        subOsc2.start(now);
+        subBass.start(now);
+        subOsc1.stop(now + 1.48);
+        subOsc2.stop(now + 1.48);
+        subBass.stop(now + 1.48);
+      } catch (err) {}
+    }
+
+    // 1. Cyberpunk Pneumatic Tech Riser with Autoplay protection
     function playCyberpunkRiser() {
       if (!sfxEnabled) return;
       try {
         const ctx = getAudioCtx();
         if (!ctx) return;
-        const now = ctx.currentTime;
-
-        // Layer A: Pneumatic Cyber Whoosh (sweeping bandpass noise)
-        const noiseNode = ctx.createBufferSource();
-        noiseNode.buffer = createNoiseBuffer(ctx, 1.8);
-
-        const noiseFilter = ctx.createBiquadFilter();
-        noiseFilter.type = 'bandpass';
-        noiseFilter.Q.setValueAtTime(4.5, now);
-        noiseFilter.frequency.setValueAtTime(220, now);
-        noiseFilter.frequency.exponentialRampToValueAtTime(3600, now + 1.4);
-
-        const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.0001, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.065, now + 1.15);
-        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
-
-        noiseNode.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(ctx.destination);
-        noiseNode.start(now);
-        noiseNode.stop(now + 1.5);
-
-        // Layer B: Detuned Dual Supersaw Engine Riser
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const subOsc = ctx.createOscillator();
-
-        const synthFilter = ctx.createBiquadFilter();
-        synthFilter.type = 'lowpass';
-        synthFilter.Q.setValueAtTime(7.0, now);
-        synthFilter.frequency.setValueAtTime(110, now);
-        synthFilter.frequency.exponentialRampToValueAtTime(1600, now + 1.3);
-
-        const distNode = ctx.createWaveShaper();
-        distNode.curve = makeDistortionCurve(20);
-        distNode.oversample = '2x';
-
-        const synthGain = ctx.createGain();
-        synthGain.gain.setValueAtTime(0.0001, now);
-        synthGain.gain.linearRampToValueAtTime(0.05, now + 0.3);
-        synthGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
-
-        osc1.type = 'sawtooth';
-        osc1.frequency.setValueAtTime(55, now);
-        osc1.frequency.exponentialRampToValueAtTime(110, now + 1.3);
-
-        // Detuned by +8 cents for rich analog phasing
-        osc2.type = 'sawtooth';
-        osc2.frequency.setValueAtTime(55.25, now);
-        osc2.frequency.exponentialRampToValueAtTime(110.5, now + 1.3);
-
-        subOsc.type = 'sine';
-        subOsc.frequency.setValueAtTime(45, now);
-        subOsc.frequency.exponentialRampToValueAtTime(80, now + 1.3);
-
-        osc1.connect(synthFilter);
-        osc2.connect(synthFilter);
-        subOsc.connect(synthFilter);
-        synthFilter.connect(distNode);
-        distNode.connect(synthGain);
-        synthGain.connect(ctx.destination);
-
-        osc1.start(now);
-        osc2.start(now);
-        subOsc.start(now);
-        osc1.stop(now + 1.48);
-        osc2.stop(now + 1.48);
-        subOsc.stop(now + 1.48);
+        if (ctx.state === 'suspended') {
+          // If browser autoplay suspended audio, resume and play on first gesture
+          const onResume = () => {
+            if (!riserHasPlayed && !welcomeDismissed) {
+              riserHasPlayed = true;
+              playCyberpunkRiserActual(ctx);
+            }
+          };
+          ['pointerdown', 'mousedown', 'touchstart', 'keydown'].forEach(ev => {
+            window.addEventListener(ev, () => {
+              ctx.resume().then(onResume).catch(() => {});
+            }, { once: true });
+          });
+          return;
+        }
+        riserHasPlayed = true;
+        playCyberpunkRiserActual(ctx);
       } catch (err) {}
     }
 
@@ -2282,47 +2370,51 @@ public class PaymentService {
         const ctx = getAudioCtx();
         if (!ctx) return;
         const now = ctx.currentTime;
+        const dest = getAudioDest();
+        if (!dest) return;
 
         // Tactile mechanical noise impulse
         const noise = ctx.createBufferSource();
-        noise.buffer = createNoiseBuffer(ctx, 0.04);
+        noise.buffer = createNoiseBuffer(ctx, 0.03);
         const noiseFilt = ctx.createBiquadFilter();
         noiseFilt.type = 'highpass';
-        noiseFilt.frequency.setValueAtTime(3200, now);
+        noiseFilt.frequency.setValueAtTime(3600, now);
         const noiseG = ctx.createGain();
-        noiseG.gain.setValueAtTime(0.025, now);
-        noiseG.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+        noiseG.gain.setValueAtTime(0.22, now);
+        noiseG.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
         noise.connect(noiseFilt);
         noiseFilt.connect(noiseG);
-        noiseG.connect(ctx.destination);
+        noiseG.connect(dest);
         noise.start(now);
-        noise.stop(now + 0.04);
+        noise.stop(now + 0.035);
 
-        // Futuristic FM laser micro-chirp
+        // Futuristic resonant laser micro-chirp
         const osc = ctx.createOscillator();
         const oscGain = ctx.createGain();
-        osc.type = 'sine';
+        osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq * 1.5, now);
-        osc.frequency.exponentialRampToValueAtTime(freq * 0.85, now + 0.035);
+        osc.frequency.exponentialRampToValueAtTime(freq, now + 0.035);
 
         oscGain.gain.setValueAtTime(0.001, now);
-        oscGain.gain.linearRampToValueAtTime(0.04, now + 0.005);
-        oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+        oscGain.gain.linearRampToValueAtTime(0.35, now + 0.006);
+        oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
 
         osc.connect(oscGain);
-        oscGain.connect(ctx.destination);
+        oscGain.connect(dest);
         osc.start(now);
-        osc.stop(now + 0.045);
+        osc.stop(now + 0.065);
       } catch (err) {}
     }
 
-    // 3. Cyberpunk 808 Sub-Drop Boom + Holographic Cyber-Chord Impact
+    // 3. Cyberpunk 808 Sub-Drop Boom + Catchy Grand Starlight Chord
     function playCyberpunkImpact() {
       if (!sfxEnabled) return;
       try {
         const ctx = getAudioCtx();
         if (!ctx) return;
         const now = ctx.currentTime;
+        const dest = getAudioDest();
+        if (!dest) return;
 
         // Layer A: Saturated 808 Sub-Bass Shockwave Impact
         const subOsc = ctx.createOscillator();
@@ -2330,59 +2422,64 @@ public class PaymentService {
         const subGain = ctx.createGain();
 
         subOsc.type = 'sine';
-        // Transient snap from 135Hz down to 42Hz, then vibrating sub-rumble
-        subOsc.frequency.setValueAtTime(135, now);
-        subOsc.frequency.exponentialRampToValueAtTime(42, now + 0.07);
-        subOsc.frequency.exponentialRampToValueAtTime(26, now + 1.2);
+        subOsc.frequency.setValueAtTime(145, now);
+        subOsc.frequency.exponentialRampToValueAtTime(44, now + 0.065);
+        subOsc.frequency.exponentialRampToValueAtTime(28, now + 1.25);
 
-        subDist.curve = makeDistortionCurve(15);
+        subDist.curve = makeDistortionCurve(16);
         subDist.oversample = '2x';
 
         subGain.gain.setValueAtTime(0.001, now);
-        subGain.gain.linearRampToValueAtTime(0.09, now + 0.035);
-        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
+        subGain.gain.linearRampToValueAtTime(0.55, now + 0.035);
+        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
 
         subOsc.connect(subDist);
         subDist.connect(subGain);
-        subGain.connect(ctx.destination);
+        subGain.connect(dest);
         subOsc.start(now);
-        subOsc.stop(now + 1.3);
+        subOsc.stop(now + 1.35);
 
-        // Layer B: Holographic Cyber Chime Chord (D Minor Sci-Fi Triad: D4, A4, F5, C6)
-        const chordFreqs = [293.66, 440.00, 698.46, 1046.50];
+        // Layer B: Catchy Grand Holographic Sci-Fi Chord (D4, F#4, A4, D5, A5)
+        const chordFreqs = [293.66, 369.99, 440.00, 587.33, 880.00];
         chordFreqs.forEach((f, idx) => {
           const chordOsc = ctx.createOscillator();
           const chordGain = ctx.createGain();
-          const t = now + idx * 0.03;
+          const t = now + idx * 0.022;
 
-          chordOsc.type = 'triangle';
+          chordOsc.type = 'sawtooth';
           chordOsc.frequency.setValueAtTime(f, t);
 
-          chordGain.gain.setValueAtTime(0.001, t);
-          chordGain.gain.linearRampToValueAtTime(0.035, t + 0.025);
-          chordGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
+          const chordFilt = ctx.createBiquadFilter();
+          chordFilt.type = 'lowpass';
+          chordFilt.frequency.setValueAtTime(3800, t);
+          chordFilt.frequency.exponentialRampToValueAtTime(900, t + 0.85);
 
-          chordOsc.connect(chordGain);
-          chordGain.connect(ctx.destination);
+          chordGain.gain.setValueAtTime(0.001, t);
+          chordGain.gain.linearRampToValueAtTime(0.42, t + 0.025);
+          chordGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
+
+          chordOsc.connect(chordFilt);
+          chordFilt.connect(chordGain);
+          chordGain.connect(dest);
           chordOsc.start(t);
-          chordOsc.stop(t + 0.9);
+          chordOsc.stop(t + 1.0);
         });
 
         // Layer C: Hydraulic Air-Release Exhale (Highpass noise sweep)
         const airNode = ctx.createBufferSource();
-        airNode.buffer = createNoiseBuffer(ctx, 0.6);
+        airNode.buffer = createNoiseBuffer(ctx, 0.65);
         const airFilt = ctx.createBiquadFilter();
         airFilt.type = 'highpass';
-        airFilt.frequency.setValueAtTime(2200, now);
-        airFilt.frequency.exponentialRampToValueAtTime(600, now + 0.45);
+        airFilt.frequency.setValueAtTime(2600, now);
+        airFilt.frequency.exponentialRampToValueAtTime(500, now + 0.45);
 
         const airGain = ctx.createGain();
-        airGain.gain.setValueAtTime(0.03, now);
-        airGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+        airGain.gain.setValueAtTime(0.28, now);
+        airGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
 
         airNode.connect(airFilt);
         airFilt.connect(airGain);
-        airGain.connect(ctx.destination);
+        airGain.connect(dest);
         airNode.start(now);
         airNode.stop(now + 0.55);
       } catch (err) {}
@@ -2392,6 +2489,19 @@ public class PaymentService {
     const playCinematicSweep = playCyberpunkRiser;
     const playSciFiTick = playCyberpunkTick;
     const playQuantumChime = playCyberpunkImpact;
+
+    // Helper to immediately unlock & play audio if browser suspended it
+    function unlockAudioAndPlay() {
+      const ctx = getAudioCtx();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().then(() => {
+          if (!riserHasPlayed && !welcomeDismissed) {
+            riserHasPlayed = true;
+            playCyberpunkRiserActual(ctx);
+          }
+        }).catch(() => {});
+      }
+    }
 
     // ─── Welcome Intro Animation & Studio Move ────────────────
     let welcomeDismissed = false;
@@ -2426,15 +2536,9 @@ public class PaymentService {
     }
 
     function initWelcomeAnimation() {
-      // Unlock audio context on user interaction if browser policy suspended it
-      const unlockAudio = () => {
-        const ctx = getAudioCtx();
-        if (ctx && ctx.state === 'suspended') {
-          ctx.resume().catch(() => {});
-        }
-      };
-      ['pointerdown', 'keydown', 'touchstart', 'mousemove'].forEach(evt => {
-        window.addEventListener(evt, unlockAudio, { once: true });
+      // User gesture listeners to unlock audio immediately
+      ['pointerdown', 'mousedown', 'touchstart', 'keydown'].forEach(evt => {
+        window.addEventListener(evt, unlockAudioAndPlay, { passive: true });
       });
 
       // Launch cyberpunk pneumatic tech riser sweep
