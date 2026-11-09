@@ -818,7 +818,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="text-emerald-400/90 font-bold tracking-wide">QUANTUM CORE ACTIVE</span>
           </span>
-          <span id="welcomeAudioHint" class="text-cyan-400 font-mono text-[9px] tracking-wider animate-pulse hidden">⚡ CLICK TO ARM AUDIO</span>
+          <span id="welcomeAudioHint" class="text-cyan-400 font-mono text-[9px] tracking-wider animate-pulse hidden">🔊 TAP TO UNMUTE</span>
           <span id="welcomeOsLabel" class="text-gray-400/80 font-mono text-[9px] tracking-wider">DOCUDOCTOR OS // v0.4.0</span>
         </div>
       </div>
@@ -2348,27 +2348,21 @@ public class PaymentService {
 
     // 1. Cyberpunk Pneumatic Tech Riser with Autoplay protection
     function playCyberpunkRiser() {
-      if (!sfxEnabled) return;
+      if (!sfxEnabled || riserHasPlayed || welcomeDismissed) return;
       try {
         const ctx = getAudioCtx();
         if (!ctx) return;
-        if (ctx.state === 'suspended') {
-          // If browser autoplay suspended audio, resume and play on first gesture
-          const onResume = () => {
-            if (!riserHasPlayed && !welcomeDismissed) {
+        if (ctx.state === 'running') {
+          riserHasPlayed = true;
+          playCyberpunkRiserActual(ctx);
+        } else {
+          ctx.resume().then(() => {
+            if (ctx.state === 'running' && !riserHasPlayed && !welcomeDismissed) {
               riserHasPlayed = true;
               playCyberpunkRiserActual(ctx);
             }
-          };
-          ['pointerdown', 'mousedown', 'touchstart', 'keydown'].forEach(ev => {
-            window.addEventListener(ev, () => {
-              ctx.resume().then(onResume).catch(() => {});
-            }, { once: true });
-          });
-          return;
+          }).catch(() => {});
         }
-        riserHasPlayed = true;
-        playCyberpunkRiserActual(ctx);
       } catch (err) {}
     }
 
@@ -2500,53 +2494,52 @@ public class PaymentService {
     const playQuantumChime = playCyberpunkImpact;
 
     let bootSequenceStarted = false;
+    let currentAnimationPct = 0;
 
-    // Helper to immediately unlock & start synchronized audio + animation on user gesture
-    function userInitiatedBoot(event) {
-      if (event && event.stopPropagation) event.stopPropagation();
+    // Handles user touch/click/key to immediately unmute audio in exact sync
+    function handleAnyUserInteraction() {
+      if (welcomeDismissed) return;
       const ctx = getAudioCtx();
       if (ctx && ctx.state === 'suspended') {
         ctx.resume().then(() => {
-          startSyncedBootSequence();
-        }).catch(() => {
-          startSyncedBootSequence();
-        });
-      } else {
-        startSyncedBootSequence();
+          if (welcomeDismissed) return;
+          // If interaction occurs early (<= 25%), fire opening motif
+          if (currentAnimationPct <= 25 && !riserHasPlayed) {
+            riserHasPlayed = true;
+            playCyberpunkRiserActual(ctx);
+          }
+          const hint = document.getElementById('welcomeAudioHint');
+          if (hint) hint.classList.add('hidden');
+          const osLabel = document.getElementById('welcomeOsLabel');
+          if (osLabel) osLabel.classList.remove('hidden');
+        }).catch(() => {});
       }
     }
-    const unlockAudioAndStart = userInitiatedBoot;
-    const unlockAudioAndPlay = userInitiatedBoot;
 
-    function showStandbyTelemetry() {
-      if (bootSequenceStarted) return;
-      const textEl = document.getElementById('welcomeProgressText');
-      if (textEl) textEl.innerText = '⚡ Tap to initialize neural bus with audio...';
-      const standby = document.getElementById('standbyLaunchWrapper');
-      if (standby) standby.classList.remove('hidden');
-      const hint = document.getElementById('welcomeAudioHint');
-      if (hint) hint.classList.remove('hidden');
-      const osLabel = document.getElementById('welcomeOsLabel');
-      if (osLabel) osLabel.classList.add('hidden');
-    }
+    const userInitiatedBoot = handleAnyUserInteraction;
+    const unlockAudioAndStart = handleAnyUserInteraction;
+    const unlockAudioAndPlay = handleAnyUserInteraction;
 
     // ─── Synchronized 1:1 Boot Sequence (Audio + Animation in Lockstep) ───
     function startSyncedBootSequence() {
       if (bootSequenceStarted) return;
       bootSequenceStarted = true;
 
-      const standby = document.getElementById('standbyLaunchWrapper');
-      if (standby) standby.classList.add('hidden');
-      const hint = document.getElementById('welcomeAudioHint');
-      if (hint) hint.classList.add('hidden');
-      const osLabel = document.getElementById('welcomeOsLabel');
-      if (osLabel) osLabel.classList.remove('hidden');
-
       const ctx = getAudioCtx();
-      // If audio is running, fire the catchy cyberpunk motif & riser at exact t=0
-      if (ctx && ctx.state === 'running' && !riserHasPlayed) {
-        riserHasPlayed = true;
-        playCyberpunkRiserActual(ctx);
+      // Try playing opening riser immediately (succeeds if browser autoplay is permitted)
+      if (ctx) {
+        ctx.resume().then(() => {
+          if (ctx.state === 'running' && !riserHasPlayed) {
+            riserHasPlayed = true;
+            playCyberpunkRiserActual(ctx);
+          } else {
+            // Autoplay held by browser: show subtle un-mute indicator
+            const hint = document.getElementById('welcomeAudioHint');
+            if (hint) hint.classList.remove('hidden');
+            const osLabel = document.getElementById('welcomeOsLabel');
+            if (osLabel) osLabel.classList.add('hidden');
+          }
+        }).catch(() => {});
       }
 
       const steps = [
@@ -2562,18 +2555,18 @@ public class PaymentService {
       const hexEl = document.getElementById('welcomeProgressHex');
       const segments = document.querySelectorAll('.hud-seg');
 
-      let currentPct = 0;
+      currentAnimationPct = 0;
       let stepIdx = 0;
 
       const timer = setInterval(() => {
-        currentPct += 2;
-        if (currentPct > 100) currentPct = 100;
+        currentAnimationPct += 2;
+        if (currentAnimationPct > 100) currentAnimationPct = 100;
 
-        if (pctEl) pctEl.innerText = `${currentPct}%`;
+        if (pctEl) pctEl.innerText = `${currentAnimationPct}%`;
 
         // Update active neon segments
         if (segments && segments.length) {
-          const activeCount = Math.floor((currentPct / 100) * segments.length);
+          const activeCount = Math.floor((currentAnimationPct / 100) * segments.length);
           segments.forEach((seg, i) => {
             if (i < activeCount) {
               seg.style.backgroundColor = '#22d3ee';
@@ -2583,7 +2576,7 @@ public class PaymentService {
         }
 
         // Advance telemetry messages and play synchronized cyberpunk audio tick
-        if (stepIdx < steps.length && currentPct >= steps[stepIdx].pct) {
+        if (stepIdx < steps.length && currentAnimationPct >= steps[stepIdx].pct) {
           if (textEl) textEl.innerText = steps[stepIdx].text;
           if (hexEl) hexEl.innerText = steps[stepIdx].hex;
           if (steps[stepIdx].freq > 0) {
@@ -2592,7 +2585,7 @@ public class PaymentService {
           stepIdx++;
         }
 
-        if (currentPct >= 100) {
+        if (currentAnimationPct >= 100) {
           clearInterval(timer);
           playCyberpunkImpact();
           setTimeout(() => {
@@ -2608,7 +2601,16 @@ public class PaymentService {
       if (welcomeDismissed) return;
       welcomeDismissed = true;
 
+      // Disconnect all temporary welcome activation listeners so workspace interaction is clean
+      ['pointerdown', 'mousedown', 'touchstart', 'keydown'].forEach(evt => {
+        window.removeEventListener(evt, handleAnyUserInteraction, { passive: true });
+        window.removeEventListener(evt, handleAnyUserInteraction);
+      });
       const overlay = document.getElementById('welcomeIntroOverlay');
+      if (overlay) {
+        overlay.removeEventListener('click', handleAnyUserInteraction);
+      }
+
       const mainApp = document.getElementById('mainWorkspaceApp');
       const codeEditorPanel = document.getElementById('codeEditorPanel');
 
@@ -2635,35 +2637,17 @@ public class PaymentService {
     }
 
     function initWelcomeAnimation() {
-      // 1. One-time user gesture listeners on window to start in 100% lockstep
+      // 1. One-time user gesture listeners on window and overlay to unmute immediately on touch/click
       ['pointerdown', 'mousedown', 'touchstart', 'keydown'].forEach(evt => {
-        window.addEventListener(evt, userInitiatedBoot, { once: true, passive: true });
+        window.addEventListener(evt, handleAnyUserInteraction, { passive: true });
       });
-
-      // 2. Try auto-resuming AudioContext immediately on page load
-      const ctx = getAudioCtx();
-      if (ctx) {
-        ctx.resume().then(() => {
-          if (ctx.state === 'running') {
-            // Autoplay permitted by browser policy: start immediately with sound in sync
-            startSyncedBootSequence();
-          } else {
-            // Autoplay suspended by browser: show standby prompt awaiting touch/click
-            showStandbyTelemetry();
-          }
-        }).catch(() => {
-          showStandbyTelemetry();
-        });
-      } else {
-        startSyncedBootSequence();
+      const overlay = document.getElementById('welcomeIntroOverlay');
+      if (overlay) {
+        overlay.addEventListener('click', handleAnyUserInteraction);
       }
 
-      // 3. Graceful fallback: If untouched after 5.0s, auto-start boot anyway
-      setTimeout(() => {
-        if (!bootSequenceStarted) {
-          startSyncedBootSequence();
-        }
-      }, 5000);
+      // 2. Start the loading animation automatically on page load!
+      startSyncedBootSequence();
     }
 
     // ─── Init ──────────────────────────────────────────────
