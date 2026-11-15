@@ -326,6 +326,96 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .animate-toast { animation: toastIn 0.22s ease both; }
 
     /* ═══════════════════════════════════════════════════════
+       FUTURISTIC CYBERPUNK COCKPIT ARCHITECTURE
+    ═══════════════════════════════════════════════════════ */
+    .cockpit-toolbar {
+      background: linear-gradient(180deg, rgba(14, 20, 34, 0.96) 0%, rgba(6, 9, 16, 0.98) 100%);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.85),
+                  0 0 24px rgba(34, 211, 238, 0.12),
+                  inset 0 1px 0 rgba(34, 211, 238, 0.4);
+      position: relative;
+    }
+    .cockpit-toolbar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 8%; right: 8%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #22d3ee, #c084fc, transparent);
+      opacity: 0.9;
+    }
+    .cockpit-card {
+      background: linear-gradient(180deg, rgba(16, 23, 40, 0.88) 0%, rgba(8, 12, 22, 0.96) 100%);
+      border: 1px solid rgba(34, 211, 238, 0.22);
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.75),
+                  0 0 16px rgba(34, 211, 238, 0.08),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+    .cockpit-card:hover {
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.85),
+                  0 0 26px rgba(34, 211, 238, 0.18);
+    }
+    /* Cyber Corner Brackets */
+    .cyber-corners {
+      position: relative;
+    }
+    .cyber-corners::after {
+      content: '';
+      position: absolute;
+      top: -1px; right: -1px;
+      width: 10px; height: 10px;
+      border-top: 2px solid #22d3ee;
+      border-right: 2px solid #22d3ee;
+      pointer-events: none;
+    }
+    .cyber-corners::before {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: -1px;
+      width: 10px; height: 10px;
+      border-bottom: 2px solid #c084fc;
+      border-left: 2px solid #c084fc;
+      pointer-events: none;
+    }
+    /* High-Energy Execution Reactors */
+    .reactor-btn-cyan {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #2563eb 100%);
+      box-shadow: 0 0 22px rgba(6, 182, 212, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(34, 211, 238, 0.65);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reactor-btn-cyan:hover {
+      background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 50%, #3b82f6 100%);
+      box-shadow: 0 0 32px rgba(34, 211, 238, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      transform: translateY(-1px);
+    }
+    .reactor-btn-violet {
+      background: linear-gradient(135deg, #9333ea 0%, #7c3aed 50%, #4f46e5 100%);
+      box-shadow: 0 0 22px rgba(168, 85, 247, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(192, 132, 252, 0.65);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reactor-btn-violet:hover {
+      background: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #6366f1 100%);
+      box-shadow: 0 0 34px rgba(192, 132, 252, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      transform: translateY(-1px);
+    }
+    .tactical-btn {
+      background: rgba(16, 22, 34, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      transition: all 0.18s ease;
+    }
+    .tactical-btn:hover {
+      background: rgba(22, 32, 50, 0.98);
+      border-color: rgba(34, 211, 238, 0.55);
+      color: #22d3ee;
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.28);
+    }
+
+    /* ═══════════════════════════════════════════════════════
        LIGHT THEME OVERRIDES
     ═══════════════════════════════════════════════════════ */
     html:not(.dark) body {
@@ -350,6 +440,26 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-color: rgba(203,213,225,0.7);
     }
     html:not(.dark) .glass-card:hover { border-color: rgba(148,163,184,0.6); }
+    html:not(.dark) .cockpit-toolbar {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+      border-color: rgba(6, 182, 212, 0.4) !important;
+      box-shadow: 0 8px 24px -4px rgba(6, 182, 212, 0.12), inset 0 1px 0 #ffffff !important;
+    }
+    html:not(.dark) .cockpit-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+      border-color: rgba(6, 182, 212, 0.3) !important;
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.06) !important;
+    }
+    html:not(.dark) .tactical-btn {
+      background: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #334155 !important;
+    }
+    html:not(.dark) .tactical-btn:hover {
+      background: #e2e8f0 !important;
+      border-color: #06b6d4 !important;
+      color: #0891b2 !important;
+    }
     /* Editor */
     html:not(.dark) #gutter {
       background-color: #f8fafc !important;
@@ -901,56 +1011,71 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   <!-- ════════════════════════ MAIN ════════════════════════ -->
   <main class="max-w-screen-xl mx-auto px-5 py-5 flex-1 w-full flex flex-col gap-5">
 
-    <!-- ── Control Bar ── -->
-    <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 relative z-40">
+    <!-- ── Cyber Cockpit Master Console ── -->
+    <div class="cockpit-toolbar cyber-corners p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 relative z-40">
+      
+      <!-- Left Telemetry Pod: Target Matrix & Buffer Utilities -->
       <div class="flex flex-wrap items-center gap-2.5">
-        <!-- Language picker -->
-        <div class="flex items-center space-x-2 bg-dark-900/95 hover:bg-dark-850 border border-white/10 hover:border-cyan-500/50 rounded-xl px-3 py-2 transition-all shadow-inner group cursor-pointer">
-          <span class="text-lg select-none" id="langEmojiIcon">🐍</span>
+        <!-- Integrated Polyglot Target Selector -->
+        <div class="flex items-center space-x-2.5 bg-dark-900/90 hover:bg-dark-850 border border-cyan-500/30 hover:border-cyan-400/70 rounded-xl px-3 py-1.5 transition-all shadow-inner group">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span class="text-base select-none" id="langEmojiIcon">🐍</span>
           <div class="flex flex-col">
-            <span class="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold leading-none">Language</span>
-            <select id="languageSelect" onchange="onLanguageChange(this.value,false)" class="bg-transparent text-xs font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer mt-0.5 pr-1">
-              <option value="python" class="bg-dark-900 text-white">🐍 Python (.py)</option>
-              <option value="c" class="bg-dark-900 text-white">⚡ C (.c / .h)</option>
-              <option value="cpp" class="bg-dark-900 text-white">🚀 C++ (.cpp)</option>
-              <option value="java" class="bg-dark-900 text-white">☕ Java (.java)</option>
+            <span class="text-[8px] font-mono text-cyan-400/80 uppercase tracking-widest font-black leading-none">TARGET MATRIX</span>
+            <select id="languageSelect" onchange="onLanguageChange(this.value,false)" class="bg-transparent text-xs font-mono font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer pr-1">
+              <option value="python" class="bg-dark-900 text-white">Python (.py)</option>
+              <option value="c" class="bg-dark-900 text-white">C (.c / .h)</option>
+              <option value="cpp" class="bg-dark-900 text-white">C++ (.cpp)</option>
+              <option value="java" class="bg-dark-900 text-white">Java (.java)</option>
             </select>
           </div>
         </div>
 
+        <!-- Docstring Schema Standard Selector -->
+        <div class="flex items-center space-x-2 bg-dark-900/90 border border-purple-500/30 hover:border-purple-400/70 rounded-xl px-3 py-1.5 shadow-inner transition-all">
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+          <div class="flex flex-col">
+            <span class="text-[8px] font-mono text-purple-400/80 uppercase tracking-widest font-black leading-none">DOC SCHEMA</span>
+            <select id="docStyle" class="bg-transparent text-xs font-mono font-bold text-purple-200 hover:text-purple-100 focus:outline-none cursor-pointer">
+              <option value="google" class="bg-dark-900 text-gray-200">Google Style</option>
+              <option value="numpy" class="bg-dark-900 text-gray-200">NumPy Style</option>
+              <option value="sphinx" class="bg-dark-900 text-gray-200">Sphinx Style</option>
+            </select>
+          </div>
+        </div>
 
-
-        <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
-        <button onclick="document.getElementById('fileInput').click()" class="bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-white/10 hover:border-white/20 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
-          <span>📁</span><span>Upload</span>
-        </button>
-        <button onclick="loadSampleForLanguage()" class="bg-dark-850 hover:bg-dark-800 text-cyan-400 hover:text-cyan-300 text-xs font-semibold px-3 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/30 transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
-          <span>📂</span><span>Sample</span>
-        </button>
-        <button onclick="clearEditor()" class="text-xs text-gray-400 hover:text-white px-2.5 py-2 transition font-medium cursor-pointer">Clear</button>
+        <!-- Tactical Buffer Controls Group -->
+        <div class="flex items-center bg-dark-950/60 p-1 rounded-xl border border-white/[0.08] space-x-1">
+          <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
+          <button type="button" onclick="playCyberpunkTick(1200); document.getElementById('fileInput').click()" title="Load local source file" class="tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
+            <span>📁</span><span class="tracking-wide">UPLOAD</span>
+          </button>
+          <button type="button" onclick="playCyberpunkTick(1350); loadSampleForLanguage()" title="Load reference telemetry sample" class="tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
+            <span>⚡</span><span class="tracking-wide">SAMPLE</span>
+          </button>
+          <button type="button" onclick="playCyberpunkTick(900); clearEditor()" title="Flush editor buffer" class="text-xs font-mono text-gray-500 hover:text-red-400 px-2.5 py-1.5 transition font-semibold cursor-pointer">
+            FLUSH
+          </button>
+        </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <!-- Doc style -->
-        <div class="flex items-center space-x-2 bg-dark-900 border border-white/10 rounded-xl px-3 py-2 shadow-inner">
-          <label class="text-[11px] text-gray-400 font-medium">Style:</label>
-          <select id="docStyle" class="bg-transparent text-xs text-cyan-400 font-semibold focus:outline-none cursor-pointer">
-            <option value="google" class="bg-dark-900 text-gray-200">Google Style</option>
-            <option value="numpy" class="bg-dark-900 text-gray-200">NumPy Style</option>
-            <option value="sphinx" class="bg-dark-900 text-gray-200">Sphinx Style</option>
-          </select>
-        </div>
-        <!-- Audit -->
-        <button onclick="auditCode()" class="bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-cyan-950/80 hover:shadow-cyan-500/30 active:scale-95 cursor-pointer">
-          <span>🔍</span><span>Audit Code</span>
+      <!-- Right Execution Core: Dual High-Energy Reactor Buttons -->
+      <div class="flex items-center gap-2.5">
+        <!-- Execution Core 1: Cyan Diagnostic Audit Reactor -->
+        <button type="button" onclick="playCyberpunkTick(1500); auditCode()" class="reactor-btn-cyan text-white font-mono font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center space-x-2 tracking-wider cursor-pointer active:scale-95 shadow-lg">
+          <span class="text-sm">🔍</span>
+          <span>AUDIT CODE</span>
         </button>
-        <!-- Total Healer -->
-        <button onclick="fixCode()" class="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-fuchsia-950/80 hover:shadow-fuchsia-500/30 active:scale-95 cursor-pointer">
-          <span>⚡</span><span>Total Healer</span>
+
+        <!-- Execution Core 2: Violet Quantum Total Healer Reactor -->
+        <button type="button" onclick="playCyberpunkTick(1800); fixCode()" class="reactor-btn-violet text-white font-mono font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center space-x-2 tracking-wider cursor-pointer active:scale-95 shadow-lg">
+          <span class="text-sm">⚡</span>
+          <span>TOTAL HEALER</span>
         </button>
-        <!-- Export -->
-        <button onclick="exportMarkdownReport()" class="bg-dark-850 hover:bg-dark-800 text-gray-200 hover:text-white font-semibold text-xs px-3 py-2.5 rounded-xl border border-white/10 hover:border-cyan-500/40 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
-          <span>📄</span><span>Export Report</span>
+
+        <!-- Tactical Telemetry Export -->
+        <button type="button" onclick="playCyberpunkTick(1100); exportMarkdownReport()" title="Export Markdown Audit Telemetry" class="tactical-btn font-mono font-semibold text-xs px-3 py-2.5 rounded-xl border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 hover:text-cyan-200 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+          <span>📄</span><span class="hidden sm:inline tracking-wider">REPORT</span>
         </button>
       </div>
     </div>
@@ -959,21 +1084,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
 
       <!-- Left: Code Editor (7 cols) -->
-      <div id="codeEditorPanel" class="lg:col-span-7 flex flex-col glass-panel rounded-2xl overflow-hidden min-h-[520px] relative">
+      <div id="codeEditorPanel" class="lg:col-span-7 flex flex-col cockpit-card cyber-corners rounded-2xl overflow-hidden min-h-[520px] relative">
         <!-- Editor header -->
-        <div class="bg-dark-950/90 border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between">
+        <div class="bg-dark-950/90 border-b border-cyan-500/20 px-4 py-2.5 flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="flex items-center space-x-1.5">
-              <div class="w-3 h-3 rounded-full bg-[#ff5f56] border border-red-400/30"></div>
-              <div class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-yellow-400/30"></div>
-              <div class="w-3 h-3 rounded-full bg-[#27c93f] border border-green-400/30"></div>
+              <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] animate-pulse"></span>
+              <span class="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.9)]"></span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]"></span>
             </div>
-            <div class="flex items-center space-x-2 pl-3 border-l border-white/10">
+            <div class="flex items-center space-x-1.5 pl-3 border-l border-cyan-500/20">
               <span id="fileIcon">🐍</span>
-              <span id="fileNameDisplay" class="text-xs font-mono font-medium text-gray-200">main.py</span>
+              <span class="text-cyan-400/80 font-mono text-[9px] font-black uppercase tracking-wider">[BUFFER //</span>
+              <span id="fileNameDisplay" class="text-xs font-mono font-bold text-gray-200">main.py</span>
+              <span class="text-cyan-400/80 font-mono text-[9px] font-black uppercase tracking-wider">]</span>
             </div>
           </div>
-          <div class="flex items-center space-x-3 text-[11px] text-gray-500 font-mono">
+          <div class="flex items-center space-x-3 text-[11px] text-cyan-400/80 font-mono">
             <span id="lineCountDisplay">Lines: 1</span>
             <span>•</span>
             <span id="charCountDisplay">Chars: 0</span>
@@ -982,7 +1109,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
         <!-- Editor body -->
         <div class="flex-1 flex bg-dark-950/60 relative overflow-hidden">
-          <div id="gutter" class="py-4 px-2 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-white/[0.06] text-right min-w-[2.75rem] overflow-hidden">1</div>
+          <div id="gutter" class="py-4 px-2 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-cyan-500/10 text-right min-w-[2.75rem] overflow-hidden">1</div>
           <textarea id="codeEditor" oninput="updateGutter()" onscroll="syncGutterScroll()"
             class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900/60"
             spellcheck="false" placeholder="# Paste code here, load a sample, or upload a file..."></textarea>
@@ -993,12 +1120,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="lg:col-span-5 flex flex-col gap-4">
 
         <!-- 1. Executive Vitals Card (Top) -->
-        <div class="glass-panel p-4 rounded-2xl relative overflow-hidden flex flex-col gap-3">
+        <div class="cockpit-card cyber-corners p-4 rounded-2xl relative overflow-hidden flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <div>
               <div class="flex items-center space-x-1.5">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-extrabold">Documentation Health</span>
+                <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] animate-pulse"></span>
+                <span class="text-[10px] font-mono uppercase tracking-widest text-cyan-400/90 font-extrabold">NEURAL VITALS // TELEMETRY</span>
               </div>
               <div class="flex items-baseline space-x-2 mt-1">
                 <span id="scoreVal" class="text-3xl font-black tracking-tight text-cyan-400">--</span>
@@ -1020,28 +1147,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
 
           <!-- Quick Vitals Grid (4 chips giving the whole picture at a glance) -->
-          <div class="grid grid-cols-4 gap-2 pt-2.5 border-t border-white/[0.08]">
-            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
-              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Functions</span>
-              <span id="statFuncsQuick" class="text-xs font-bold text-gray-200 mt-0.5 block">--</span>
+          <div class="grid grid-cols-4 gap-2 pt-2.5 border-t border-cyan-500/20">
+            <div class="p-2 rounded-xl bg-dark-850/80 border border-cyan-500/20 hover:border-cyan-400/50 transition-all text-center">
+              <span class="text-[9px] font-mono uppercase tracking-wider text-cyan-400/80 font-bold block">FUNCTIONS</span>
+              <span id="statFuncsQuick" class="text-xs font-mono font-bold text-gray-200 mt-0.5 block">--</span>
             </div>
-            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
-              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Maintainability</span>
-              <span id="statMiQuick" class="text-xs font-bold text-cyan-300 mt-0.5 block">--</span>
+            <div class="p-2 rounded-xl bg-dark-850/80 border border-cyan-500/20 hover:border-cyan-400/50 transition-all text-center">
+              <span class="text-[9px] font-mono uppercase tracking-wider text-cyan-400/80 font-bold block">MAINTAIN</span>
+              <span id="statMiQuick" class="text-xs font-mono font-bold text-cyan-300 mt-0.5 block">--</span>
             </div>
-            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
-              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Complexity</span>
-              <span id="statComplexityQuick" class="text-xs font-bold text-emerald-400 mt-0.5 block">--</span>
+            <div class="p-2 rounded-xl bg-dark-850/80 border border-emerald-500/20 hover:border-emerald-400/50 transition-all text-center">
+              <span class="text-[9px] font-mono uppercase tracking-wider text-emerald-400/80 font-bold block">COMPLEXITY</span>
+              <span id="statComplexityQuick" class="text-xs font-mono font-bold text-emerald-400 mt-0.5 block">--</span>
             </div>
-            <div class="p-2 rounded-xl bg-dark-850/60 border border-white/[0.04] text-center">
-              <span class="text-[9px] uppercase tracking-wider text-gray-400 font-bold block">Style</span>
-              <span id="statStyleQuick" class="text-xs font-bold text-fuchsia-300 mt-0.5 block">--</span>
+            <div class="p-2 rounded-xl bg-dark-850/80 border border-purple-500/20 hover:border-purple-400/50 transition-all text-center">
+              <span class="text-[9px] font-mono uppercase tracking-wider text-purple-400/80 font-bold block">STYLE</span>
+              <span id="statStyleQuick" class="text-xs font-mono font-bold text-fuchsia-300 mt-0.5 block">--</span>
             </div>
           </div>
         </div>
 
         <!-- 2. Spacious Tabbed Studio Inspector (Fills the rest of the height) -->
-        <div class="glass-panel rounded-2xl flex flex-col flex-1 overflow-hidden min-h-[500px]">
+        <div class="cockpit-card cyber-corners rounded-2xl flex flex-col flex-1 overflow-hidden min-h-[500px]">
           
           <!-- Tabs Navigation Bar -->
           <div class="p-2 border-b border-white/[0.08] bg-dark-950/80 flex items-center space-x-1.5 overflow-x-auto select-none">
