@@ -272,15 +272,18 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
+          fontFamily: {
+            sans: ['Inter', 'Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Menlo', 'monospace']
+          },
           colors: {
-            dark: { 950: '#06080d', 900: '#0b0f17', 850: '#101622', 800: '#161f30', 750: '#1e293f', 700: '#25344f' }
+            dark: { 950: '#030712', 900: '#070c18', 850: '#0d1424', 800: '#151f34', 750: '#1d2a45', 700: '#263756' }
           }
         }
       }
@@ -288,36 +291,79 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </script>
   <style>
     /* ═══════════════════════════════════════════════════════
-       DARK THEME BASE (default)
+       ULTRA-MODERN OBSIDIAN LINEAR ARCHITECTURE (DARK BASE)
     ═══════════════════════════════════════════════════════ */
     body {
-      background-color: #06080d;
-      color: #e2e8f0;
+      background-color: #030712;
+      color: #f1f5f9;
       background-image:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6,182,212,0.15), transparent),
-        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168,85,247,0.12), transparent),
-        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59,130,246,0.08), transparent);
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 15%, rgba(168, 85, 247, 0.10), transparent),
+        radial-gradient(ellipse 50% 50% at 10% 85%, rgba(14, 165, 233, 0.08), transparent);
       background-attachment: fixed;
       transition: background-color 0.25s ease, color 0.25s ease;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
     }
-    .glass-panel {
-      background: rgba(11,15,23,0.75);
+
+    /* Obsidian Grid Background Pattern */
+    .obsidian-grid {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Obsidian Floating Glass Capsule (Master Command Console & Floating Header) */
+    .obsidian-capsule, .cockpit-toolbar {
+      background: linear-gradient(180deg, rgba(13, 19, 36, 0.88) 0%, rgba(5, 8, 16, 0.95) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.9),
+                  0 0 0 1px rgba(255, 255, 255, 0.04),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      position: relative;
+    }
+    .obsidian-capsule::before, .cockpit-toolbar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 12%; right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.7), rgba(168, 85, 247, 0.7), transparent);
+      pointer-events: none;
+    }
+
+    /* Obsidian Glass Panel & Card (IDE Panel, Telemetry Vitals, Tabbed Studio) */
+    .obsidian-card, .cockpit-card, .glass-panel {
+      background: linear-gradient(180deg, rgba(13, 19, 36, 0.78) 0%, rgba(6, 9, 18, 0.94) 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7), inset 0 1px 0 0 rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.82),
+                  0 0 0 1px rgba(255, 255, 255, 0.03),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .obsidian-card:hover, .cockpit-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 24px 56px -12px rgba(0, 0, 0, 0.9),
+                  0 0 24px rgba(56, 189, 248, 0.12),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.14);
     }
     .glass-card {
-      background: rgba(16,22,34,0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.07);
-      transition: border-color 0.2s ease;
+      background: rgba(13, 20, 36, 0.65);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      transition: all 0.2s ease;
     }
-    .glass-card:hover { border-color: rgba(255,255,255,0.14); }
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(18, 27, 48, 0.75);
+    }
 
     /* Scrollbars */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 
@@ -325,38 +371,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     @keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
     .animate-toast { animation: toastIn 0.22s ease both; }
 
-    /* ═══════════════════════════════════════════════════════
-       FUTURISTIC CYBERPUNK COCKPIT ARCHITECTURE
-    ═══════════════════════════════════════════════════════ */
-    .cockpit-toolbar {
-      background: linear-gradient(180deg, rgba(14, 20, 34, 0.96) 0%, rgba(6, 9, 16, 0.98) 100%);
-      border: 1px solid rgba(34, 211, 238, 0.3);
-      box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.85),
-                  0 0 24px rgba(34, 211, 238, 0.12),
-                  inset 0 1px 0 rgba(34, 211, 238, 0.4);
-      position: relative;
-    }
-    .cockpit-toolbar::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 8%; right: 8%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, #22d3ee, #c084fc, transparent);
-      opacity: 0.9;
-    }
-    .cockpit-card {
-      background: linear-gradient(180deg, rgba(16, 23, 40, 0.88) 0%, rgba(8, 12, 22, 0.96) 100%);
-      border: 1px solid rgba(34, 211, 238, 0.22);
-      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.75),
-                  0 0 16px rgba(34, 211, 238, 0.08),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      position: relative;
-    }
-    .cockpit-card:hover {
-      border-color: rgba(34, 211, 238, 0.4);
-      box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.85),
-                  0 0 26px rgba(34, 211, 238, 0.18);
-    }
     /* Cyber Corner Brackets */
     .cyber-corners {
       position: relative;
@@ -379,86 +393,104 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-left: 2px solid #c084fc;
       pointer-events: none;
     }
-    /* High-Energy Execution Reactors */
-    .reactor-btn-cyan {
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #2563eb 100%);
-      box-shadow: 0 0 22px rgba(6, 182, 212, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-      border: 1px solid rgba(34, 211, 238, 0.65);
+
+    /* Linear High-Energy Execution Buttons */
+    .linear-glow-cyan, .reactor-btn-cyan {
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 45%, #2563eb 100%);
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      box-shadow: 0 0 24px rgba(14, 165, 233, 0.45),
+                  0 4px 12px rgba(2, 132, 199, 0.3),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.4);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .reactor-btn-cyan:hover {
-      background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 50%, #3b82f6 100%);
-      box-shadow: 0 0 32px rgba(34, 211, 238, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    .linear-glow-cyan:hover, .reactor-btn-cyan:hover {
+      background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 45%, #3b82f6 100%);
+      box-shadow: 0 0 34px rgba(56, 189, 248, 0.7),
+                  0 6px 16px rgba(14, 165, 233, 0.45),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.55);
       transform: translateY(-1px);
     }
-    .reactor-btn-violet {
-      background: linear-gradient(135deg, #9333ea 0%, #7c3aed 50%, #4f46e5 100%);
-      box-shadow: 0 0 22px rgba(168, 85, 247, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-      border: 1px solid rgba(192, 132, 252, 0.65);
+    .linear-glow-violet, .reactor-btn-violet {
+      background: linear-gradient(135deg, #7e22ce 0%, #9333ea 45%, #4f46e5 100%);
+      border: 1px solid rgba(192, 132, 252, 0.7);
+      box-shadow: 0 0 24px rgba(168, 85, 247, 0.45),
+                  0 4px 12px rgba(126, 34, 206, 0.3),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.4);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .reactor-btn-violet:hover {
-      background: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #6366f1 100%);
-      box-shadow: 0 0 34px rgba(192, 132, 252, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    .linear-glow-violet:hover, .reactor-btn-violet:hover {
+      background: linear-gradient(135deg, #9333ea 0%, #a855f7 45%, #6366f1 100%);
+      box-shadow: 0 0 34px rgba(192, 132, 252, 0.75),
+                  0 6px 16px rgba(168, 85, 247, 0.5),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.55);
       transform: translateY(-1px);
     }
-    .tactical-btn {
-      background: rgba(16, 22, 34, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+    .linear-pill-btn, .tactical-btn {
+      background: rgba(13, 20, 36, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: #94a3b8;
-      transition: all 0.18s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .tactical-btn:hover {
-      background: rgba(22, 32, 50, 0.98);
-      border-color: rgba(34, 211, 238, 0.55);
-      color: #22d3ee;
-      box-shadow: 0 0 16px rgba(34, 211, 238, 0.28);
+    .linear-pill-btn:hover, .tactical-btn:hover {
+      background: rgba(22, 33, 58, 0.95);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
     }
 
     /* ═══════════════════════════════════════════════════════
        LIGHT THEME OVERRIDES
     ═══════════════════════════════════════════════════════ */
     html:not(.dark) body {
-      background-color: #f1f5f9;
+      background-color: #f8fafc;
       color: #0f172a;
       background-image:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6,182,212,0.08), transparent),
-        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168,85,247,0.06), transparent),
-        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59,130,246,0.05), transparent);
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 165, 233, 0.08), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 20%, rgba(168, 85, 247, 0.06), transparent),
+        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(59, 130, 246, 0.05), transparent);
     }
     html:not(.dark) header {
       background-color: rgba(255,255,255,0.95) !important;
       border-color: rgba(226,232,240,0.9) !important;
     }
-    html:not(.dark) .glass-panel {
-      background: rgba(255,255,255,0.9);
-      border-color: rgba(203,213,225,0.8);
-      box-shadow: 0 4px 24px -4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
-    }
-    html:not(.dark) .glass-card {
-      background: rgba(248,250,252,0.95);
-      border-color: rgba(203,213,225,0.7);
-    }
-    html:not(.dark) .glass-card:hover { border-color: rgba(148,163,184,0.6); }
+    html:not(.dark) .obsidian-capsule,
     html:not(.dark) .cockpit-toolbar {
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-      border-color: rgba(6, 182, 212, 0.4) !important;
-      box-shadow: 0 8px 24px -4px rgba(6, 182, 212, 0.12), inset 0 1px 0 #ffffff !important;
+      border-color: rgba(203, 213, 225, 0.8) !important;
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), inset 0 1px 0 #ffffff !important;
     }
-    html:not(.dark) .cockpit-card {
+    html:not(.dark) .obsidian-card,
+    html:not(.dark) .cockpit-card,
+    html:not(.dark) .glass-panel {
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-      border-color: rgba(6, 182, 212, 0.3) !important;
-      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.06) !important;
+      border-color: rgba(203, 213, 225, 0.75) !important;
+      box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.05), inset 0 1px 0 #ffffff !important;
     }
+    html:not(.dark) .obsidian-card:hover,
+    html:not(.dark) .cockpit-card:hover {
+      border-color: rgba(14, 165, 233, 0.5) !important;
+      box-shadow: 0 16px 36px -8px rgba(14, 165, 233, 0.12) !important;
+    }
+    html:not(.dark) .glass-card {
+      background: rgba(248, 250, 252, 0.95);
+      border-color: rgba(226, 232, 240, 0.8);
+    }
+    html:not(.dark) .glass-card:hover {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: #ffffff;
+    }
+    html:not(.dark) .linear-pill-btn,
     html:not(.dark) .tactical-btn {
       background: #f1f5f9 !important;
       border-color: #cbd5e1 !important;
       color: #334155 !important;
     }
+    html:not(.dark) .linear-pill-btn:hover,
     html:not(.dark) .tactical-btn:hover {
       background: #e2e8f0 !important;
-      border-color: #06b6d4 !important;
-      color: #0891b2 !important;
+      border-color: #0ea5e9 !important;
+      color: #0284c7 !important;
     }
     /* Editor */
     html:not(.dark) #gutter {
@@ -579,12 +611,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     html:not(.dark) .fn-row { background: rgba(241,245,249,0.9) !important; border-color: #e2e8f0 !important; }
     html:not(.dark) .diff-panel { background: rgba(248,250,252,0.98) !important; }
   
-    /* Tab Navigation Styles */
+    /* Ultra-Modern Linear Tab Navigation */
+    .tab-btn {
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
     .tab-btn-active {
-      background: rgba(6, 182, 212, 0.15) !important;
-      color: #22d3ee !important;
-      border: 1px solid rgba(6, 182, 212, 0.45) !important;
-      box-shadow: 0 2px 10px rgba(6, 182, 212, 0.15);
+      background: linear-gradient(180deg, rgba(14, 165, 233, 0.2) 0%, rgba(2, 132, 199, 0.1) 100%) !important;
+      color: #38bdf8 !important;
+      border: 1px solid rgba(56, 189, 248, 0.5) !important;
+      box-shadow: 0 4px 14px -2px rgba(14, 165, 233, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
     }
     .tab-btn-inactive {
       background: transparent !important;
@@ -592,22 +628,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border: 1px solid transparent !important;
     }
     .tab-btn-inactive:hover {
-      color: #f1f5f9 !important;
-      background: rgba(255, 255, 255, 0.05) !important;
+      color: #f8fafc !important;
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
     }
 
     html:not(.dark) .tab-btn-active {
-      background: rgba(6, 182, 212, 0.12) !important;
-      color: #0891b2 !important;
-      border-color: rgba(6, 182, 212, 0.5) !important;
-      box-shadow: 0 2px 8px rgba(6, 182, 212, 0.1) !important;
+      background: linear-gradient(180deg, rgba(14, 165, 233, 0.15) 0%, rgba(2, 132, 199, 0.08) 100%) !important;
+      color: #0284c7 !important;
+      border-color: rgba(14, 165, 233, 0.5) !important;
+      box-shadow: 0 2px 10px rgba(14, 165, 233, 0.15), inset 0 1px 0 #ffffff !important;
     }
     html:not(.dark) .tab-btn-inactive {
       color: #64748b !important;
     }
     html:not(.dark) .tab-btn-inactive:hover {
       color: #0f172a !important;
-      background: rgba(0, 0, 0, 0.04) !important;
+      background: rgba(0, 0, 0, 0.05) !important;
     }
 
     /* ═══════════════════════════════════════════════════════
@@ -916,13 +953,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   <!-- ════════════════════════ MAIN WORKSPACE WRAPPER ════════════════════════ -->
   <div id="mainWorkspaceApp" class="flex-1 flex flex-col">
 
-  <!-- ════════════════════════ HEADER ════════════════════════ -->
-  <header class="border-b border-white/[0.08] bg-dark-950/80 sticky top-0 z-50 backdrop-blur-2xl transition-colors duration-200">
-    <div class="max-w-screen-xl mx-auto px-5 h-16 flex items-center justify-between">
+  <!-- ════════════════════════ FLOATING PILL HEADER ════════════════════════ -->
+  <header class="sticky top-3.5 z-50 max-w-screen-xl mx-auto px-4 w-full transition-all duration-200">
+    <div class="obsidian-capsule rounded-2xl px-4 sm:px-5 h-14 flex items-center justify-between border border-white/10 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.08)]">
 
       <!-- Brand -->
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-fuchsia-500/20 border border-cyan-500/40 flex items-center justify-center p-1.5 shadow-lg shadow-cyan-500/20">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-sky-500/20 to-purple-500/20 border border-cyan-400/50 flex items-center justify-center p-1.5 shadow-[0_0_14px_rgba(34,211,238,0.3)]">
           <svg class="w-full h-full" viewBox="0 0 64 64" fill="none">
             <path d="M20 22L12 32l8 10" stroke="#22d3ee" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M44 22l8 10-8 10" stroke="#c084fc" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -931,11 +968,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </svg>
         </div>
         <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-extrabold text-xl tracking-tight text-cyan-400">DOCU</span>
-            <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-fuchsia-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">DOCTOR</span>
+          <div class="flex items-center space-x-1.5 leading-none">
+            <span class="font-black text-lg tracking-tight text-cyan-400">DOCU</span>
+            <span class="font-black text-lg tracking-tight bg-gradient-to-r from-purple-400 via-violet-300 to-cyan-300 bg-clip-text text-transparent">DOCTOR</span>
           </div>
-          <p class="text-[11px] text-gray-400 hidden sm:block">Code Health, Complexity Estimation &amp; Style Analysis</p>
+          <p class="text-[10px] text-gray-400 hidden sm:block font-medium tracking-tight mt-0.5">Multi-Language Code Health &amp; AI Docstring Engine</p>
         </div>
       </div>
 
@@ -943,7 +980,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="flex items-center space-x-2.5">
         <!-- Theme selector -->
         <div class="relative">
-          <button id="themeBtn" type="button" onclick="toggleThemeMenu(event)" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-white/10 hover:border-cyan-500/40 bg-dark-850 hover:bg-dark-800 text-xs font-semibold text-gray-200 transition-all shadow-sm cursor-pointer group">
+          <button id="themeBtn" type="button" onclick="toggleThemeMenu(event)" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full border border-white/10 hover:border-cyan-400/50 bg-dark-900/90 hover:bg-dark-850 text-xs font-semibold text-gray-200 transition-all shadow-sm cursor-pointer group">
             <span id="themeActiveIcon" class="text-sm">💻</span>
             <span id="themeActiveText" class="hidden sm:inline text-xs font-semibold">System</span>
             <svg class="w-3 h-3 text-gray-400 group-hover:text-cyan-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -966,56 +1003,56 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <!-- Profile avatar -->
         <div class="relative">
-          <button id="profileDropdownBtn" onclick="toggleProfileDropdown(event)" title="Developer Profile" class="flex items-center focus:outline-none ring-2 ring-white/10 hover:ring-cyan-400 p-0.5 rounded-full transition-all shadow-sm bg-dark-850">
-            <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-8 h-8 rounded-full object-cover" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
+          <button id="profileDropdownBtn" onclick="toggleProfileDropdown(event)" title="Developer Profile" class="flex items-center focus:outline-none ring-2 ring-white/10 hover:ring-cyan-400 p-0.5 rounded-full transition-all shadow-sm bg-dark-850 cursor-pointer">
+            <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun Kumar Ghosh" class="w-7 h-7 rounded-full object-cover" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
           </button>
           <!-- Profile dropdown -->
           <div id="profileDropdown" style="display:none;" class="absolute right-0 top-full mt-2.5 w-72 bg-dark-900/98 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-2xl p-4 z-50 animate-toast">
             <div class="flex items-center space-x-3 pb-3 border-b border-white/[0.08]">
-              <div class="relative">
-                <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun" class="w-11 h-11 rounded-full border-2 border-cyan-400/70 shadow-md object-cover bg-dark-850" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
-                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-dark-900"></span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between">
-                  <h4 class="font-extrabold text-sm text-white truncate">Prasun Kumar Ghosh</h4>
-                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/60">AUTHOR</span>
-                </div>
-                <p class="text-xs text-gray-400 font-mono">@prasunkrghosh-18</p>
-                <p class="text-[11px] text-gray-500 mt-0.5">Creator of DocuDoctor • Lead Developer</p>
-              </div>
-            </div>
-            <div class="py-2.5 text-xs text-gray-300 leading-relaxed border-b border-white/[0.08]">
-              <p>Building intelligent multi-language docstring synthesis and automated code health tools.</p>
-              <div class="mt-2 flex flex-wrap gap-1.5">
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-cyan-300 border border-cyan-800/30">Python</span>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-blue-300 border border-blue-800/30">C</span>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-indigo-300 border border-indigo-800/30">C++</span>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-amber-300 border border-amber-800/30">Java</span>
-              </div>
-            </div>
-            <div class="pt-3 flex flex-col space-y-2">
-              <a href="https://github.com/prasunkrghosh-18" target="_blank" class="w-full text-center text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 py-2 rounded-xl transition shadow-md flex items-center justify-center space-x-1.5">
-                <span>View GitHub Profile ↗</span>
-              </a>
-              <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="w-full text-center text-xs font-semibold text-gray-300 hover:text-white bg-dark-850 hover:bg-dark-800 py-2 rounded-xl border border-white/10 transition flex items-center justify-center space-x-1.5">
-                <span>⭐ Star DocuDoctor Repo</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+               <div class="relative">
+                 <img src="https://github.com/prasunkrghosh-18.png" alt="Prasun" class="w-11 h-11 rounded-full border-2 border-cyan-400/70 shadow-md object-cover bg-dark-850" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Prasun+Kumar+Ghosh&background=06b6d4&color=fff'">
+                 <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-dark-900"></span>
+               </div>
+               <div class="flex-1 min-w-0">
+                 <div class="flex items-center justify-between">
+                   <h4 class="font-extrabold text-sm text-white truncate">Prasun Kumar Ghosh</h4>
+                   <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-700/60">AUTHOR</span>
+                 </div>
+                 <p class="text-xs text-gray-400 font-mono">@prasunkrghosh-18</p>
+                 <p class="text-[11px] text-gray-500 mt-0.5">Creator of DocuDoctor • Lead Developer</p>
+               </div>
+             </div>
+             <div class="py-2.5 text-xs text-gray-300 leading-relaxed border-b border-white/[0.08]">
+               <p>Building intelligent multi-language docstring synthesis and automated code health tools.</p>
+               <div class="mt-2 flex flex-wrap gap-1.5">
+                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-cyan-300 border border-cyan-800/30">Python</span>
+                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-blue-300 border border-blue-800/30">C</span>
+                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-indigo-300 border border-indigo-800/30">C++</span>
+                 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-dark-800 text-amber-300 border border-amber-800/30">Java</span>
+               </div>
+             </div>
+             <div class="pt-3 flex flex-col space-y-2">
+               <a href="https://github.com/prasunkrghosh-18" target="_blank" class="w-full text-center text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 py-2 rounded-xl transition shadow-md flex items-center justify-center space-x-1.5">
+                 <span>View GitHub Profile ↗</span>
+               </a>
+               <a href="https://github.com/prasunkrghosh-18/docudoctor" target="_blank" class="w-full text-center text-xs font-semibold text-gray-300 hover:text-white bg-dark-850 hover:bg-dark-800 py-2 rounded-xl border border-white/10 transition flex items-center justify-center space-x-1.5">
+                 <span>⭐ Star DocuDoctor Repo</span>
+               </a>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </header>
 
   <!-- ════════════════════════ MAIN ════════════════════════ -->
-  <main class="max-w-screen-xl mx-auto px-5 py-5 flex-1 w-full flex flex-col gap-5">
+  <main class="max-w-screen-xl mx-auto px-4 sm:px-5 py-4 sm:py-5 flex-1 w-full flex flex-col gap-4 sm:gap-5">
 
-    <!-- ── Cyber Cockpit Master Console ── -->
-    <div class="cockpit-toolbar cyber-corners p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 relative z-40">
+    <!-- ── Floating Master Command Capsule ── -->
+    <div class="cockpit-toolbar obsidian-capsule p-2.5 sm:p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 relative z-40 border border-white/10 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)]">
       
       <!-- Left Telemetry Pod: Target Matrix & Buffer Utilities -->
-      <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex flex-wrap items-center gap-2">
         <!-- Integrated Polyglot Target Selector -->
         <div class="flex items-center space-x-2.5 bg-dark-900/90 hover:bg-dark-850 border border-cyan-500/30 hover:border-cyan-400/70 rounded-xl px-3 py-1.5 transition-all shadow-inner group">
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
@@ -1045,12 +1082,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
 
         <!-- Tactical Buffer Controls Group -->
-        <div class="flex items-center bg-dark-950/60 p-1 rounded-xl border border-white/[0.08] space-x-1">
+        <div class="flex items-center bg-dark-950/70 p-1 rounded-xl border border-white/[0.08] space-x-1">
           <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
-          <button type="button" onclick="playCyberpunkTick(1200); document.getElementById('fileInput').click()" title="Load local source file" class="tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
+          <button type="button" onclick="playCyberpunkTick(1200); document.getElementById('fileInput').click()" title="Load local source file" class="linear-pill-btn tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
             <span>📁</span><span class="tracking-wide">UPLOAD</span>
           </button>
-          <button type="button" onclick="playCyberpunkTick(1350); loadSampleForLanguage()" title="Load reference telemetry sample" class="tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
+          <button type="button" onclick="playCyberpunkTick(1350); loadSampleForLanguage()" title="Load reference telemetry sample" class="linear-pill-btn tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
             <span>⚡</span><span class="tracking-wide">SAMPLE</span>
           </button>
           <button type="button" onclick="playCyberpunkTick(900); clearEditor()" title="Flush editor buffer" class="text-xs font-mono text-gray-500 hover:text-red-400 px-2.5 py-1.5 transition font-semibold cursor-pointer">
@@ -1059,22 +1096,22 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Right Execution Core: Dual High-Energy Reactor Buttons -->
-      <div class="flex items-center gap-2.5">
+      <!-- Right Execution Core: Dual High-Energy Linear Buttons -->
+      <div class="flex items-center gap-2">
         <!-- Execution Core 1: Cyan Diagnostic Audit Reactor -->
-        <button type="button" onclick="playCyberpunkTick(1500); auditCode()" class="reactor-btn-cyan text-white font-mono font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center space-x-2 tracking-wider cursor-pointer active:scale-95 shadow-lg">
+        <button type="button" onclick="playCyberpunkTick(1500); auditCode()" class="linear-glow-cyan reactor-btn-cyan text-white font-mono font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center space-x-2 tracking-wider cursor-pointer active:scale-95 shadow-lg">
           <span class="text-sm">🔍</span>
           <span>AUDIT CODE</span>
         </button>
 
         <!-- Execution Core 2: Violet Quantum Total Healer Reactor -->
-        <button type="button" onclick="playCyberpunkTick(1800); fixCode()" class="reactor-btn-violet text-white font-mono font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center space-x-2 tracking-wider cursor-pointer active:scale-95 shadow-lg">
+        <button type="button" onclick="playCyberpunkTick(1800); fixCode()" class="linear-glow-violet reactor-btn-violet text-white font-mono font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center space-x-2 tracking-wider cursor-pointer active:scale-95 shadow-lg">
           <span class="text-sm">⚡</span>
           <span>TOTAL HEALER</span>
         </button>
 
         <!-- Tactical Telemetry Export -->
-        <button type="button" onclick="playCyberpunkTick(1100); exportMarkdownReport()" title="Export Markdown Audit Telemetry" class="tactical-btn font-mono font-semibold text-xs px-3 py-2.5 rounded-xl border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 hover:text-cyan-200 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+        <button type="button" onclick="playCyberpunkTick(1100); exportMarkdownReport()" title="Export Markdown Audit Telemetry" class="linear-pill-btn tactical-btn font-mono font-semibold text-xs px-3 py-2.5 rounded-xl border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 hover:text-cyan-200 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
           <span>📄</span><span class="hidden sm:inline tracking-wider">REPORT</span>
         </button>
       </div>
@@ -1084,35 +1121,58 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
 
       <!-- Left: Code Editor (7 cols) -->
-      <div id="codeEditorPanel" class="lg:col-span-7 flex flex-col cockpit-card cyber-corners rounded-2xl overflow-hidden min-h-[520px] relative">
-        <!-- Editor header -->
-        <div class="bg-dark-950/90 border-b border-cyan-500/20 px-4 py-2.5 flex items-center justify-between">
+      <div id="codeEditorPanel" class="lg:col-span-7 flex flex-col obsidian-card cockpit-card cyber-corners rounded-2xl overflow-hidden min-h-[540px] relative border border-white/10 shadow-2xl">
+        <!-- Editor header / Linear IDE Window Bar -->
+        <div class="bg-dark-950/95 border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between select-none">
           <div class="flex items-center space-x-3">
+            <!-- macOS window dots -->
             <div class="flex items-center space-x-1.5">
-              <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] animate-pulse"></span>
-              <span class="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.9)]"></span>
-              <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56] shadow-[0_0_6px_rgba(255,95,86,0.6)]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] shadow-[0_0_6px_rgba(255,189,46,0.6)]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#27c93f] shadow-[0_0_6px_rgba(39,201,63,0.6)]"></span>
             </div>
-            <div class="flex items-center space-x-1.5 pl-3 border-l border-cyan-500/20">
-              <span id="fileIcon">🐍</span>
-              <span class="text-cyan-400/80 font-mono text-[9px] font-black uppercase tracking-wider">[BUFFER //</span>
-              <span id="fileNameDisplay" class="text-xs font-mono font-bold text-gray-200">main.py</span>
-              <span class="text-cyan-400/80 font-mono text-[9px] font-black uppercase tracking-wider">]</span>
+            <!-- Active File Tab Capsule -->
+            <div class="flex items-center space-x-2 pl-3 border-l border-white/[0.08]">
+              <div class="px-2.5 py-1 rounded-lg bg-dark-900/90 border border-cyan-500/30 flex items-center space-x-1.5 shadow-sm">
+                <span id="fileIcon">🐍</span>
+                <span id="fileNameDisplay" class="text-xs font-mono font-bold text-gray-200 tracking-tight">main.py</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5"></span>
+              </div>
             </div>
           </div>
-          <div class="flex items-center space-x-3 text-[11px] text-cyan-400/80 font-mono">
-            <span id="lineCountDisplay">Lines: 1</span>
-            <span>•</span>
-            <span id="charCountDisplay">Chars: 0</span>
-            <button onclick="downloadCode()" title="Download" class="text-gray-400 hover:text-cyan-400 transition ml-1">📥</button>
+          <div class="flex items-center space-x-2 text-[11px] text-gray-400 font-mono">
+            <button onclick="downloadCode()" title="Download file" class="px-2 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-cyan-300 border border-white/10 transition flex items-center space-x-1 cursor-pointer">
+              <span>📥</span>
+              <span class="text-[10px]">SAVE</span>
+            </button>
           </div>
         </div>
         <!-- Editor body -->
-        <div class="flex-1 flex bg-dark-950/60 relative overflow-hidden">
-          <div id="gutter" class="py-4 px-2 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-cyan-500/10 text-right min-w-[2.75rem] overflow-hidden">1</div>
+        <div class="flex-1 flex bg-dark-950/70 relative overflow-hidden">
+          <div id="gutter" class="py-4 px-2.5 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-white/[0.06] text-right min-w-[3rem] overflow-hidden">1</div>
           <textarea id="codeEditor" oninput="updateGutter()" onscroll="syncGutterScroll()"
-            class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-900/60"
+            class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-500/25 selection:text-cyan-200"
             spellcheck="false" placeholder="# Paste code here, load a sample, or upload a file..."></textarea>
+        </div>
+        <!-- IDE Bottom Status Bar -->
+        <div class="px-4 py-2 bg-dark-950/95 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-gray-400 select-none">
+          <div class="flex items-center space-x-2.5">
+            <span class="inline-flex items-center space-x-1.5 text-cyan-400 font-bold">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              <span>GEMINI AI READY</span>
+            </span>
+            <span class="text-white/20">•</span>
+            <span class="text-gray-400">UTF-8</span>
+            <span class="text-white/20">•</span>
+            <span class="text-gray-400">SPACES: 4</span>
+            <span class="text-white/20">•</span>
+            <span class="text-purple-400/90 font-semibold">DOCUDOCTOR v0.5</span>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span id="lineCountDisplay" class="text-gray-300">Lines: 1</span>
+            <span class="text-white/20">•</span>
+            <span id="charCountDisplay" class="text-gray-300">Chars: 0</span>
+          </div>
         </div>
       </div>
 
@@ -1120,12 +1180,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="lg:col-span-5 flex flex-col gap-4">
 
         <!-- 1. Executive Vitals Card (Top) -->
-        <div class="cockpit-card cyber-corners p-4 rounded-2xl relative overflow-hidden flex flex-col gap-3">
+        <div class="obsidian-card cockpit-card cyber-corners p-4 rounded-2xl relative overflow-hidden flex flex-col gap-3 border border-white/10 shadow-xl">
           <div class="flex items-center justify-between">
             <div>
-              <div class="flex items-center space-x-1.5">
+              <div class="flex items-center space-x-2">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] animate-pulse"></span>
-                <span class="text-[10px] font-mono uppercase tracking-widest text-cyan-400/90 font-extrabold">NEURAL VITALS // TELEMETRY</span>
+                <span class="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-extrabold">CODE HEALTH // TELEMETRY</span>
               </div>
               <div class="flex items-baseline space-x-2 mt-1">
                 <span id="scoreVal" class="text-3xl font-black tracking-tight text-cyan-400">--</span>
@@ -1138,7 +1198,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Circular progress -->
             <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
-              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <svg class="w-full h-full transform -rotate-90 filter drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]" viewBox="0 0 36 36">
                 <path class="text-dark-850" stroke-width="3.2" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                 <path id="circleProgress" class="text-cyan-400 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
               </svg>
@@ -1147,7 +1207,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
 
           <!-- Quick Vitals Grid (4 chips giving the whole picture at a glance) -->
-          <div class="grid grid-cols-4 gap-2 pt-2.5 border-t border-cyan-500/20">
+          <div class="grid grid-cols-4 gap-2 pt-2.5 border-t border-white/[0.08]">
             <div class="p-2 rounded-xl bg-dark-850/80 border border-cyan-500/20 hover:border-cyan-400/50 transition-all text-center">
               <span class="text-[9px] font-mono uppercase tracking-wider text-cyan-400/80 font-bold block">FUNCTIONS</span>
               <span id="statFuncsQuick" class="text-xs font-mono font-bold text-gray-200 mt-0.5 block">--</span>
@@ -1168,10 +1228,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
 
         <!-- 2. Spacious Tabbed Studio Inspector (Fills the rest of the height) -->
-        <div class="cockpit-card cyber-corners rounded-2xl flex flex-col flex-1 overflow-hidden min-h-[500px]">
+        <div class="obsidian-card cockpit-card cyber-corners rounded-2xl flex flex-col flex-1 overflow-hidden min-h-[500px] border border-white/10 shadow-xl">
           
           <!-- Tabs Navigation Bar -->
-          <div class="p-2 border-b border-white/[0.08] bg-dark-950/80 flex items-center space-x-1.5 overflow-x-auto select-none">
+          <div class="p-2 border-b border-white/[0.08] bg-dark-950/85 flex items-center space-x-1.5 overflow-x-auto select-none">
             <button id="tabBtnIssues" type="button" onclick="switchRightTab('issues')" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer tab-btn-active">
               <span>🐛</span>
               <span>Issues</span>
@@ -1405,16 +1465,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- ── Diff Output ── -->
-    <div id="diffSection" class="glass-panel rounded-2xl overflow-hidden hidden diff-panel">
-      <div class="bg-dark-950/90 px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
+    <div id="diffSection" class="obsidian-card glass-panel rounded-2xl overflow-hidden hidden diff-panel border border-white/10 shadow-2xl">
+      <div class="bg-dark-950/95 px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
         <div class="flex items-center space-x-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span class="text-xs font-bold text-cyan-400 tracking-wide uppercase">Proposed Patch &amp; Diff Preview</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs font-mono font-bold text-cyan-400 tracking-wide uppercase">Proposed Patch &amp; Diff Preview</span>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="downloadCode()" class="text-xs bg-dark-850 hover:bg-dark-800 text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition flex items-center space-x-1.5 cursor-pointer"><span>📥</span><span>Download</span></button>
-          <button onclick="exportMarkdownReport()" class="text-xs bg-dark-850 hover:bg-dark-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/30 transition flex items-center space-x-1.5 cursor-pointer"><span>📄</span><span>Report</span></button>
-          <button onclick="copyPatchedCode()" class="text-xs bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-700/50 transition flex items-center space-x-1.5 cursor-pointer"><span>📋</span><span>Copy</span></button>
+          <button onclick="downloadCode()" class="text-xs font-mono bg-dark-850 hover:bg-dark-800 text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition flex items-center space-x-1.5 cursor-pointer"><span>📥</span><span>Download</span></button>
+          <button onclick="exportMarkdownReport()" class="text-xs font-mono bg-dark-850 hover:bg-dark-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-500/30 transition flex items-center space-x-1.5 cursor-pointer"><span>📄</span><span>Report</span></button>
+          <button onclick="copyPatchedCode()" class="text-xs font-mono bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-700/50 transition flex items-center space-x-1.5 cursor-pointer"><span>📋</span><span>Copy</span></button>
         </div>
       </div>
       <div class="p-4 bg-dark-950/90 overflow-x-auto">
