@@ -1053,19 +1053,24 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       
       <!-- Left Telemetry Pod: Target Matrix & Buffer Utilities -->
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Integrated Polyglot Target Selector -->
-        <div class="flex items-center space-x-2.5 bg-dark-900/90 hover:bg-dark-850 border border-cyan-500/30 hover:border-cyan-400/70 rounded-xl px-3 py-1.5 transition-all shadow-inner group">
-          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+        <!-- Polyglot Auto-Detected Language Telemetry Pod -->
+        <div id="detectedLangPod" class="flex items-center space-x-2.5 bg-dark-900/90 border border-cyan-500/30 rounded-xl px-3 py-1.5 shadow-inner transition-all">
+          <span id="detectedLangPulse" class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee]"></span>
           <span class="text-base select-none" id="langEmojiIcon">🐍</span>
           <div class="flex flex-col">
-            <span class="text-[8px] font-mono text-cyan-400/80 uppercase tracking-widest font-black leading-none">TARGET MATRIX</span>
-            <select id="languageSelect" onchange="onLanguageChange(this.value,false)" class="bg-transparent text-xs font-mono font-bold text-white hover:text-cyan-300 focus:outline-none cursor-pointer pr-1">
-              <option value="python" class="bg-dark-900 text-white">Python (.py)</option>
-              <option value="c" class="bg-dark-900 text-white">C (.c / .h)</option>
-              <option value="cpp" class="bg-dark-900 text-white">C++ (.cpp)</option>
-              <option value="java" class="bg-dark-900 text-white">Java (.java)</option>
-            </select>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[8px] font-mono text-cyan-400/80 uppercase tracking-widest font-black leading-none">DETECTED LANGUAGE</span>
+              <span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase leading-none">AUTO</span>
+            </div>
+            <span id="detectedLangText" class="text-xs font-mono font-extrabold text-white tracking-wide mt-0.5">Python (.py)</span>
           </div>
+          <!-- Hidden fallback select element to retain compatibility and test assertions -->
+          <select id="languageSelect" class="hidden">
+            <option value="python">Python (.py)</option>
+            <option value="c">C (.c / .h)</option>
+            <option value="cpp">C++ (.cpp)</option>
+            <option value="java">Java (.java)</option>
+          </select>
         </div>
 
         <!-- Docstring Schema Standard Selector -->
@@ -1139,6 +1144,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
                 <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5"></span>
               </div>
             </div>
+            <!-- Prominent Live Language Detection Badge right on the Editor Header -->
+            <div id="editorLangBadge" class="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 font-mono shadow-sm transition-all duration-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+              <span class="text-[9px] uppercase tracking-wider text-cyan-400/80 font-black">LANGUAGE:</span>
+              <span id="editorDetectedLang" class="text-xs font-bold text-white tracking-wide">Python</span>
+            </div>
           </div>
           <div class="flex items-center space-x-2 text-[11px] text-gray-400 font-mono">
             <button onclick="downloadCode()" title="Download file" class="px-2 py-1 rounded-lg bg-dark-850 hover:bg-dark-800 text-gray-300 hover:text-cyan-300 border border-white/10 transition flex items-center space-x-1 cursor-pointer">
@@ -1161,6 +1172,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
               <span>GEMINI AI READY</span>
             </span>
+            <span class="text-white/20">•</span>
+            <span id="statusBarLang" class="text-cyan-300 font-bold">PYTHON</span>
             <span class="text-white/20">•</span>
             <span class="text-gray-400">UTF-8</span>
             <span class="text-white/20">•</span>
@@ -1831,6 +1844,15 @@ public class PaymentService {
       const sel = document.getElementById('languageSelect');
       if (sel && sel.value !== lang) sel.value = lang;
 
+      const dt = document.getElementById('detectedLangText');
+      if (dt) dt.innerText = `${conf.label} (.${conf.ext})`;
+
+      const edl = document.getElementById('editorDetectedLang');
+      if (edl) edl.innerText = `${conf.icon} ${conf.label}`;
+
+      const sbl = document.getElementById('statusBarLang');
+      if (sbl) sbl.innerText = conf.label.toUpperCase();
+
       const fi = document.getElementById('fileIcon');
       if (fi) fi.innerText = conf.icon;
       const fn = document.getElementById('fileNameDisplay');
@@ -1850,7 +1872,18 @@ public class PaymentService {
     }
 
     function selectLanguage(lang, autoLoad = true) { onLanguageChange(lang, autoLoad); }
-    function loadSampleForLanguage() { onLanguageChange(currentLanguage, true); }
+    let _sampleCycleIndex = -1;
+    const SAMPLE_ORDER = ['python', 'c', 'cpp', 'java'];
+    function loadSampleForLanguage() {
+      _sampleCycleIndex = (_sampleCycleIndex + 1) % SAMPLE_ORDER.length;
+      const lang = SAMPLE_ORDER[_sampleCycleIndex];
+      const code = SAMPLES[lang] || SAMPLES.python;
+      document.getElementById('codeEditor').value = code;
+      updateGutter();
+      flashEditor();
+      autoDetectAndSwitchLanguage();
+      auditCode();
+    }
 
     // ─── Robust Auto Language Detection Engine ─────────────
     // Uses weighted multi-signal heuristic scoring to detect Python, C, C++, or Java
@@ -2013,21 +2046,22 @@ public class PaymentService {
       if (detected === _lastDetectedLang) return detected;
       _lastDetectedLang = detected;
 
-      // Switch language silently (no sample load, no audit trigger)
-      currentLanguage = detected;
-      const conf = LANG_CONFIG[detected] || LANG_CONFIG.python;
-      const icon = document.getElementById('langEmojiIcon');
-      if (icon) icon.innerText = conf.icon;
-      const sel = document.getElementById('languageSelect');
-      if (sel && sel.value !== detected) sel.value = detected;
-      const fi = document.getElementById('fileIcon');
-      if (fi) fi.innerText = conf.icon;
-      const fn = document.getElementById('fileNameDisplay');
-      if (fn) fn.innerText = conf.name;
-      const ss = document.getElementById('docStyle');
-      if (ss) ss.innerHTML = conf.styles.map((n,i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${n}</option>`).join('');
+      // Switch language silently & update all UI elements
+      onLanguageChange(detected, false);
 
-      showToast(`🔍 Auto-detected ${conf.icon} ${conf.label}`, 'cyan');
+      // Flash neon highlight on the language badges for immediate visual confirmation
+      const badge = document.getElementById('editorLangBadge');
+      if (badge) {
+        badge.classList.add('ring-2', 'ring-cyan-400', 'bg-cyan-900/90');
+        setTimeout(() => badge.classList.remove('ring-2', 'ring-cyan-400', 'bg-cyan-900/90'), 900);
+      }
+      const pod = document.getElementById('detectedLangPod');
+      if (pod) {
+        pod.classList.add('ring-2', 'ring-cyan-400');
+        setTimeout(() => pod.classList.remove('ring-2', 'ring-cyan-400'), 900);
+      }
+
+      showToast(`🔍 Auto-detected ${LANG_CONFIG[detected].icon} ${LANG_CONFIG[detected].label}`, 'cyan');
       return detected;
     }
 
@@ -2095,6 +2129,12 @@ public class PaymentService {
       resetDashboard();
       document.getElementById('diffSection').classList.add('hidden');
       currentIssues = [];
+      const edl = document.getElementById('editorDetectedLang');
+      if (edl) edl.innerText = 'Awaiting Code';
+      const dt = document.getElementById('detectedLangText');
+      if (dt) dt.innerText = 'Awaiting Code...';
+      const sbl = document.getElementById('statusBarLang');
+      if (sbl) sbl.innerText = 'READY';
       showToast('Editor cleared.', 'gray');
     }
 
@@ -2973,6 +3013,17 @@ public class PaymentService {
         ed.value = '';
         // Immediate auto-detect on paste (fires before oninput, so detection is instant)
         ed.addEventListener('paste', () => {
+          setTimeout(() => {
+            updateGutter();
+            autoDetectAndSwitchLanguage();
+            const val = ed.value.trim();
+            if (val.length > 20) {
+              auditCode();
+            }
+          }, 60);
+        });
+        // Auto-detect on drag and drop code
+        ed.addEventListener('drop', () => {
           setTimeout(() => {
             updateGutter();
             autoDetectAndSwitchLanguage();
