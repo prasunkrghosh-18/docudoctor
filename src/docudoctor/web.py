@@ -1150,7 +1150,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Editor body -->
         <div class="flex-1 flex bg-dark-950/70 relative overflow-hidden">
           <div id="gutter" class="py-4 px-2.5 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-white/[0.06] text-right min-w-[3rem] overflow-hidden">1</div>
-          <textarea id="codeEditor" oninput="updateGutter()" onscroll="syncGutterScroll()"
+          <textarea id="codeEditor" oninput="onEditorInput()" onscroll="syncGutterScroll()"
             class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-500/25 selection:text-cyan-200"
             spellcheck="false" placeholder="# Paste code here, load a sample, or upload a file..."></textarea>
         </div>
@@ -1852,6 +1852,192 @@ public class PaymentService {
     function selectLanguage(lang, autoLoad = true) { onLanguageChange(lang, autoLoad); }
     function loadSampleForLanguage() { onLanguageChange(currentLanguage, true); }
 
+    // ─── Robust Auto Language Detection Engine ─────────────
+    // Uses weighted multi-signal heuristic scoring to detect Python, C, C++, or Java
+    // from arbitrary code blocks — works on small snippets and large files alike.
+    let _autoDetectTimer = null;
+    let _lastDetectedLang = null;
+
+    function detectLanguageFromCode(code) {
+      if (!code || !code.trim()) return null;
+
+      const scores = { python: 0, c: 0, cpp: 0, java: 0 };
+
+      // ── 1. DEFINITIVE SIGNALS (high weight — single one of these is usually enough) ──
+
+      // Python-only keywords and constructs
+      if (/\bdef\s+\w+\s*\(/.test(code))                 scores.python += 25;
+      if (/\bimport\s+\w+/.test(code) && !/^import\s+java\b/m.test(code) && !/#include/.test(code))
+                                                           scores.python += 15;
+      if (/\bfrom\s+\w+\s+import\b/.test(code))           scores.python += 30;
+      if (/\belif\b/.test(code))                           scores.python += 30;
+      if (/\b(self|cls)\b\./.test(code))                   scores.python += 25;
+      if (/:\s*$/.test(code.split('\n').filter(l => l.trim()).slice(0,30).join('\n')))
+                                                           scores.python += 10;
+      if (/\basync\s+def\b/.test(code))                    scores.python += 25;
+      if (/\bawait\s+/.test(code) && /\bdef\b/.test(code)) scores.python += 15;
+      if (/\bprint\s*\(/.test(code) && !/System\.out/.test(code) && !/printf\s*\(/.test(code))
+                                                           scores.python += 10;
+      if (/\blambda\s+/.test(code))                        scores.python += 12;
+      if (/\bclass\s+\w+.*:/.test(code) && !/\{/.test(code.split('\n').find(l => /\bclass\s/.test(l)) || ''))
+                                                           scores.python += 20;
+      if (/\b__init__\b/.test(code))                       scores.python += 30;
+      if (/\b__\w+__\b/.test(code))                        scores.python += 15;
+      if (/\b(True|False|None)\b/.test(code))              scores.python += 8;
+      if (/\b(yield|yield\s+from)\b/.test(code))           scores.python += 15;
+      if (/\b(list|dict|tuple|set)\s*\(/.test(code))       scores.python += 8;
+      if (/^\s*@\w+/.test(code))                           scores.python += 12;
+      if (/\b(-> \w+)/.test(code))                         scores.python += 10;
+      if (/\bif\s+__name__\s*==\s*['"]__main__['"]/.test(code)) scores.python += 30;
+      if (code.indexOf('""' + '"') !== -1 || code.indexOf("''" + "'") !== -1) scores.python += 15;
+
+      // Java-only patterns
+      if (/\bpublic\s+(static\s+)?class\s+\w+/.test(code)) scores.java += 30;
+      if (/\bSystem\.(out|err|in)\b/.test(code))            scores.java += 25;
+      if (/\bpublic\s+static\s+void\s+main\s*\(/.test(code)) scores.java += 35;
+      if (/\bpackage\s+[\w.]+;/.test(code))                 scores.java += 30;
+      if (/\bimport\s+java\./.test(code))                   scores.java += 35;
+      if (/\bimport\s+(javax|org|com)\./.test(code))        scores.java += 30;
+      if (/\b(public|private|protected)\s+(static\s+)?(final\s+)?\w+\s+\w+\s*\(/.test(code))
+                                                            scores.java += 15;
+      if (/\b(extends|implements)\s+\w+/.test(code))        scores.java += 20;
+      if (/\bnew\s+\w+\s*\(/.test(code) && /\bclass\b/.test(code))
+                                                            scores.java += 10;
+      if (/\b@Override\b/.test(code))                       scores.java += 25;
+      if (/\b@(Autowired|Service|Controller|Component|Bean|Entity|Repository)\b/.test(code))
+                                                            scores.java += 25;
+      if (/\b(ArrayList|HashMap|LinkedList|TreeMap|HashSet)\b/.test(code))
+                                                            scores.java += 15;
+      if (/\bthrows\s+\w+/.test(code))                     scores.java += 15;
+
+      // C-only patterns
+      if (/^#include\s*<(stdio|stdlib|string|math|ctype|assert|errno|float|limits|locale|setjmp|signal|stdarg|stddef|time|unistd|fcntl|sys\/)/.test(code))
+                                                            scores.c += 25;
+      if (/\bprintf\s*\(/.test(code) || /\bscanf\s*\(/.test(code))
+                                                            scores.c += 15;
+      if (/\b(malloc|calloc|realloc|free)\s*\(/.test(code)) scores.c += 25;
+      if (/\b(size_t|uint8_t|int32_t|uint32_t|int64_t|uint64_t|ssize_t|pid_t)\b/.test(code))
+                                                            scores.c += 15;
+      if (/\btypedef\s+(struct|enum|union)\b/.test(code))   scores.c += 25;
+      if (/\bstruct\s+\w+\s*\{/.test(code) && !/\bclass\b/.test(code))
+                                                            scores.c += 15;
+      if (/\b(NULL)\b/.test(code) && !/nullptr/.test(code)) scores.c += 8;
+      if (/\b(void\s*\*|char\s*\*)/.test(code))            scores.c += 10;
+
+      // C++ signals that distinguish from C
+      if (/^#include\s*<(iostream|string|vector|map|set|algorithm|memory|fstream|sstream|functional|chrono|thread|mutex|array|queue|stack|deque|unordered_map|unordered_set|numeric|bitset|optional|variant|any|filesystem|regex|tuple|utility|cassert|cstdlib|cstring|cmath|cstdio|stdexcept|typeinfo|initializer_list|type_traits)>/m.test(code))
+                                                            scores.cpp += 25;
+      if (/\bstd::/.test(code))                             scores.cpp += 30;
+      if (/\b(cout|cin|cerr|endl)\b/.test(code))            scores.cpp += 25;
+      if (/\bnamespace\s+\w+/.test(code))                   scores.cpp += 20;
+      if (/\busing\s+namespace\b/.test(code))               scores.cpp += 25;
+      if (/\b(nullptr|constexpr|auto\s+\w+\s*=|decltype)\b/.test(code))
+                                                            scores.cpp += 20;
+      if (/\btemplate\s*</.test(code))                      scores.cpp += 25;
+      if (/\b(unique_ptr|shared_ptr|make_unique|make_shared)\b/.test(code))
+                                                            scores.cpp += 25;
+      if (/\b(public|private|protected)\s*:/.test(code))    scores.cpp += 15;
+      if (/\bclass\s+\w+\s*(\{|:)/.test(code) && !/\bpackage\b/.test(code))
+                                                            scores.cpp += 10;
+      if (/\bvirtual\s+/.test(code))                        scores.cpp += 15;
+      if (/\bconst\s+\w+\s*&/.test(code))                   scores.cpp += 12;
+      if (/\b(vector|map|string|set|queue|stack|pair|tuple)\s*</.test(code))
+                                                            scores.cpp += 15;
+
+      // ── 2. SHARED C/C++ SIGNALS (boost both) ──
+      if (/#include\s*[<"]/.test(code)) {
+        scores.c += 10;
+        scores.cpp += 10;
+      }
+      if (/\bint\s+main\s*\(\s*(void|int\s+argc)/.test(code)) {
+        scores.c += 10;
+        scores.cpp += 10;
+      }
+      // Semicolons and curly braces (not Python)
+      const semiCount = (code.match(/;\s*$/gm) || []).length;
+      if (semiCount >= 3) {
+        scores.c += 5; scores.cpp += 5; scores.java += 5;
+        scores.python -= 5;
+      }
+      // Curly braces for blocks
+      if (/\)\s*\{/.test(code)) {
+        scores.c += 5; scores.cpp += 5; scores.java += 5;
+      }
+
+      // ── 3. INDENTATION SIGNAL (Python uses indentation, not braces) ──
+      const lines = code.split('\n').filter(l => l.trim());
+      const indentedAfterColon = lines.some((l, i) =>
+        /:\s*(#.*)?$/.test(l) && i + 1 < lines.length && /^\s{2,}/.test(lines[i+1])
+      );
+      if (indentedAfterColon) scores.python += 10;
+
+      // ── 4. NEGATIVE SIGNALS (reduce false positives) ──
+      // If we see `def `, it's definitely not C/C++/Java
+      if (/\bdef\s+\w+\s*\(/.test(code)) {
+        scores.c -= 15; scores.cpp -= 15; scores.java -= 15;
+      }
+      // If we see #include, it's definitely not Python or Java
+      if (/#include/.test(code)) {
+        scores.python -= 20; scores.java -= 15;
+      }
+      // If we see `package` and `import java.`, it's not C/C++/Python
+      if (/\bpackage\s+[\w.]+;/.test(code)) {
+        scores.python -= 15; scores.c -= 15; scores.cpp -= 15;
+      }
+
+      // ── 5. FIND WINNER ──
+      let bestLang = 'python';
+      let bestScore = scores.python;
+      for (const [lang, score] of Object.entries(scores)) {
+        if (score > bestScore) {
+          bestScore = score;
+          bestLang = lang;
+        }
+      }
+
+      // Only auto-detect if the confidence is meaningful (score > 10)
+      if (bestScore <= 10) return null;
+
+      return bestLang;
+    }
+
+    function autoDetectAndSwitchLanguage() {
+      const code = document.getElementById('codeEditor').value;
+      const detected = detectLanguageFromCode(code);
+      if (!detected) return null;
+      if (detected === currentLanguage) {
+        _lastDetectedLang = detected;
+        return detected;
+      }
+      // Only switch if the detection is new (don't re-flash on every keystroke)
+      if (detected === _lastDetectedLang) return detected;
+      _lastDetectedLang = detected;
+
+      // Switch language silently (no sample load, no audit trigger)
+      currentLanguage = detected;
+      const conf = LANG_CONFIG[detected] || LANG_CONFIG.python;
+      const icon = document.getElementById('langEmojiIcon');
+      if (icon) icon.innerText = conf.icon;
+      const sel = document.getElementById('languageSelect');
+      if (sel && sel.value !== detected) sel.value = detected;
+      const fi = document.getElementById('fileIcon');
+      if (fi) fi.innerText = conf.icon;
+      const fn = document.getElementById('fileNameDisplay');
+      if (fn) fn.innerText = conf.name;
+      const ss = document.getElementById('docStyle');
+      if (ss) ss.innerHTML = conf.styles.map((n,i) => `<option value="${conf.styleValues[i]}" class="bg-dark-900 text-gray-200">${n}</option>`).join('');
+
+      showToast(`🔍 Auto-detected ${conf.icon} ${conf.label}`, 'cyan');
+      return detected;
+    }
+
+    // Debounced auto-detect on editor input (runs 400ms after user stops typing/pasting)
+    function onEditorInput() {
+      updateGutter();
+      clearTimeout(_autoDetectTimer);
+      _autoDetectTimer = setTimeout(autoDetectAndSwitchLanguage, 400);
+    }
+
     function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1860,11 +2046,18 @@ public class PaymentService {
       if (name.endsWith('.java')) lang = 'java';
       else if (name.endsWith('.cpp') || name.endsWith('.hpp') || name.endsWith('.cc')) lang = 'cpp';
       else if (name.endsWith('.c') || name.endsWith('.h')) lang = 'c';
-      onLanguageChange(lang, false);
-      document.getElementById('fileNameDisplay').innerText = name;
       const reader = new FileReader();
       reader.onload = e => {
-        document.getElementById('codeEditor').value = e.target.result;
+        const content = e.target.result;
+        // For .h files, use content-based detection since .h could be C or C++
+        if (name.endsWith('.h')) {
+          const contentLang = detectLanguageFromCode(content);
+          if (contentLang === 'cpp' || contentLang === 'c') lang = contentLang;
+        }
+        onLanguageChange(lang, false);
+        _lastDetectedLang = lang;  // prevent re-detection flicker
+        document.getElementById('fileNameDisplay').innerText = name;
+        document.getElementById('codeEditor').value = content;
         updateGutter(); flashEditor();
         showToast(`Loaded ${name}`, 'emerald');
         auditCode();
@@ -1897,6 +2090,7 @@ public class PaymentService {
 
     function clearEditor() {
       document.getElementById('codeEditor').value = '';
+      _lastDetectedLang = null;
       updateGutter();
       resetDashboard();
       document.getElementById('diffSection').classList.add('hidden');
@@ -1949,6 +2143,12 @@ public class PaymentService {
     async function auditCode() {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) { showToast('Please enter or upload code first!', 'amber'); return; }
+
+      // Auto-detect language if code clearly matches a different language
+      const detected = detectLanguageFromCode(code);
+      if (detected && detected !== currentLanguage) {
+        autoDetectAndSwitchLanguage();
+      }
 
       try {
         // Run all three analyses in parallel
@@ -2197,6 +2397,13 @@ public class PaymentService {
     async function fixCode() {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) { showToast('Please enter or upload code first!', 'amber'); return; }
+
+      // Auto-detect language if code clearly matches a different language
+      const detected = detectLanguageFromCode(code);
+      if (detected && detected !== currentLanguage) {
+        autoDetectAndSwitchLanguage();
+      }
+
       const style = document.getElementById('docStyle').value;
       try {
         const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, use_ai: true}) });
@@ -2762,7 +2969,20 @@ public class PaymentService {
       // Initialize completely blank without pre-coming code
       onLanguageChange('python', false);
       const ed = document.getElementById('codeEditor');
-      if (ed) ed.value = '';
+      if (ed) {
+        ed.value = '';
+        // Immediate auto-detect on paste (fires before oninput, so detection is instant)
+        ed.addEventListener('paste', () => {
+          setTimeout(() => {
+            updateGutter();
+            autoDetectAndSwitchLanguage();
+            const val = ed.value.trim();
+            if (val.length > 20) {
+              auditCode();
+            }
+          }, 60);
+        });
+      }
       updateGutter();
       resetDashboard();
       initWelcomeAnimation();
