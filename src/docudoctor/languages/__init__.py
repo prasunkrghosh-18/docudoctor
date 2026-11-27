@@ -14,6 +14,7 @@ from docudoctor.languages.c_engine import audit_c_code, patch_c_code
 from docudoctor.languages.cpp_engine import audit_cpp_code, patch_cpp_code
 from docudoctor.languages.java_engine import audit_java_code, patch_java_code
 from docudoctor.languages.python_engine import audit_python_code, patch_python_code
+from docudoctor.languages.universal_engine import audit_universal_code, patch_universal_code
 
 
 def audit_code_by_language(code: str, language: Language = Language.PYTHON) -> LanguageAuditResult:
@@ -24,8 +25,10 @@ def audit_code_by_language(code: str, language: Language = Language.PYTHON) -> L
         return audit_cpp_code(code)
     elif language == Language.JAVA:
         return audit_java_code(code)
-    else:
+    elif language == Language.PYTHON:
         return audit_python_code(code)
+    else:
+        return audit_universal_code(code, language=language)
 
 
 def patch_code_by_language(
@@ -41,10 +44,12 @@ def patch_code_by_language(
         return patch_cpp_code(code, target_entity=target)
     elif language == Language.JAVA:
         return patch_java_code(code, target_entity=target)
-    else:
+    elif language == Language.PYTHON:
         doc_style = DocstringStyle.GOOGLE
         try:
             doc_style = DocstringStyle(style.lower())
         except ValueError:
             pass
         return patch_python_code(code, style=doc_style, target_function=target)
+    else:
+        return patch_universal_code(code, language=language, target_entity=target)

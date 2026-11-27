@@ -62,14 +62,44 @@ class AIReviewRequest(BaseModel):
     api_key: Optional[str] = None
 
 
+_LANG_EXT_MAP = {
+    Language.PYTHON: "py",
+    Language.C: "c",
+    Language.CPP: "cpp",
+    Language.JAVA: "java",
+    Language.JAVASCRIPT: "js",
+    Language.TYPESCRIPT: "ts",
+    Language.GO: "go",
+    Language.RUST: "rs",
+    Language.CSHARP: "cs",
+    Language.PHP: "php",
+    Language.RUBY: "rb",
+    Language.SWIFT: "swift",
+    Language.KOTLIN: "kt",
+    Language.DART: "dart",
+    Language.SCALA: "scala",
+    Language.R: "r",
+    Language.SQL: "sql",
+    Language.BASH: "sh",
+    Language.POWERSHELL: "ps1",
+    Language.PERL: "pl",
+    Language.LUA: "lua",
+    Language.HASKELL: "hs",
+    Language.ELIXIR: "ex",
+    Language.JULIA: "jl",
+    Language.SOLIDITY: "sol",
+    Language.OBJC: "m",
+    Language.GROOVY: "groovy",
+    Language.MATLAB: "m",
+    Language.HTML: "html",
+    Language.CSS: "css",
+    Language.YAML: "yml",
+    Language.JSON: "json",
+}
+
+
 def _ext_for_lang(lang: Language) -> str:
-    if lang == Language.C:
-        return "c"
-    elif lang == Language.CPP:
-        return "cpp"
-    elif lang == Language.JAVA:
-        return "java"
-    return "py"
+    return _LANG_EXT_MAP.get(lang, "py")
 
 
 @app.post("/api/audit")
@@ -1066,10 +1096,38 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
           <!-- Hidden fallback select element to retain compatibility and test assertions -->
           <select id="languageSelect" class="hidden">
-            <option value="python">Python (.py)</option>
-            <option value="c">C (.c / .h)</option>
-            <option value="cpp">C++ (.cpp)</option>
-            <option value="java">Java (.java)</option>
+            <option value="python">Python</option>
+            <option value="c">C</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="csharp">C#</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+            <option value="swift">Swift</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="dart">Dart</option>
+            <option value="scala">Scala</option>
+            <option value="r">R</option>
+            <option value="sql">SQL</option>
+            <option value="bash">Bash</option>
+            <option value="powershell">PowerShell</option>
+            <option value="perl">Perl</option>
+            <option value="lua">Lua</option>
+            <option value="haskell">Haskell</option>
+            <option value="elixir">Elixir</option>
+            <option value="julia">Julia</option>
+            <option value="solidity">Solidity</option>
+            <option value="objc">Objective-C</option>
+            <option value="groovy">Groovy</option>
+            <option value="matlab">MATLAB</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="yaml">YAML</option>
+            <option value="json">JSON</option>
           </select>
         </div>
 
@@ -1084,7 +1142,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <!-- Tactical Buffer Controls Group -->
         <div class="flex items-center bg-dark-950/70 p-1 rounded-xl border border-white/[0.08] space-x-1">
-          <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java" class="hidden" onchange="handleFileUpload(event)">
+          <input type="file" id="fileInput" accept=".py,.c,.h,.cpp,.hpp,.cc,.java,.js,.mjs,.jsx,.ts,.tsx,.go,.rs,.cs,.php,.rb,.swift,.kt,.kts,.dart,.scala,.r,.sql,.sh,.bash,.zsh,.ps1,.pl,.lua,.hs,.ex,.exs,.jl,.sol,.m,.mm,.groovy,.html,.htm,.css,.scss,.yml,.yaml,.json" class="hidden" onchange="handleFileUpload(event)">
           <button type="button" onclick="playCyberpunkTick(1200); document.getElementById('fileInput').click()" title="Load local source file" class="linear-pill-btn tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
             <span>📁</span><span class="tracking-wide">UPLOAD</span>
           </button>
@@ -1727,10 +1785,38 @@ public class PaymentService {
     };
 
     const LANG_CONFIG = {
-      python: { ext: 'py', icon: '🐍', label: 'Python', name: 'main.py', styles: ['Google Style', 'NumPy Style', 'Sphinx Style'], styleValues: ['google', 'numpy', 'sphinx'] },
-      c: { ext: 'c', icon: '⚡', label: 'C Language', name: 'main.c', styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
-      cpp: { ext: 'cpp', icon: '🚀', label: 'C++', name: 'main.cpp', styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
-      java: { ext: 'java', icon: '☕', label: 'Java', name: 'PaymentService.java', styles: ['Standard Javadoc'], styleValues: ['javadoc'] }
+      python:     { ext: 'py',     icon: '🐍', label: 'Python',      name: 'main.py',          styles: ['Google Style', 'NumPy Style', 'Sphinx Style'], styleValues: ['google', 'numpy', 'sphinx'] },
+      c:          { ext: 'c',      icon: '⚡', label: 'C Language',  name: 'main.c',           styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
+      cpp:        { ext: 'cpp',    icon: '🚀', label: 'C++',         name: 'main.cpp',         styles: ['Doxygen Style (@brief)'], styleValues: ['doxygen'] },
+      java:       { ext: 'java',   icon: '☕', label: 'Java',        name: 'Main.java',        styles: ['Standard Javadoc'], styleValues: ['javadoc'] },
+      javascript: { ext: 'js',     icon: '🟨', label: 'JavaScript',  name: 'index.js',         styles: ['JSDoc'], styleValues: ['jsdoc'] },
+      typescript: { ext: 'ts',     icon: '🔷', label: 'TypeScript',  name: 'index.ts',         styles: ['TSDoc / JSDoc'], styleValues: ['jsdoc'] },
+      go:         { ext: 'go',     icon: '🐹', label: 'Go',          name: 'main.go',          styles: ['GoDoc'], styleValues: ['go_slash'] },
+      rust:       { ext: 'rs',     icon: '🦀', label: 'Rust',        name: 'main.rs',          styles: ['RustDoc (///)'], styleValues: ['triple_slash'] },
+      csharp:     { ext: 'cs',     icon: '🎯', label: 'C#',          name: 'Program.cs',       styles: ['XML Doc (///)'], styleValues: ['xml_slash'] },
+      php:        { ext: 'php',    icon: '🐘', label: 'PHP',         name: 'index.php',        styles: ['PHPDoc'], styleValues: ['jsdoc'] },
+      ruby:       { ext: 'rb',     icon: '💎', label: 'Ruby',        name: 'main.rb',          styles: ['YARD / RDoc'], styleValues: ['hash'] },
+      swift:      { ext: 'swift',  icon: '🦅', label: 'Swift',       name: 'main.swift',       styles: ['Swift Doc (///)'], styleValues: ['triple_slash'] },
+      kotlin:     { ext: 'kt',     icon: '🟣', label: 'Kotlin',      name: 'Main.kt',          styles: ['KDoc'], styleValues: ['jsdoc'] },
+      dart:       { ext: 'dart',   icon: '🎯', label: 'Dart',        name: 'main.dart',        styles: ['DartDoc (///)'], styleValues: ['triple_slash'] },
+      scala:      { ext: 'scala',  icon: '🔴', label: 'Scala',       name: 'Main.scala',       styles: ['ScalaDoc'], styleValues: ['jsdoc'] },
+      r:          { ext: 'r',      icon: '📊', label: 'R',           name: 'script.R',         styles: ['Roxygen2 (#\')'], styleValues: ['hash'] },
+      sql:        { ext: 'sql',    icon: '🗄️', label: 'SQL',         name: 'query.sql',        styles: ['SQL Comments (--)'], styleValues: ['sql'] },
+      bash:       { ext: 'sh',     icon: '🐚', label: 'Bash / Shell',name: 'script.sh',        styles: ['Shell Comments (#)'], styleValues: ['hash'] },
+      powershell: { ext: 'ps1',    icon: '💠', label: 'PowerShell',  name: 'script.ps1',       styles: ['Comment-Based Help'], styleValues: ['hash'] },
+      perl:       { ext: 'pl',     icon: '🐪', label: 'Perl',        name: 'script.pl',        styles: ['POD / Comments'], styleValues: ['hash'] },
+      lua:        { ext: 'lua',    icon: '🌙', label: 'Lua',         name: 'main.lua',         styles: ['LuaDoc (---)'], styleValues: ['lua'] },
+      haskell:    { ext: 'hs',     icon: 'λ',  label: 'Haskell',     name: 'Main.hs',          styles: ['Haddock (-- |)'], styleValues: ['haskell'] },
+      elixir:     { ext: 'ex',     icon: '💧', label: 'Elixir',      name: 'main.ex',          styles: ['ExDoc (@doc)'], styleValues: ['elixir'] },
+      julia:      { ext: 'jl',     icon: '🔬', label: 'Julia',       name: 'main.jl',          styles: ['Julia Docstrings'], styleValues: ['hash'] },
+      solidity:   { ext: 'sol',    icon: '⛓️', label: 'Solidity',    name: 'Contract.sol',     styles: ['NatSpec'], styleValues: ['jsdoc'] },
+      objc:       { ext: 'm',      icon: '🍏', label: 'Objective-C', name: 'main.m',           styles: ['HeaderDoc'], styleValues: ['jsdoc'] },
+      groovy:     { ext: 'groovy', icon: '🌟', label: 'Groovy',      name: 'Main.groovy',      styles: ['GroovyDoc'], styleValues: ['jsdoc'] },
+      matlab:     { ext: 'm',      icon: '📐', label: 'MATLAB',      name: 'script.m',         styles: ['MATLAB Help'], styleValues: ['hash'] },
+      html:       { ext: 'html',   icon: '🌐', label: 'HTML',        name: 'index.html',       styles: ['HTML Comments'], styleValues: ['html'] },
+      css:        { ext: 'css',    icon: '🎨', label: 'CSS / SCSS',  name: 'styles.css',       styles: ['CSS Doc'], styleValues: ['css'] },
+      yaml:       { ext: 'yml',    icon: '⚙️', label: 'YAML',        name: 'config.yml',       styles: ['YAML Comments'], styleValues: ['hash'] },
+      json:       { ext: 'json',   icon: '📦', label: 'JSON',        name: 'data.json',        styles: ['JSON Schema'], styleValues: ['data'] }
     };
 
     // ─── Theme ─────────────────────────────────────────────
@@ -1886,132 +1972,218 @@ public class PaymentService {
 
     function detectLanguageFromCode(code) {
       if (!code || !code.trim()) return null;
+      const trimmed = code.trim();
 
-      const scores = { python: 0, c: 0, cpp: 0, java: 0 };
+      // Quick exact check for valid JSON object/array
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (typeof parsed === 'object' && parsed !== null) return 'json';
+        } catch (e) {}
+      }
 
-      // ── 1. DEFINITIVE SIGNALS (high weight — single one of these is usually enough) ──
+      const scores = {
+        python: 0, c: 0, cpp: 0, java: 0,
+        javascript: 0, typescript: 0, go: 0, rust: 0,
+        csharp: 0, php: 0, ruby: 0, swift: 0,
+        kotlin: 0, dart: 0, scala: 0, r: 0,
+        sql: 0, bash: 0, powershell: 0, perl: 0,
+        lua: 0, haskell: 0, elixir: 0, julia: 0,
+        solidity: 0, objc: 0, groovy: 0, matlab: 0,
+        html: 0, css: 0, yaml: 0, json: 0
+      };
 
-      // Python-only keywords and constructs
+      // ── 1. PYTHON ──
       if (/\bdef\s+\w+\s*\(/.test(code))                 scores.python += 25;
-      if (/\bimport\s+\w+/.test(code) && !/^import\s+java\b/m.test(code) && !/#include/.test(code))
+      if (/\bimport\s+\w+/.test(code) && !/^import\s+java\b/m.test(code) && !/#include/.test(code) && !/\bfrom\s+['"]/.test(code))
                                                            scores.python += 15;
       if (/\bfrom\s+\w+\s+import\b/.test(code))           scores.python += 30;
       if (/\belif\b/.test(code))                           scores.python += 30;
       if (/\b(self|cls)\b\./.test(code))                   scores.python += 25;
-      if (/:\s*$/.test(code.split('\n').filter(l => l.trim()).slice(0,30).join('\n')))
-                                                           scores.python += 10;
       if (/\basync\s+def\b/.test(code))                    scores.python += 25;
-      if (/\bawait\s+/.test(code) && /\bdef\b/.test(code)) scores.python += 15;
       if (/\bprint\s*\(/.test(code) && !/System\.out/.test(code) && !/printf\s*\(/.test(code))
                                                            scores.python += 10;
-      if (/\blambda\s+/.test(code))                        scores.python += 12;
       if (/\bclass\s+\w+.*:/.test(code) && !/\{/.test(code.split('\n').find(l => /\bclass\s/.test(l)) || ''))
                                                            scores.python += 20;
       if (/\b__init__\b/.test(code))                       scores.python += 30;
       if (/\b__\w+__\b/.test(code))                        scores.python += 15;
       if (/\b(True|False|None)\b/.test(code))              scores.python += 8;
-      if (/\b(yield|yield\s+from)\b/.test(code))           scores.python += 15;
-      if (/\b(list|dict|tuple|set)\s*\(/.test(code))       scores.python += 8;
-      if (/^\s*@\w+/.test(code))                           scores.python += 12;
-      if (/\b(-> \w+)/.test(code))                         scores.python += 10;
       if (/\bif\s+__name__\s*==\s*['"]__main__['"]/.test(code)) scores.python += 30;
       if (code.indexOf('""' + '"') !== -1 || code.indexOf("''" + "'") !== -1) scores.python += 15;
 
-      // Java-only patterns
+      // ── 2. JAVA ──
       if (/\bpublic\s+(static\s+)?class\s+\w+/.test(code)) scores.java += 30;
       if (/\bSystem\.(out|err|in)\b/.test(code))            scores.java += 25;
-      if (/\bpublic\s+static\s+void\s+main\s*\(/.test(code)) scores.java += 35;
+      if (/\bpublic\s+static\s+void\s+main\s*\(\s*String/.test(code)) scores.java += 40;
       if (/\bpackage\s+[\w.]+;/.test(code))                 scores.java += 30;
       if (/\bimport\s+java\./.test(code))                   scores.java += 35;
       if (/\bimport\s+(javax|org|com)\./.test(code))        scores.java += 30;
-      if (/\b(public|private|protected)\s+(static\s+)?(final\s+)?\w+\s+\w+\s*\(/.test(code))
-                                                            scores.java += 15;
-      if (/\b(extends|implements)\s+\w+/.test(code))        scores.java += 20;
-      if (/\bnew\s+\w+\s*\(/.test(code) && /\bclass\b/.test(code))
-                                                            scores.java += 10;
+      if (/\b(extends|implements)\s+\w+/.test(code))        scores.java += 18;
       if (/\b@Override\b/.test(code))                       scores.java += 25;
       if (/\b@(Autowired|Service|Controller|Component|Bean|Entity|Repository)\b/.test(code))
                                                             scores.java += 25;
-      if (/\b(ArrayList|HashMap|LinkedList|TreeMap|HashSet)\b/.test(code))
-                                                            scores.java += 15;
-      if (/\bthrows\s+\w+/.test(code))                     scores.java += 15;
 
-      // C-only patterns
-      if (/^#include\s*<(stdio|stdlib|string|math|ctype|assert|errno|float|limits|locale|setjmp|signal|stdarg|stddef|time|unistd|fcntl|sys\/)/.test(code))
+      // ── 3. C & C++ ──
+      if (/^#include\s*<(stdio|stdlib|string|math|ctype|assert|errno|time|unistd|fcntl|sys\/)/m.test(code))
                                                             scores.c += 25;
-      if (/\bprintf\s*\(/.test(code) || /\bscanf\s*\(/.test(code))
-                                                            scores.c += 15;
+      if (/\b(printf|scanf)\s*\(/.test(code))               scores.c += 15;
       if (/\b(malloc|calloc|realloc|free)\s*\(/.test(code)) scores.c += 25;
-      if (/\b(size_t|uint8_t|int32_t|uint32_t|int64_t|uint64_t|ssize_t|pid_t)\b/.test(code))
-                                                            scores.c += 15;
+      if (/\b(size_t|uint8_t|int32_t|uint32_t|int64_t)\b/.test(code)) scores.c += 15;
       if (/\btypedef\s+(struct|enum|union)\b/.test(code))   scores.c += 25;
-      if (/\bstruct\s+\w+\s*\{/.test(code) && !/\bclass\b/.test(code))
-                                                            scores.c += 15;
-      if (/\b(NULL)\b/.test(code) && !/nullptr/.test(code)) scores.c += 8;
-      if (/\b(void\s*\*|char\s*\*)/.test(code))            scores.c += 10;
-
-      // C++ signals that distinguish from C
-      if (/^#include\s*<(iostream|string|vector|map|set|algorithm|memory|fstream|sstream|functional|chrono|thread|mutex|array|queue|stack|deque|unordered_map|unordered_set|numeric|bitset|optional|variant|any|filesystem|regex|tuple|utility|cassert|cstdlib|cstring|cmath|cstdio|stdexcept|typeinfo|initializer_list|type_traits)>/m.test(code))
-                                                            scores.cpp += 25;
-      if (/\bstd::/.test(code))                             scores.cpp += 30;
+      if (/^#include\s*<(iostream|string|vector|map|set|algorithm|memory|fstream|sstream|unordered_map)>/m.test(code))
+                                                            scores.cpp += 28;
+      if (/\bstd::/.test(code))                             scores.cpp += 32;
       if (/\b(cout|cin|cerr|endl)\b/.test(code))            scores.cpp += 25;
-      if (/\bnamespace\s+\w+/.test(code))                   scores.cpp += 20;
       if (/\busing\s+namespace\b/.test(code))               scores.cpp += 25;
-      if (/\b(nullptr|constexpr|auto\s+\w+\s*=|decltype)\b/.test(code))
-                                                            scores.cpp += 20;
+      if (/\b(nullptr|constexpr|decltype)\b/.test(code))    scores.cpp += 20;
       if (/\btemplate\s*</.test(code))                      scores.cpp += 25;
-      if (/\b(unique_ptr|shared_ptr|make_unique|make_shared)\b/.test(code))
-                                                            scores.cpp += 25;
-      if (/\b(public|private|protected)\s*:/.test(code))    scores.cpp += 15;
-      if (/\bclass\s+\w+\s*(\{|:)/.test(code) && !/\bpackage\b/.test(code))
-                                                            scores.cpp += 10;
-      if (/\bvirtual\s+/.test(code))                        scores.cpp += 15;
-      if (/\bconst\s+\w+\s*&/.test(code))                   scores.cpp += 12;
-      if (/\b(vector|map|string|set|queue|stack|pair|tuple)\s*</.test(code))
-                                                            scores.cpp += 15;
+      if (/\b(unique_ptr|shared_ptr|make_unique)\b/.test(code)) scores.cpp += 25;
+      if (/#include\s*[<"]/.test(code)) { scores.c += 10; scores.cpp += 10; }
+      if (/\bint\s+main\s*\(\s*(void|int\s+argc)/.test(code)) { scores.c += 10; scores.cpp += 10; }
 
-      // ── 2. SHARED C/C++ SIGNALS (boost both) ──
-      if (/#include\s*[<"]/.test(code)) {
-        scores.c += 10;
-        scores.cpp += 10;
-      }
-      if (/\bint\s+main\s*\(\s*(void|int\s+argc)/.test(code)) {
-        scores.c += 10;
-        scores.cpp += 10;
-      }
-      // Semicolons and curly braces (not Python)
+      // ── 4. JAVASCRIPT & TYPESCRIPT ──
+      if (/\bconsole\.(log|error|warn|info)\s*\(/.test(code)) { scores.javascript += 22; scores.typescript += 18; }
+      if (/\b(const|let)\s+\w+\s*=/.test(code))             { scores.javascript += 12; scores.typescript += 12; }
+      if (/\bfunction\s+\w+\s*\(/.test(code))               { scores.javascript += 15; scores.typescript += 12; }
+      if (/=>\s*\{/.test(code))                             { scores.javascript += 15; scores.typescript += 15; }
+      if (/\b(module\.exports|require\s*\(|document\.getElementById|window\.)/.test(code)) scores.javascript += 25;
+      if (/\bexport\s+(default\s+)?(function|const|class|interface|type)\b/.test(code)) { scores.javascript += 15; scores.typescript += 20; }
+      if (/\b(interface|type)\s+\w+\s*(\{|=|<)/.test(code)) scores.typescript += 32;
+      if (/:\s*(string|number|boolean|any|unknown|never|void)\b/.test(code)) scores.typescript += 28;
+      if (/\bas\s+(string|number|boolean|any|const)\b/.test(code)) scores.typescript += 22;
+
+      // ── 5. GO ──
+      if (/^package\s+\w+\s*$/m.test(code))                 scores.go += 28;
+      if (/\bfunc\s+(\([^)]+\)\s*)?\w+\s*\(/.test(code))    scores.go += 28;
+      if (/\bfmt\.(Println|Printf|Sprintf|Errorf)\b/.test(code)) scores.go += 30;
+      if (/:=/.test(code))                                  scores.go += 18;
+      if (/\b(go\s+func|chan\s+\w+|defer\s+)\b/.test(code)) scores.go += 25;
+
+      // ── 6. RUST ──
+      if (/\b(pub\s+)?(async\s+)?fn\s+\w+/.test(code))      scores.rust += 30;
+      if (/\bprintln!\s*\(/.test(code) || /\bformat!\s*\(/.test(code)) scores.rust += 32;
+      if (/\blet\s+mut\s+\w+/.test(code))                   scores.rust += 28;
+      if (/\bimpl(\s*<[^>]+>)?\s+\w+/.test(code))           scores.rust += 25;
+      if (/\buse\s+std::/.test(code))                       scores.rust += 30;
+      if (/\b(Option|Result|Vec)<[^>]+>/.test(code))        scores.rust += 20;
+
+      // ── 7. C# ──
+      if (/\busing\s+System(\.\w+)*;/.test(code))           scores.csharp += 35;
+      if (/\bConsole\.(WriteLine|Write)\s*\(/.test(code))   scores.csharp += 30;
+      if (/\bnamespace\s+[\w.]+\s*\{/.test(code))           scores.csharp += 25;
+      if (/\bstatic\s+void\s+Main\s*\(\s*string\[\]/.test(code)) scores.csharp += 35;
+      if (/\bpublic\s+(async\s+)?Task</.test(code))         scores.csharp += 25;
+
+      // ── 8. PHP ──
+      if (/<\?php\b/.test(code))                            scores.php += 45;
+      if (/\$[a-zA-Z_]\w*\s*=/.test(code) && /\becho\b|->/.test(code)) scores.php += 25;
+
+      // ── 9. RUBY ──
+      if (/\bdef\s+\w+/.test(code) && /\bend\b/.test(code) && !/\{/.test(code)) scores.ruby += 28;
+      if (/\b(puts|attr_accessor|attr_reader)\b/.test(code)) scores.ruby += 25;
+      if (/\.each\s+do\s*\|/.test(code))                    scores.ruby += 25;
+
+      // ── 10. SWIFT ──
+      if (/\bimport\s+(Foundation|SwiftUI|UIKit)\b/.test(code)) scores.swift += 35;
+      if (/\bguard\s+let\b/.test(code))                     scores.swift += 30;
+      if (/\bfunc\s+\w+\s*\([^)]*\)\s*(->\s*\w+)?\s*\{/.test(code) && /\b(let|var)\s+\w+/.test(code)) scores.swift += 25;
+
+      // ── 11. KOTLIN ──
+      if (/\bfun\s+\w+\s*\(/.test(code))                    scores.kotlin += 32;
+      if (/\bdata\s+class\s+\w+/.test(code))                scores.kotlin += 32;
+      if (/\bcompanion\s+object\b/.test(code))              scores.kotlin += 30;
+      if (/\b(val|var)\s+\w+\s*:/.test(code) && /\bfun\b/.test(code)) scores.kotlin += 18;
+
+      // ── 12. DART ──
+      if (/\bimport\s+['"]package:/.test(code))             scores.dart += 38;
+      if (/\bWidget\s+build\s*\(\s*BuildContext\b/.test(code)) scores.dart += 38;
+      if (/\bvoid\s+main\s*\(\s*\)\s*(async\s*)?\{/.test(code) && /\bprint\s*\(/.test(code)) scores.dart += 25;
+
+      // ── 13. SCALA ──
+      if (/\bobject\s+\w+\s*(extends|\{)/.test(code) && /\bdef\s+/.test(code)) scores.scala += 32;
+      if (/\bcase\s+class\s+\w+/.test(code))                scores.scala += 30;
+
+      // ── 14. R ──
+      if (/<-\s*function\s*\(/.test(code))                  scores.r += 38;
+      if (/\b(library|data\.frame|ggplot)\s*\(/.test(code)) scores.r += 30;
+      if (/\w+\s*<-\s*c\s*\(/.test(code))                   scores.r += 25;
+
+      // ── 15. SQL ──
+      if (/\b(SELECT\s+.+\s+FROM|CREATE\s+(OR\s+REPLACE\s+)?(TABLE|VIEW|FUNCTION|PROCEDURE)|INSERT\s+INTO|UPDATE\s+\w+\s+SET)\b/i.test(code))
+                                                            scores.sql += 40;
+
+      // ── 16. BASH / SHELL ──
+      if (/^#!\s*\/(usr\/)?bin\/(env\s+)?(ba|z|sh)/.test(code)) scores.bash += 45;
+      if (/\b(echo\s+["']|fi\b|esac\b|done\b)/.test(code) && !/;/.test(code.split('\n')[0])) scores.bash += 22;
+
+      // ── 17. POWERSHELL ──
+      if (/\b(Write-Host|Write-Output|Get-ChildItem|Set-Location|\$PSVersionTable)\b/i.test(code)) scores.powershell += 38;
+      if (/\[CmdletBinding\(\)\]/i.test(code))              scores.powershell += 40;
+
+      // ── 18. PERL ──
+      if (/\buse\s+(strict|warnings);/.test(code))          scores.perl += 40;
+      if (/\bmy\s+\$\w+\s*=/.test(code) && /\bsub\s+\w+/.test(code)) scores.perl += 35;
+
+      // ── 19. LUA ──
+      if (/\blocal\s+function\s+\w+/.test(code))            scores.lua += 38;
+      if (/\belseif\b/.test(code) && /\bthen\b/.test(code) && /\bend\b/.test(code)) scores.lua += 35;
+
+      // ── 20. HASKELL ──
+      if (/^\w+\s*::\s*[\w\s\->()]+$/m.test(code))          scores.haskell += 32;
+      if (/\bputStrLn\b|\bderiving\s*\(/.test(code))        scores.haskell += 30;
+
+      // ── 21. ELIXIR ──
+      if (/\bdefmodule\s+[A-Z][\w.]*\s+do\b/.test(code))    scores.elixir += 42;
+      if (/\b(defp|IO\.puts)\b/.test(code))                 scores.elixir += 30;
+
+      // ── 22. JULIA ──
+      if (/\bmutable\s+struct\b/.test(code))                scores.julia += 38;
+      if (/\bfunction\s+\w+\([^)]*\)\s*[\r\n][\s\S]*\bend\b/.test(code)) scores.julia += 28;
+
+      // ── 23. SOLIDITY ──
+      if (/\bpragma\s+solidity\b/.test(code))               scores.solidity += 48;
+      if (/\bcontract\s+\w+\s*\{/.test(code) && /\b(uint256|address|msg\.sender)\b/.test(code)) scores.solidity += 38;
+
+      // ── 24. OBJECTIVE-C ──
+      if (/@(interface|implementation|end)\b/.test(code) && /\bNS\w+/.test(code)) scores.objc += 40;
+
+      // ── 25. GROOVY ──
+      if (/@Grab\b/.test(code) || (/\bdef\s+\w+\s*=/.test(code) && /\bprintln\s+['"]/.test(code))) scores.groovy += 28;
+
+      // ── 26. MATLAB ──
+      if (/^\s*function\s+(\[[^\]]+\]|\w+)\s*=\s*\w+/m.test(code)) scores.matlab += 38;
+
+      // ── 27. HTML / CSS / YAML ──
+      if (/<!DOCTYPE\s+html/i.test(code) || /<(html|head|body|div|span|section|script)\b/i.test(code)) scores.html += 35;
+      if (/^[\s\S]*[.#]?[\w-]+\s*\{\s*[\r\n\s]*(color|display|margin|padding|background|font-size|flex|grid)\s*:/m.test(code)) scores.css += 35;
+      if (/^(---|\w[\w-]*:\s+\S+)/m.test(code) && !/[{};()]/.test(code) && code.split('\n').length >= 2) scores.yaml += 22;
+
+      // ── SHARED & NEGATIVE SIGNALS ──
       const semiCount = (code.match(/;\s*$/gm) || []).length;
       if (semiCount >= 3) {
         scores.c += 5; scores.cpp += 5; scores.java += 5;
         scores.python -= 5;
       }
-      // Curly braces for blocks
       if (/\)\s*\{/.test(code)) {
         scores.c += 5; scores.cpp += 5; scores.java += 5;
       }
-
-      // ── 3. INDENTATION SIGNAL (Python uses indentation, not braces) ──
       const lines = code.split('\n').filter(l => l.trim());
       const indentedAfterColon = lines.some((l, i) =>
         /:\s*(#.*)?$/.test(l) && i + 1 < lines.length && /^\s{2,}/.test(lines[i+1])
       );
-      if (indentedAfterColon) scores.python += 10;
+      if (indentedAfterColon && !/[{};]/.test(code)) scores.python += 10;
 
-      // ── 4. NEGATIVE SIGNALS (reduce false positives) ──
-      // If we see `def `, it's definitely not C/C++/Java
       if (/\bdef\s+\w+\s*\(/.test(code)) {
         scores.c -= 15; scores.cpp -= 15; scores.java -= 15;
       }
-      // If we see #include, it's definitely not Python or Java
       if (/#include/.test(code)) {
         scores.python -= 20; scores.java -= 15;
       }
-      // If we see `package` and `import java.`, it's not C/C++/Python
       if (/\bpackage\s+[\w.]+;/.test(code)) {
         scores.python -= 15; scores.c -= 15; scores.cpp -= 15;
       }
 
-      // ── 5. FIND WINNER ──
+      // ── FIND WINNER ──
       let bestLang = 'python';
       let bestScore = scores.python;
       for (const [lang, score] of Object.entries(scores)) {
@@ -2021,9 +2193,7 @@ public class PaymentService {
         }
       }
 
-      // Only auto-detect if the confidence is meaningful (score > 10)
       if (bestScore <= 10) return null;
-
       return bestLang;
     }
 
@@ -2083,21 +2253,33 @@ public class PaymentService {
       _autoDetectTimer = setTimeout(autoDetectAndSwitchLanguage, 400);
     }
 
+    const EXT_TO_LANG = {
+      py: 'python', pyw: 'python', java: 'java',
+      cpp: 'cpp', hpp: 'cpp', cc: 'cpp', cxx: 'cpp', hxx: 'cpp',
+      c: 'c', h: 'c', js: 'javascript', mjs: 'javascript', cjs: 'javascript', jsx: 'javascript',
+      ts: 'typescript', tsx: 'typescript', mts: 'typescript', cts: 'typescript',
+      go: 'go', rs: 'rust', cs: 'csharp', php: 'php', rb: 'ruby', swift: 'swift',
+      kt: 'kotlin', kts: 'kotlin', dart: 'dart', scala: 'scala', sc: 'scala',
+      r: 'r', sql: 'sql', sh: 'bash', bash: 'bash', zsh: 'bash',
+      ps1: 'powershell', psm1: 'powershell', pl: 'perl', pm: 'perl',
+      lua: 'lua', hs: 'haskell', ex: 'elixir', exs: 'elixir', jl: 'julia',
+      sol: 'solidity', m: 'objc', mm: 'objc', groovy: 'groovy',
+      html: 'html', htm: 'html', css: 'css', scss: 'css', yml: 'yaml', yaml: 'yaml', json: 'json'
+    };
+
     function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
       const name = file.name;
-      let lang = 'python';
-      if (name.endsWith('.java')) lang = 'java';
-      else if (name.endsWith('.cpp') || name.endsWith('.hpp') || name.endsWith('.cc')) lang = 'cpp';
-      else if (name.endsWith('.c') || name.endsWith('.h')) lang = 'c';
+      const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
+      let lang = EXT_TO_LANG[ext] || 'python';
       const reader = new FileReader();
       reader.onload = e => {
         const content = e.target.result;
-        // For .h files, use content-based detection since .h could be C or C++
-        if (name.endsWith('.h')) {
+        // For ambiguous extensions (.h, .m) or unknown files, use content-based detection
+        if (ext === 'h' || ext === 'm' || !EXT_TO_LANG[ext]) {
           const contentLang = detectLanguageFromCode(content);
-          if (contentLang === 'cpp' || contentLang === 'c') lang = contentLang;
+          if (contentLang) lang = contentLang;
         }
         onLanguageChange(lang, false);
         _lastDetectedLang = lang;  // prevent re-detection flicker
@@ -2424,11 +2606,13 @@ public class PaymentService {
 
     // ─── Fix actions ───────────────────────────────────────
     function detectDocStyle(code, lang) {
-      if (lang === 'c' || lang === 'cpp') return 'doxygen';
-      if (lang === 'java') return 'javadoc';
-      if (/(:param\s+\w+:|:return:|:rtype:)/.test(code)) return 'sphinx';
-      if (/\b(Parameters|Returns)\s*\r?\n\s*-{3,}/.test(code)) return 'numpy';
-      return 'google';
+      if (lang === 'python') {
+        if (/(:param\s+\w+:|:return:|:rtype:)/.test(code)) return 'sphinx';
+        if (/\b(Parameters|Returns)\s*\r?\n\s*-{3,}/.test(code)) return 'numpy';
+        return 'google';
+      }
+      const conf = LANG_CONFIG[lang];
+      return (conf && conf.styleValues && conf.styleValues[0]) ? conf.styleValues[0] : 'jsdoc';
     }
 
     async function fixSpecific(entityName) {

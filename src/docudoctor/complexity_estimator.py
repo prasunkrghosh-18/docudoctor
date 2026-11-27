@@ -278,10 +278,12 @@ def _analyse_c_java_function(name: str, body: str) -> FunctionComplexity:
 
 
 def _analyse_c_java(code: str, language: str = "c") -> ComplexityAnalysis:
-    """Heuristic complexity analysis for C/C++/Java code."""
-    # Extract function-like blocks using a simple brace-matching strategy
+    """Heuristic complexity analysis for C/C++/Java and other brace/keyword languages."""
+    # Extract function-like blocks across C-family, JS/TS, Go, Rust, Kotlin, Swift, PHP, Ruby, etc.
     fn_re = re.compile(
-        r'(?:(?:public|private|protected|static|virtual|inline|extern|double|int|void|float|'
+        r'(?:^[ \t]*(?:export\s+)?(?:pub(?:\([^)]+\))?\s+)?(?:async\s+)?'
+        r'(?:fn|func|fun|function|defp?|sub)\s+(\w+)\s*(?:<[^>]+>)?\s*\([^)]*\)[^{\n]*\{?)'
+        r'|(?:(?:public|private|protected|static|virtual|inline|extern|double|int|void|float|'
         r'bool|char|auto|long|short|unsigned|const|std::\w+|String|List|Map|boolean)\s+)+'
         r'(\w+)\s*\([^)]*\)\s*(?:const\s*)?\{',
         re.MULTILINE
@@ -289,8 +291,8 @@ def _analyse_c_java(code: str, language: str = "c") -> ComplexityAnalysis:
     results: List[FunctionComplexity] = []
 
     for m in fn_re.finditer(code):
-        fn_name = m.group(1)
-        if fn_name in ('if', 'for', 'while', 'switch', 'catch'):
+        fn_name = m.group(1) or m.group(2)
+        if not fn_name or fn_name in ('if', 'for', 'while', 'switch', 'catch', 'match'):
             continue
         # Extract body by counting braces
         start = m.end() - 1  # position of opening {

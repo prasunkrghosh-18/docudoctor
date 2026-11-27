@@ -262,6 +262,34 @@ def _check_java_style(code: str) -> StyleReport:
     return _build_report(issues)
 
 
+def _check_universal_style(code: str, lang: str = "javascript") -> StyleReport:
+    """Heuristic style check for all additional modern languages (no Python AST)."""
+    issues: List[StyleIssue] = []
+    lines = code.splitlines()
+
+    for lineno, line in enumerate(lines, 1):
+        if len(line) > _LONG_LINE_LIMIT:
+            issues.append(StyleIssue(
+                line=lineno, code="S101",
+                message=f"Line too long ({len(line)} chars). Keep lines <= {_LONG_LINE_LIMIT} chars.",
+                severity="warning", category="formatting"
+            ))
+        if line != line.rstrip():
+            issues.append(StyleIssue(
+                line=lineno, code="S102",
+                message="Trailing whitespace.",
+                severity="info", category="formatting"
+            ))
+        if re.search(r'\b(TODO|FIXME|HACK|XXX)\b', line):
+            issues.append(StyleIssue(
+                line=lineno, code="S301",
+                message=f"Unresolved marker on line {lineno} ({lang.upper()}).",
+                severity="info", category="structure"
+            ))
+
+    return _build_report(issues)
+
+
 # ──────────────────────────────────────────────────────────────
 # Public API
 # ──────────────────────────────────────────────────────────────
@@ -271,7 +299,7 @@ def analyze_code_style(code: str, language: str = "python") -> StyleReport:
 
     Args:
         code: Source code string.
-        language: One of 'python', 'c', 'cpp', 'java'.
+        language: Any supported language key (e.g. 'python', 'javascript', 'go', 'rust', etc.).
 
     Returns:
         StyleReport with style_score (0-100), grade, label, and issue list.
@@ -283,4 +311,4 @@ def analyze_code_style(code: str, language: str = "python") -> StyleReport:
         return _check_c_style(code, lang=lang)
     elif lang == "java":
         return _check_java_style(code)
-    return _check_python_style(code)
+    return _check_universal_style(code, lang=lang)

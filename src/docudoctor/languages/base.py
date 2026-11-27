@@ -11,19 +11,75 @@ class Language(str, Enum):
     C = "c"
     CPP = "cpp"
     JAVA = "java"
+    JAVASCRIPT = "javascript"
+    TYPESCRIPT = "typescript"
+    GO = "go"
+    RUST = "rust"
+    CSHARP = "csharp"
+    PHP = "php"
+    RUBY = "ruby"
+    SWIFT = "swift"
+    KOTLIN = "kotlin"
+    DART = "dart"
+    SCALA = "scala"
+    R = "r"
+    SQL = "sql"
+    BASH = "bash"
+    POWERSHELL = "powershell"
+    PERL = "perl"
+    LUA = "lua"
+    HASKELL = "haskell"
+    ELIXIR = "elixir"
+    JULIA = "julia"
+    SOLIDITY = "solidity"
+    OBJC = "objc"
+    GROOVY = "groovy"
+    MATLAB = "matlab"
+    HTML = "html"
+    CSS = "css"
+    YAML = "yaml"
+    JSON = "json"
 
     @classmethod
     def from_filename(cls, filename: str) -> "Language":
         """Detect language from filename extension."""
         lower = filename.lower()
-        if lower.endswith(".py"):
-            return cls.PYTHON
-        elif lower.endswith(".java"):
-            return cls.JAVA
-        elif lower.endswith((".cpp", ".cxx", ".cc", ".hpp", ".hxx")):
-            return cls.CPP
-        elif lower.endswith((".c", ".h")):
-            return cls.C
+        ext_map = {
+            (".py", ".pyw"): cls.PYTHON,
+            (".java",): cls.JAVA,
+            (".cpp", ".cxx", ".cc", ".hpp", ".hxx"): cls.CPP,
+            (".c", ".h"): cls.C,
+            (".js", ".mjs", ".cjs", ".jsx"): cls.JAVASCRIPT,
+            (".ts", ".tsx", ".mts", ".cts"): cls.TYPESCRIPT,
+            (".go",): cls.GO,
+            (".rs",): cls.RUST,
+            (".cs",): cls.CSHARP,
+            (".php", ".phtml"): cls.PHP,
+            (".rb", ".rake"): cls.RUBY,
+            (".swift",): cls.SWIFT,
+            (".kt", ".kts"): cls.KOTLIN,
+            (".dart",): cls.DART,
+            (".scala", ".sc"): cls.SCALA,
+            (".r",): cls.R,
+            (".sql",): cls.SQL,
+            (".sh", ".bash", ".zsh"): cls.BASH,
+            (".ps1", ".psm1", ".psd1"): cls.POWERSHELL,
+            (".pl", ".pm"): cls.PERL,
+            (".lua",): cls.LUA,
+            (".hs",): cls.HASKELL,
+            (".ex", ".exs"): cls.ELIXIR,
+            (".jl",): cls.JULIA,
+            (".sol",): cls.SOLIDITY,
+            (".m", ".mm"): cls.OBJC,
+            (".groovy", ".gradle"): cls.GROOVY,
+            (".html", ".htm"): cls.HTML,
+            (".css", ".scss", ".sass", ".less"): cls.CSS,
+            (".yml", ".yaml"): cls.YAML,
+            (".json",): cls.JSON,
+        }
+        for exts, lang in ext_map.items():
+            if lower.endswith(exts):
+                return lang
         return cls.PYTHON
 
 
