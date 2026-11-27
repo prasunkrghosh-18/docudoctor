@@ -1088,11 +1088,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button type="button" onclick="playCyberpunkTick(1200); document.getElementById('fileInput').click()" title="Load local source file" class="linear-pill-btn tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
             <span>📁</span><span class="tracking-wide">UPLOAD</span>
           </button>
-          <button type="button" onclick="playCyberpunkTick(1350); loadSampleForLanguage()" title="Load reference telemetry sample" class="linear-pill-btn tactical-btn text-xs font-mono font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5 cursor-pointer">
-            <span>⚡</span><span class="tracking-wide">SAMPLE</span>
-          </button>
-          <button type="button" onclick="playCyberpunkTick(900); clearEditor()" title="Flush editor buffer" class="text-xs font-mono text-gray-500 hover:text-red-400 px-2.5 py-1.5 transition font-semibold cursor-pointer">
-            FLUSH
+          <button type="button" onclick="playCyberpunkTick(900); clearEditor()" title="Clear editor" class="text-xs font-mono text-gray-500 hover:text-red-400 px-2.5 py-1.5 transition font-semibold cursor-pointer">
+            CLEAR
           </button>
         </div>
       </div>
@@ -1159,7 +1156,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div id="gutter" class="py-4 px-2.5 select-none font-mono text-xs text-gray-600 bg-dark-950/90 border-r border-white/[0.06] text-right min-w-[3rem] overflow-hidden">1</div>
           <textarea id="codeEditor" oninput="onEditorInput()" onscroll="syncGutterScroll()"
             class="w-full flex-1 bg-transparent text-gray-100 p-4 text-xs md:text-sm leading-relaxed focus:outline-none resize-none font-mono selection:bg-cyan-500/25 selection:text-cyan-200"
-            spellcheck="false" placeholder="# Paste code here, load a sample, or upload a file..."></textarea>
+            spellcheck="false" placeholder="# Paste code here or upload a file..."></textarea>
         </div>
         <!-- IDE Bottom Status Bar -->
         <div class="px-4 py-2 bg-dark-950/95 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-gray-400 select-none">
@@ -1280,7 +1277,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Issue cards container with full spacious scrolling -->
             <div id="issuesContainer" class="p-4 overflow-y-auto space-y-3 flex-1 text-xs">
-              <p class="text-gray-500 text-center py-14">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>
+              <p class="text-gray-500 text-center py-14">No code analyzed yet.<br>Paste or upload code, then click <b>Audit Code</b>.</p>
             </div>
           </div>
 
@@ -2160,7 +2157,7 @@ public class PaymentService {
       document.getElementById('countError').innerText = '0';
       document.getElementById('countWarning').innerText = '0';
       document.getElementById('issueCountBadge').innerText = '0 issues';
-      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-8">No code analyzed yet.<br>Click <b>Load Sample</b> or paste code, then click <b>Audit Code</b>.</p>`;
+      document.getElementById('issuesContainer').innerHTML = `<p class="text-gray-500 text-center py-8">No code analyzed yet.<br>Paste or upload code, then click <b>Audit Code</b>.</p>`;
       // Reset complexity
       document.getElementById('overallTimeBig').innerText = 'Time: --';
       document.getElementById('overallSpaceBig').innerText = 'Space: --';
