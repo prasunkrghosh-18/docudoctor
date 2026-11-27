@@ -1056,13 +1056,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Polyglot Auto-Detected Language Telemetry Pod -->
         <div id="detectedLangPod" class="flex items-center space-x-2.5 bg-dark-900/90 border border-cyan-500/30 rounded-xl px-3 py-1.5 shadow-inner transition-all">
           <span id="detectedLangPulse" class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee]"></span>
-          <span class="text-base select-none" id="langEmojiIcon">🐍</span>
+          <span class="text-base select-none" id="langEmojiIcon">✨</span>
           <div class="flex flex-col">
             <div class="flex items-center space-x-1.5">
               <span class="text-[8px] font-mono text-cyan-400/80 uppercase tracking-widest font-black leading-none">DETECTED LANGUAGE</span>
               <span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase leading-none">AUTO</span>
             </div>
-            <span id="detectedLangText" class="text-xs font-mono font-extrabold text-white tracking-wide mt-0.5">Python (.py)</span>
+            <span id="detectedLangText" class="text-xs font-mono font-extrabold text-white tracking-wide mt-0.5">Blank (Awaiting Code)</span>
           </div>
           <!-- Hidden fallback select element to retain compatibility and test assertions -->
           <select id="languageSelect" class="hidden">
@@ -1139,8 +1139,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <!-- Active File Tab Capsule -->
             <div class="flex items-center space-x-2 pl-3 border-l border-white/[0.08]">
               <div class="px-2.5 py-1 rounded-lg bg-dark-900/90 border border-cyan-500/30 flex items-center space-x-1.5 shadow-sm">
-                <span id="fileIcon">🐍</span>
-                <span id="fileNameDisplay" class="text-xs font-mono font-bold text-gray-200 tracking-tight">main.py</span>
+                <span id="fileIcon">📄</span>
+                <span id="fileNameDisplay" class="text-xs font-mono font-bold text-gray-200 tracking-tight">untitled</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5"></span>
               </div>
             </div>
@@ -1148,7 +1148,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <div id="editorLangBadge" class="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 font-mono shadow-sm transition-all duration-300">
               <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
               <span class="text-[9px] uppercase tracking-wider text-cyan-400/80 font-black">LANGUAGE:</span>
-              <span id="editorDetectedLang" class="text-xs font-bold text-white tracking-wide">Python</span>
+              <span id="editorDetectedLang" class="text-xs font-bold text-white tracking-wide">Blank</span>
             </div>
           </div>
           <div class="flex items-center space-x-2 text-[11px] text-gray-400 font-mono">
@@ -1173,7 +1173,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <span>GEMINI AI READY</span>
             </span>
             <span class="text-white/20">•</span>
-            <span id="statusBarLang" class="text-cyan-300 font-bold">PYTHON</span>
+            <span id="statusBarLang" class="text-cyan-300 font-bold">BLANK</span>
             <span class="text-white/20">•</span>
             <span class="text-gray-400">UTF-8</span>
             <span class="text-white/20">•</span>
@@ -2034,16 +2034,34 @@ public class PaymentService {
       return bestLang;
     }
 
+    function setBlankLanguageState() {
+      _lastDetectedLang = null;
+      const icon = document.getElementById('langEmojiIcon');
+      if (icon) icon.innerText = '✨';
+      const dt = document.getElementById('detectedLangText');
+      if (dt) dt.innerText = 'Blank (Awaiting Code)';
+      const edl = document.getElementById('editorDetectedLang');
+      if (edl) edl.innerText = 'Blank';
+      const fi = document.getElementById('fileIcon');
+      if (fi) fi.innerText = '📄';
+      const fn = document.getElementById('fileNameDisplay');
+      if (fn) fn.innerText = 'untitled';
+      const sbl = document.getElementById('statusBarLang');
+      if (sbl) sbl.innerText = 'BLANK';
+    }
+
     function autoDetectAndSwitchLanguage() {
       const code = document.getElementById('codeEditor').value;
+      if (!code || !code.trim()) {
+        setBlankLanguageState();
+        return null;
+      }
       const detected = detectLanguageFromCode(code);
       if (!detected) return null;
-      if (detected === currentLanguage) {
-        _lastDetectedLang = detected;
+      // Only skip if this exact language is already active AND displayed (not coming from blank state)
+      if (detected === _lastDetectedLang && detected === currentLanguage) {
         return detected;
       }
-      // Only switch if the detection is new (don't re-flash on every keystroke)
-      if (detected === _lastDetectedLang) return detected;
       _lastDetectedLang = detected;
 
       // Switch language silently & update all UI elements
@@ -2124,17 +2142,11 @@ public class PaymentService {
 
     function clearEditor() {
       document.getElementById('codeEditor').value = '';
-      _lastDetectedLang = null;
       updateGutter();
       resetDashboard();
       document.getElementById('diffSection').classList.add('hidden');
       currentIssues = [];
-      const edl = document.getElementById('editorDetectedLang');
-      if (edl) edl.innerText = 'Awaiting Code';
-      const dt = document.getElementById('detectedLangText');
-      if (dt) dt.innerText = 'Awaiting Code...';
-      const sbl = document.getElementById('statusBarLang');
-      if (sbl) sbl.innerText = 'READY';
+      setBlankLanguageState();
       showToast('Editor cleared.', 'gray');
     }
 
@@ -2184,9 +2196,9 @@ public class PaymentService {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) { showToast('Please enter or upload code first!', 'amber'); return; }
 
-      // Auto-detect language if code clearly matches a different language
+      // Auto-detect language if code clearly matches a different language or UI was blank
       const detected = detectLanguageFromCode(code);
-      if (detected && detected !== currentLanguage) {
+      if (detected && (detected !== currentLanguage || detected !== _lastDetectedLang)) {
         autoDetectAndSwitchLanguage();
       }
 
@@ -2438,9 +2450,9 @@ public class PaymentService {
       const code = document.getElementById('codeEditor').value;
       if (!code.trim()) { showToast('Please enter or upload code first!', 'amber'); return; }
 
-      // Auto-detect language if code clearly matches a different language
+      // Auto-detect language if code clearly matches a different language or UI was blank
       const detected = detectLanguageFromCode(code);
-      if (detected && detected !== currentLanguage) {
+      if (detected && (detected !== currentLanguage || detected !== _lastDetectedLang)) {
         autoDetectAndSwitchLanguage();
       }
 
@@ -3008,6 +3020,7 @@ public class PaymentService {
       initTheme();
       // Initialize completely blank without pre-coming code
       onLanguageChange('python', false);
+      setBlankLanguageState();
       const ed = document.getElementById('codeEditor');
       if (ed) {
         ed.value = '';
