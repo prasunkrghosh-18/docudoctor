@@ -1073,18 +1073,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </select>
         </div>
 
-        <!-- Docstring Schema Standard Selector -->
-        <div class="flex items-center space-x-2 bg-dark-900/90 border border-purple-500/30 hover:border-purple-400/70 rounded-xl px-3 py-1.5 shadow-inner transition-all">
-          <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-          <div class="flex flex-col">
-            <span class="text-[8px] font-mono text-purple-400/80 uppercase tracking-widest font-black leading-none">DOC SCHEMA</span>
-            <select id="docStyle" class="bg-transparent text-xs font-mono font-bold text-purple-200 hover:text-purple-100 focus:outline-none cursor-pointer">
-              <option value="google" class="bg-dark-900 text-gray-200">Google Style</option>
-              <option value="numpy" class="bg-dark-900 text-gray-200">NumPy Style</option>
-              <option value="sphinx" class="bg-dark-900 text-gray-200">Sphinx Style</option>
-            </select>
-          </div>
-        </div>
+        <!-- Hidden Docstring Schema Standard (auto-selected per language/code) -->
+        <select id="docStyle" class="hidden">
+          <option value="google">Google Style</option>
+          <option value="numpy">NumPy Style</option>
+          <option value="sphinx">Sphinx Style</option>
+          <option value="doxygen">Doxygen Style</option>
+          <option value="javadoc">Standard Javadoc</option>
+        </select>
 
         <!-- Tactical Buffer Controls Group -->
         <div class="flex items-center bg-dark-950/70 p-1 rounded-xl border border-white/[0.08] space-x-1">
@@ -2430,9 +2426,19 @@ public class PaymentService {
     }
 
     // ─── Fix actions ───────────────────────────────────────
+    function detectDocStyle(code, lang) {
+      if (lang === 'c' || lang === 'cpp') return 'doxygen';
+      if (lang === 'java') return 'javadoc';
+      if (/(:param\s+\w+:|:return:|:rtype:)/.test(code)) return 'sphinx';
+      if (/\b(Parameters|Returns)\s*\r?\n\s*-{3,}/.test(code)) return 'numpy';
+      return 'google';
+    }
+
     async function fixSpecific(entityName) {
       const code = document.getElementById('codeEditor').value;
-      const style = document.getElementById('docStyle').value;
+      const style = detectDocStyle(code, currentLanguage);
+      const ss = document.getElementById('docStyle');
+      if (ss) ss.value = style;
       try {
         const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, target:entityName, use_ai: true}) });
         const data = await res.json();
@@ -2456,7 +2462,9 @@ public class PaymentService {
         autoDetectAndSwitchLanguage();
       }
 
-      const style = document.getElementById('docStyle').value;
+      const style = detectDocStyle(code, currentLanguage);
+      const ss = document.getElementById('docStyle');
+      if (ss) ss.value = style;
       try {
         const res = await fetch('/api/fix', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, language:currentLanguage, style, use_ai: true}) });
         const data = await res.json();
